@@ -7,7 +7,7 @@ import json
 from docker import Client
 from docker.errors import APIError, NullResource, NotFound
 
-from ..Utils import *
+from ..Utils import (logger, shell_escape, switch)
 
 try:
     import urlparse
@@ -57,6 +57,7 @@ class Docker(object):
     client = None
     ctr = None
     current_ctr = None
+    buf = ""
 
     def __init__(self):
         """Loading docker environments"""
@@ -79,16 +80,24 @@ class Docker(object):
             self.host = '127.0.0.1'
             self.client = Client(base_url='unix://var/run/docker.sock')
 
-
-    def load(self, command):
-        pass
+    def load(self, args):
+        for case in switch.switch(args["command"]):
+            if case('run'):
+                del args["command"]
+                break
+            if case('ps'):
+                del args["command"]
+                self.ps(args)
 
     def recv(self):
-        return self.client.containers()
+        return self.buf
 
-    def ps(self):
+    def ps(self, args):
         """docker ps"""
-        return self.client.containers()
+        if args["a"]:
+            self.buf += str(self.client.containers(all=True))
+        else:
+            self.buf += str(self.client.containers(all=False))
 
     def createHostConfig(self, port_bindings, binds, links):
         """Create host config for containers"""

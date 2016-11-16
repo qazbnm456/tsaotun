@@ -1,1 +1,1 @@
-__all__ = ["logger", "option_parser", "shell_escape"]
+__all__ = ["logger", "option_parser", "shell_escape", "switch"]

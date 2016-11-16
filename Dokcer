@@ -3,37 +3,13 @@
 
 from __future__ import absolute_import
 
-import sys
-import optparse
+import argparse
 
 from lib.Docker.docker_client import Docker
-from docker.errors import APIError
-
-from lib.Utils import *
-
-class switch(object):
-
-    def __init__(self, value):
-        self.value = value
-        self.fall = False
-
-    def __iter__(self):
-        """Return the match method once, then stop"""
-        yield self.match
-        raise StopIteration
-
-    def match(self, *args):
-        """Indicate whether or not to enter a case suite"""
-        if self.fall or not args:
-            return True
-        elif self.value in args:
-            self.fall = True
-            return True
-        else:
-            return False
-
+from lib.Utils import logger
 
 def enter_shell(dokcer_instance):
+    """Enter Dokcer shell"""
     sA = shellAgent()
     logger.Logger.logInfo("Dokcer ready (press Ctrl+D to end input)")
     while True:
@@ -48,74 +24,80 @@ def enter_shell(dokcer_instance):
 
 
 class Dokcer(object):
-    command_list = []
+    """Entrypoint of Dokcer"""
+    color = 0
+    level = 0
+    verbose = 0
 
-    def __init__(self, available_commands=[]):
+    def __init__(self):
         self.docker = Docker()
-        self.available_commands = available_commands
 
+    def set_color(self):
+        """Set terminal color"""
+        self.color = 1
 
-    def setCommand(self, command):
-        self.command_list.append(command)
+    def set_verbose(self, level):
+        """Set verbosity level"""
+        self.verbose = min(level, 3)
 
-    
-    def eval(self):
-        while len(self.command_list) > 0:
-            command = self.command_list.pop()
-            self.docker.load(command)
-        else:
+    def eval(self, args):
+        """Evaluate commands"""
+
+        del args["console"]
+        del args["color"]
+        del args["verbosity"]
+        del args["func"]
+
+        self.docker.load(args)
+        if self.color:
             logger.Logger.logSuccess(self.docker.recv())
+        else:
+            logger.Logger.log(self.docker.recv())
 
 if __name__ == "__main__":
     try:
-        dokcer = Dokcer(available_commands = ["run", "ps"])
-        for case in switch(sys.argv[1]):
-            if case('run'):
-                dokcer.setCommand('run')
-                break
-            if case('ps'):
-                dokcer.setCommand('ps')
-                break
+        dokcer = Dokcer()
+        p = argparse.ArgumentParser(description='Dokcer v0.1')
+        p.add_argument('--console', '-c',
+                       action="store_true",
+                       help="Enter console mode")
+        p.add_argument('--color',
+                       action="store_true", dest="color",
+                       help="Set terminal color")
+        p.add_argument('--verbose', '-v',
+                       action="count", dest="verbosity", default=0,
+                       help="Set verbosity level")
 
-        usage = "usage: %prog [options]"
-        p = option_parser.OptionParser(usage=usage, version="Dokcer v0.1", available_commands = ["run", "ps"])
-        p.add_option('--console', '-c',
-                     action="store_true", metavar='CONSOLE',
-                     help="Enter console mode")
-        p.add_option('--color',
-                     action="store_true", dest="color",
-                     help="Set terminal color")
-        p.add_option('--verbose', '-v',
-                     action="store_true", dest="verbosity", metavar='LEVEL',
-                     help="Set verbosity level")
-        group = optparse.OptionGroup(
-            p, 'Docker commands', 'Following commands are identical to Docker!')
-        group.add_option('run',
-                         action="store", dest="command", metavar='RUN',
-                         help="Run a command in a new container")
-        group.add_option('ps',
-                         action="store", dest="command", metavar='PS',
-                         help="List containers")
-        p.add_option_group(group)
-        options, arguments = p.parse_args()
+        sp = p.add_subparsers(
+            title="Commands", dest="command", help='additional help')
 
-        if options.console:
+        run = sp.add_parser('run')
+        run.add_argument('-p',
+                         metavar="PORT[:PORT]",
+                         help="Specify Ports")
+        run.set_defaults(func=dokcer.eval)
+
+        ps = sp.add_parser('ps')
+        ps.add_argument('-a',
+                        action="store_true",
+                        help="List all containers")
+        ps.set_defaults(func=dokcer.eval)
+
+        arguments = p.parse_args()
+        arguments = vars(arguments)
+
+        if arguments["console"]:
             enter_shell(dokcer)
         else:
-            if options.color:
-                dokcer.setColor()
+            dokcer.set_verbose(arguments["verbosity"])
+            if arguments["color"]:
+                dokcer.set_color()
 
-            if options.verbosity:
-                dokcer.setVerbose()
+        arguments["func"](arguments)
 
-        dokcer.command_list.append("")
-        dokcer.eval()
-    except option_parser.OptionParsingError, e:
-        logger.Logger.logError('dokcer: {}'.format(e.msg[2:]))
-    except option_parser.OptionParsingExit, e:
-        logger.Logger.logError(e.status)
+        print repr(arguments)
+        raw_input()
     except (KeyboardInterrupt, SystemExit):
         pass
     except RuntimeError:
         pass
-    
