@@ -81,23 +81,15 @@ class Docker(object):
             self.client = Client(base_url='unix://var/run/docker.sock')
 
     def load(self, args):
-        for case in switch.switch(args["command"]):
-            if case('run'):
-                del args["command"]
-                break
-            if case('ps'):
-                del args["command"]
-                self.ps(args)
+        command = args["command"]
+        del args["command"]
+        mod = __import__("Container." + command,
+                globals(), locals(), ['dummy'], -1)
+        mod_instance = getattr(mod, command.capitalize())()
+        self.buf = mod_instance.Command(args, self.client)["buf"]
 
     def recv(self):
         return self.buf
-
-    def ps(self, args):
-        """docker ps"""
-        if args["a"]:
-            self.buf += str(self.client.containers(all=True))
-        else:
-            self.buf += str(self.client.containers(all=False))
 
     def createHostConfig(self, port_bindings, binds, links):
         """Create host config for containers"""
