@@ -8,6 +8,7 @@ import argparse
 from lib.Docker.docker_client import Docker
 from lib.Utils import logger
 
+
 def enter_shell(dokcer_instance):
     """Enter Dokcer shell"""
     sA = shellAgent()
@@ -26,6 +27,8 @@ def enter_shell(dokcer_instance):
 class Dokcer(object):
     """Entrypoint of Dokcer"""
     color = 0
+    debug = 0
+    dry = 0
     level = 0
     verbose = 0
 
@@ -36,19 +39,34 @@ class Dokcer(object):
         """Set terminal color"""
         self.color = 1
 
+    def set_debug(self):
+        """DEBUG on/off"""
+        self.debug = 1
+
+    def set_dry(self):
+        """dry-run on/off"""
+        self.dry = 1
+
     def set_verbose(self, level):
         """Set verbosity level"""
         self.verbose = min(level, 3)
 
     def eval(self, args):
         """Evaluate commands"""
+        try:
+            del args["console"]
+            del args["color"]
+            del args["debug"]
+            del args["dry"]
+            del args["verbosity"]
+        except KeyError:
+            self.docker.load(args)
+            return self.docker.recv()["Version"]  # docker --version
 
-        del args["console"]
-        del args["color"]
-        del args["verbosity"]
-        del args["func"]
-
-        self.docker.load(args)
+        if self.dry:
+            self.docker.dry(args)
+        else:
+            self.docker.load(args)
         if self.color:
             logger.Logger.logSuccess(self.docker.recv())
         else:
@@ -57,31 +75,84 @@ class Dokcer(object):
 if __name__ == "__main__":
     try:
         dokcer = Dokcer()
-        p = argparse.ArgumentParser(description='dokcer v0.1')
+        # -------------------------START------------------------------
+        p = argparse.ArgumentParser()
         p.add_argument('--console', '-c',
                        action="store_true",
                        help="Enter console mode")
         p.add_argument('--color',
-                       action="store_true", dest="color",
+                       action="store_true",
                        help="Set terminal color")
+        p.add_argument('--debug',
+                       action="store_true",
+                       help="DEBUG on/off")
+        p.add_argument('--dry',
+                       action="store_true",
+                       help="dry-run on/off")
         p.add_argument('--verbose', '-v',
                        action="count", dest="verbosity", default=0,
                        help="Set verbosity level")
+        p.add_argument('--version',
+                       action="version",
+                       version="%(prog)s v0.1 with: Docker {}".format(dokcer.eval({"command": "version"})))
+
+        # ------------------------------------------------------------
 
         sp = p.add_subparsers(
             title="Commands", dest="command", help='additional help')
 
+        # ---------------------------RUN------------------------------
+
         run = sp.add_parser('run')
-        run.add_argument('-p',
+        run.add_argument('image',
+                         type=str,
+                         metavar="IMAGE",
+                         nargs=1,
+                         help="Image to run")
+        run.add_argument('container_command',
+                         type=str,
+                         metavar="COMMAND",
+                         nargs="*",
+                         help="Commands to run")
+        run.add_argument('--publish', '-p',
+                         type=str,
                          metavar="PORT[:PORT]",
-                         help="Specify Ports")
-        run.set_defaults(func=dokcer.eval)
+                         dest="port_bindings",
+                         help="Specify ports")
+        run.add_argument('--interactive', '-i',
+                         action="store_true",
+                         dest="stdin_open",
+                         help="Keep STDIN open even if not attached")
+        run.add_argument('--tty', '-t',
+                         action="store_true",
+                         dest="tty",
+                         help="Allocate a pseudo-TTY")
+
+        # ---------------------------RM-------------------------------
+
+        run = sp.add_parser('rm')
+        run.add_argument('id',
+                         type=str,
+                         metavar="IMAGE ID (0 means last created container)",
+                         nargs="?",
+                         help="Image id to remove")
+
+        # ---------------------------PS-------------------------------
 
         ps = sp.add_parser('ps')
-        ps.add_argument('-a',
+        ps.add_argument('--all', '-a',
                         action="store_true",
-                        help="List all containers")
-        ps.set_defaults(func=dokcer.eval)
+                        dest="all",
+                        help="Show all containers (default shows just running)")
+        ps.add_argument('--filter', '-f',
+                        type=dict,
+                        dest="filters",
+                        help="Filter output based on conditions provided (default [])")
+        ps.add_argument('--quiet', '-q',
+                        action="store_true",
+                        help="Only display numeric IDs")
+
+        # ---------------------------END------------------------------
 
         arguments = p.parse_args()
         arguments = vars(arguments)
@@ -92,11 +163,15 @@ if __name__ == "__main__":
             dokcer.set_verbose(arguments["verbosity"])
             if arguments["color"]:
                 dokcer.set_color()
+            if arguments["debug"]:
+                dokcer.set_debug()
+            if arguments["dry"]:
+                dokcer.set_dry()
 
-        arguments["func"](arguments)
+        dokcer.eval(arguments)
 
-        print repr(arguments)
-        raw_input()
+        if dokcer.debug:
+            print repr(arguments)
     except (KeyboardInterrupt, SystemExit):
         pass
     except RuntimeError:

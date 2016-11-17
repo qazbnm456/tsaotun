@@ -1,7 +1,8 @@
-import os
-import sys
+"""This module contains base class of `docker command` class"""
+
 from abc import ABCMeta, abstractmethod
 from six import with_metaclass
+
 
 class Command(with_metaclass(ABCMeta, object)):
     """
@@ -11,27 +12,29 @@ class Command(with_metaclass(ABCMeta, object)):
 
     name = "command"
     client = None
-
-    def __init__(self):
-        self.settings = {}
-
-        # List of commands that must be launched during the current command
-        # Must be left empty in the code
-        self.deps = []
+    require = []
+    settings = {}
 
     @abstractmethod
-    def evalCommand(self, args):
+    def eval_command(self, args):
+        """Evalute the command"""
         pass
 
     def final(self):
+        """Do the final job"""
         return self.settings
 
-    def loadRequire(self, args, obj=[]):
-        self.deps = obj
-        for x in self.deps:
-            x.evalCommand(args)
+    def load_require(self, args, client):
+        """Load require dependencies"""
+        for command in self.require:
+            mod = __import__(command,
+                             globals(), locals(), ['dummy'], -1)
+            mod_instance = getattr(mod, command.capitalize())()
+            self.settings[command] = mod_instance.command(args, client)
+            del mod
 
-    def Command(self, args, client):
+    def command(self, args, client):
+        """Command class entrypoint"""
         self.client = client
-        self.evalCommand(args)
+        self.eval_command(args)
         return self.final()

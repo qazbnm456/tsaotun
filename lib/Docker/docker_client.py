@@ -57,7 +57,7 @@ class Docker(object):
     client = None
     ctr = None
     current_ctr = None
-    buf = ""
+    buf = dict()
 
     def __init__(self):
         """Loading docker environments"""
@@ -80,39 +80,26 @@ class Docker(object):
             self.host = '127.0.0.1'
             self.client = Client(base_url='unix://var/run/docker.sock')
 
+    def dry(self, args):
+        """Load the command and configure the environment with dry-run"""
+        self.buf = "dry-run complete"
+
     def load(self, args):
+        """Load the command and configure the environment"""
         command = args["command"]
         del args["command"]
         mod = __import__("Container." + command,
-                globals(), locals(), ['dummy'], -1)
+                         globals(), locals(), ['dummy'], -1)
         mod_instance = getattr(mod, command.capitalize())()
-        self.buf = mod_instance.Command(args, self.client)["buf"]
+
+        if mod_instance.require:
+            mod_instance.load_require(args, self.client)
+
+        self.buf = mod_instance.command(args, self.client)
 
     def recv(self):
+        """Receive outcome"""
         return self.buf
-
-    def createHostConfig(self, port_bindings, binds, links):
-        """Create host config for containers"""
-        return self.client.create_host_config(port_bindings=port_bindings, binds=binds, links=links)
-
-    def startContainer(self, image, name, ports=None, volumes=None, environment=None, host_config=None, tty=False, command=None):
-        """Start containers"""
-        try:
-            self.ctr = self.client.create_container(
-                image=image, name=name, ports=ports, volumes=volumes, environment=environment, host_config=host_config, tty=tty, command=command)
-        except (TypeError, APIError), e:
-            logger.Logger.logError("\n" + "[ERROR] " + str(e.explanation))
-            for line in self.client.pull(image, stream=True):
-                for iterElement in list(jsoniterparse(line)):
-                    logger.Logger.logProgressInfo(
-                        "[INFO] " + iterElement.get("id", "") + ": "+ iterElement.get("status", "") + "\r")
-            self.ctr = self.client.create_container(
-                image=image, name=name, ports=ports, volumes=volumes, environment=environment, host_config=host_config, tty=tty, command=command)
-        except NullResource:
-            pass
-        self.current_ctr = self.ctr
-        self.client.start(self.ctr)
-        return self.ctr
 
     def removeContainer(self, ctr):
         """Remove containers"""

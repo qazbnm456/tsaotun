@@ -1,21 +1,19 @@
-"""This module contains `docker ps` class"""
+"""This module contains `docker version` class"""
 
 from .command import Command
 
-class Ps(Command):
-    """This class implements `docker ps` command"""
+class Version(Command):
+    """This class implements `docker version` command"""
 
-    name = "ps"
+    name = "version"
     require = []
-
-    TEMPLATE = "ps_template.txt"
 
     def __init__(self):
         Command.__init__(self)
         self.settings[self.name] = None
 
     def eval_command(self, args):
-        self.settings[self.name] = self.client.containers(**args)
+        self.settings[self.name] = self.client.version()
 
     def final(self):
         return self.settings[self.name]
