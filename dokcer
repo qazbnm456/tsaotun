@@ -4,6 +4,7 @@
 from __future__ import absolute_import
 
 import argparse
+from docker.errors import APIError
 
 from lib.Docker.docker_client import Docker
 from lib.Utils import logger
@@ -177,5 +178,9 @@ if __name__ == "__main__":
             print repr(arguments)
     except (KeyboardInterrupt, SystemExit):
         pass
-    except RuntimeError:
-        pass
+    except APIError as e:
+        if dokcer.color:
+            logger.Logger.logError(str(e.explanation))
+        else:
+            logger.Logger.log(str(e.explanation))
+        exit(1)

@@ -3,6 +3,7 @@
 
 import time
 from hashlib import sha1
+from docker.errors import APIError
 
 from .command import Command
 
@@ -63,8 +64,11 @@ class Create(Command):
 
     def eval_command(self, args):
         """Create host config for containers"""
-        self.preprocess(args)
-        self.settings[self.name] = self.client.create_container(**args)
+        try:
+            self.preprocess(args)
+            self.settings[self.name] = self.client.create_container(**args)
+        except APIError as e:
+            raise e
 
     def final(self):
         return self.settings[self.name]

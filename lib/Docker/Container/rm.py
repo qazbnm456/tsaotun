@@ -26,7 +26,7 @@ class Rm(Command):
                 self.settings[self.name] = args["id"]
                 self.client.remove_container(self.settings[self.name])
         except APIError as e:
-            self.settings[self.name] = str(e.explanation)
+            raise e
 
     def final(self):
         return self.settings[self.name]
