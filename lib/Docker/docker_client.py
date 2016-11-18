@@ -80,7 +80,7 @@ class Docker(object):
             self.host = '127.0.0.1'
             self.client = Client(base_url='unix://var/run/docker.sock')
 
-    def dry(self, args):
+    def dry(self):
         """Load the command and configure the environment with dry-run"""
         self.buf = "dry-run complete"
 

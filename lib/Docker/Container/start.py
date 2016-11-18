@@ -16,10 +16,7 @@ class Start(Command):
 
     def eval_command(self, args):
         """Start containers"""
-        if "command" in args:
-            dockerpty.start(self.client, self.settings["create"])
-        else:
-            self.settings[self.name] = self.client.start(self.settings["create"])
+        dockerpty.start(self.client, self.settings["create"])
 
     def final(self):
         return self.settings[self.name]

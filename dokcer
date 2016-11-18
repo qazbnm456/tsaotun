@@ -64,7 +64,7 @@ class Dokcer(object):
             return self.docker.recv()["Version"]  # docker --version
 
         if self.dry:
-            self.docker.dry(args)
+            self.docker.dry()
         else:
             self.docker.load(args)
         if self.color:
@@ -148,6 +148,9 @@ if __name__ == "__main__":
                         type=dict,
                         dest="filters",
                         help="Filter output based on conditions provided (default [])")
+        ps.add_argument('--format',
+                        type=str,
+                        help="Pretty-print containers using a Python template")
         ps.add_argument('--quiet', '-q',
                         action="store_true",
                         help="Only display numeric IDs")
