@@ -95,12 +95,12 @@ if __name__ == "__main__":
                        help="Set verbosity level")
         p.add_argument('--version',
                        action="version",
-                       version="%(prog)s v0.1 with: Docker {}".format(dokcer.eval({"command": "version"})))
+                       version="%(prog)s v0.1 with: Docker {}".format(dokcer.eval({"command_flag": "version"})))
 
         # ------------------------------------------------------------
 
         sp = p.add_subparsers(
-            title="Commands", dest="command", help='additional help')
+            title="Commands", dest="command_flag", help='additional help')
 
         # ---------------------------RUN------------------------------
 
@@ -110,11 +110,15 @@ if __name__ == "__main__":
                          metavar="IMAGE",
                          nargs=1,
                          help="Image to run")
-        run.add_argument('container_command',
+        run.add_argument('command',
                          type=str,
                          metavar="COMMAND",
                          nargs="*",
                          help="Commands to run")
+        run.add_argument('--detach', '-d',
+                         action="store_true",
+                         dest="detach",
+                         help="Run container in background and print container ID")
         run.add_argument('--publish', '-p',
                          type=str,
                          metavar="PORT[:PORT]",
@@ -129,14 +133,39 @@ if __name__ == "__main__":
                          dest="tty",
                          help="Allocate a pseudo-TTY")
 
+        # --------------------------EXEC------------------------------
+
+        exec_d = sp.add_parser('exec')
+        exec_d.add_argument('cmd',
+                            type=str,
+                            metavar="COMMAND",
+                            nargs="+",
+                            help="Commands to run")
+        exec_d.add_argument('--detach', '-d',
+                            action="store_true",
+                            dest="detach",
+                            help="Detached mode: run command in the background")
+        exec_d.add_argument('--interactive', '-i',
+                            action="store_true",
+                            dest="stdin_open",
+                            help="Keep STDIN open even if not attached")
+        exec_d.add_argument('--tty', '-t',
+                            action="store_true",
+                            dest="tty",
+                            help="Allocate a pseudo-TTY")
+
         # ---------------------------RM-------------------------------
 
-        run = sp.add_parser('rm')
-        run.add_argument('id',
-                         type=str,
-                         metavar="IMAGE ID (0 means last created container)",
-                         nargs="?",
-                         help="Image id to remove")
+        rm = sp.add_parser('rm')
+        rm.add_argument('container',
+                        type=str,
+                        metavar="IMAGE ID (0 means last created container)",
+                        nargs="?",
+                        help="Container to remove")
+        rm.add_argument('--force', '-f',
+                        action="store_true",
+                        dest="force",
+                        help="Force the removal of a running container (uses SIGKILL)")
 
         # ---------------------------PS-------------------------------
 

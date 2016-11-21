@@ -85,12 +85,12 @@ class Docker(object):
         self.buf = "dry-run complete"
 
     def load(self, args):
-        """Load the command and configure the environment"""
-        command = args["command"]
-        del args["command"]
-        mod = __import__("Container." + command,
+        """Load the command_flag and configure the environment"""
+        command_flag = args["command_flag"]
+        del args["command_flag"]
+        mod = __import__("Container." + command_flag,
                          globals(), locals(), ['dummy'], -1)
-        mod_instance = getattr(mod, command.capitalize())()
+        mod_instance = getattr(mod, command_flag.capitalize())()
 
         if mod_instance.require:
             mod_instance.load_require(args, self.client)
@@ -100,20 +100,6 @@ class Docker(object):
     def recv(self):
         """Receive outcome"""
         return self.buf
-
-    def removeContainer(self, ctr):
-        """Remove containers"""
-        try:
-            if ctr is not None:
-                self.client.remove_container(
-                    ctr, force=True)
-            else:
-                self.client.remove_container(
-                    self.current_ctr, force=True)
-        except (NotFound, NullResource):
-            pass
-        except (TypeError, APIError), e:
-            logger.Logger.logError("\n" + "[ERROR] " + str(e.explanation))
 
     def execute(self, ctr, cmd, path):
         """Execute commands for giving ctr"""

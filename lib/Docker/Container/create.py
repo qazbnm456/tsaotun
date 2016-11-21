@@ -29,26 +29,28 @@ class Create(Command):
         del args["image"]
 
         # name
-        if args.get("name"):
+        if "name" in args:
             name = args["name"]
             del args["name"]
         else:
             name = sha1(str(time.clock())).hexdigest()
 
+        # detach
+        detach = args["detach"]
+        del args["detach"]
+
         # tty
-        if "tty" in args:
-            tty = args["tty"]
-            del args["tty"]
+        tty = args["tty"]
+        del args["tty"]
 
         # stdin_open
-        if "stdin_open" in args:
-            stdin_open = args["stdin_open"]
-            del args["stdin_open"]
+        stdin_open = args["stdin_open"]
+        del args["stdin_open"]
 
         # command
-        if "container_command" in args:
-            container_command = args["container_command"]
-            del args["container_command"]
+        if "command" in args:
+            command = args["command"]
+            del args["command"]
 
         # create host_config
         host_config = self.client.create_host_config(**args)
@@ -58,9 +60,10 @@ class Create(Command):
         args["host_config"] = host_config
         args["image"] = image
         args["name"] = name
+        args["detach"] = detach
         args["tty"] = tty
         args["stdin_open"] = stdin_open
-        args["command"] = container_command
+        args["command"] = command
 
     def eval_command(self, args):
         """Create host config for containers"""
