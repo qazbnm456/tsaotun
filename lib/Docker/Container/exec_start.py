@@ -1,12 +1,13 @@
-"""This module contains ExecStart class"""
+"""This module contains Exec_start class"""
 
+import dockerpty
 
 from docker.errors import APIError
 
 from .command import Command
 
 
-class ExecStart(Command):
+class Exec_start(Command):
     """This class start a previously set up exec instance"""
 
     name = "exec_start"
@@ -19,8 +20,9 @@ class ExecStart(Command):
     def eval_command(self, args):
         """Start a previously set up exec instance"""
         try:
-            args["exec_id"] = self.settings["exec_create"]
-            self.settings[self.name] = self.client.exec_start(**args)
+            detach = args["detach"]
+            del args["detach"]
+            self.settings[self.name] = dockerpty.start_exec(self.client, self.settings["exec_create"])
         except APIError as e:
             raise e
 
