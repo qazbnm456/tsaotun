@@ -102,6 +102,24 @@ if __name__ == "__main__":
         sp = p.add_subparsers(
             title="Commands", dest="command_flag", help='additional help')
 
+        # --------------------------IMAGES----------------------------
+
+        images = sp.add_parser('images')
+        images.add_argument('--all', '-a',
+                            action="store_true",
+                            dest="all",
+                            help="Show all images (default hides intermediate images)")
+        images.add_argument('--filter', '-f',
+                            type=dict,
+                            dest="filters",
+                            help="Filter output based on conditions provided (default [])")
+        images.add_argument('--format',
+                            type=str,
+                            help="Pretty-print containers using a Python template")
+        images.add_argument('--quiet', '-q',
+                            action="store_true",
+                            help="Only show numeric IDs")
+
         # ---------------------------RUN------------------------------
 
         run = sp.add_parser('run')
@@ -137,10 +155,10 @@ if __name__ == "__main__":
 
         exec_d = sp.add_parser('exec')
         exec_d.add_argument('container',
-                        type=str,
-                        metavar="IMAGE ID (0 means last created container)",
-                        nargs="?",
-                        help="Target container where exec instance will be created")
+                            type=str,
+                            metavar="IMAGE ID (0 means last created container)",
+                            nargs="?",
+                            help="Target container where exec instance will be created")
         exec_d.add_argument('cmd',
                             type=str,
                             metavar="COMMAND",
