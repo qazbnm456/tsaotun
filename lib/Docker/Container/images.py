@@ -1,13 +1,14 @@
 """This module contains `docker images` class"""
 
 import pystache
+import arrow
 
 from .command import Command
 
 
 def pprint_images(l):
     """Pretty print"""
-    return ''.join("{:25}".format(e) for e in l.split("\t")) + "\n"
+    return ''.join("{:26}".format(e) for e in l.split("\t")) + "\n"
 
 
 class Images(Command):
@@ -16,7 +17,7 @@ class Images(Command):
     name = "images"
     require = []
 
-    defaultTemplate = '{{Repository}}\t{{Tag}}\t{{ID}}\t{{Created}} ago\t{{Size}}'
+    defaultTemplate = '{{Repository}}\t{{Tag}}\t{{ID}}\t{{Created}}\t{{Size}}'
 
     def __init__(self):
         Command.__init__(self)
@@ -25,7 +26,8 @@ class Images(Command):
     def eval_command(self, args):
         if args["format"] is None:
             fm = self.defaultTemplate
-            self.settings[self.name] = pprint_images("REPOSITORY\tTAG\tIMAGE ID\tCREATED\tSIZE")
+            self.settings[self.name] = pprint_images(
+                "REPOSITORY\tTAG\tIMAGE ID\tCREATED\tSIZE")
         else:
             fm = args["format"]
             self.settings[self.name] = ""
@@ -33,9 +35,12 @@ class Images(Command):
 
         nodes = self.client.images(**args)
         for node in nodes:
-            node["ID"] = node["Id"].split(":")[1][:12]
             node["Repository"], node["Tag"] = node["RepoTags"][0].split(":")
-            self.settings[self.name] += pprint_images(pystache.render(fm, node))
+            node["ID"] = node["Id"].split(":")[1][:12]
+            node["Created"] = arrow.get(node["Created"]).humanize()
+            node["Size"] = node["VirtualSize"]
+            self.settings[
+                self.name] += pprint_images(pystache.render(fm, node))
 
     def final(self):
         return self.settings[self.name]

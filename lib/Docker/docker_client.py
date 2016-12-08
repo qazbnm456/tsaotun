@@ -100,35 +100,3 @@ class Docker(object):
     def recv(self):
         """Receive outcome"""
         return self.buf
-
-    def execute(self, ctr, cmd, path):
-        """Execute commands for giving ctr"""
-        try:
-            with time_limit(600) as t:
-                for line in self.client.exec_start(self.client.exec_create(ctr, "/bin/bash -c 'cd {0} && {1}'".format(path, cmd)), stream=True):
-                    time.sleep(0.1)
-                    logger.Logger.logInfo("[INFO] " + line)
-                    if t.timed_out:
-                        break
-                    else:
-                        t.timed_reset
-        except (NotFound, NullResource):
-            pass
-        except (TypeError, APIError), e:
-            logger.Logger.logError("\n" + "[ERROR] " + str(e.explanation))
-
-    def logs(self, ctr):
-        """Logging collection from docker daemon"""
-        try:
-            with time_limit(600) as t:
-                for line in self.client.logs(ctr, stderr=False, stream=True):
-                    time.sleep(0.1)
-                    logger.Logger.logInfo("[INFO] " + line)
-                    if t.timed_out:
-                        break
-                    else:
-                        t.timed_reset
-        except (NotFound, NullResource):
-            pass
-        except (TypeError, APIError), e:
-            logger.Logger.logError("\n" + "[ERROR] " + str(e.explanation))

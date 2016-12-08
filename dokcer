@@ -32,6 +32,7 @@ class Dokcer(object):
     dry = 0
     level = 0
     verbose = 0
+    remove = False
 
     def __init__(self):
         self.docker = Docker()
@@ -60,6 +61,11 @@ class Dokcer(object):
             del args["debug"]
             del args["dry"]
             del args["verbosity"]
+            if "rm" in args:
+                self.remove = args["rm"]
+                del args["rm"]
+            else:
+                self.remove = False
         except KeyError:
             self.docker.load(args)
             return self.docker.recv()["Version"]  # docker --version
@@ -68,6 +74,9 @@ class Dokcer(object):
             self.docker.dry()
         else:
             self.docker.load(args)
+            if self.remove:
+                self.eval(args={"command_flag": "rm", "force": False, "container": self.docker.recv(
+                ), "console": False, "color": False, "debug": False, "dry": False, "verbosity": False})
         if self.color:
             logger.Logger.logSuccess(self.docker.recv())
         else:
@@ -150,13 +159,26 @@ if __name__ == "__main__":
                          action="store_true",
                          dest="tty",
                          help="Allocate a pseudo-TTY")
+        run.add_argument('--rm',
+                         action="store_true",
+                         dest="rm",
+                         help="Automatically remove the container when it exits")
+
+        # --------------------------LOGS------------------------------
+
+        logs = sp.add_parser('logs')
+        logs.add_argument('container',
+                          type=str,
+                          metavar="IMAGE ID",
+                          nargs="?",
+                          help="Fetch the logs of a container")
 
         # --------------------------EXEC------------------------------
 
         exec_d = sp.add_parser('exec')
         exec_d.add_argument('container',
                             type=str,
-                            metavar="IMAGE ID (0 means last created container)",
+                            metavar="IMAGE ID",
                             nargs="?",
                             help="Target container where exec instance will be created")
         exec_d.add_argument('cmd',
@@ -182,7 +204,7 @@ if __name__ == "__main__":
         rm = sp.add_parser('rm')
         rm.add_argument('container',
                         type=str,
-                        metavar="IMAGE ID (0 means last created container)",
+                        metavar="IMAGE ID",
                         nargs="?",
                         help="Container to remove")
         rm.add_argument('--force', '-f',

@@ -16,15 +16,8 @@ class Rm(Command):
 
     def eval_command(self, args):
         try:
-            if args["container"] == 0:
-                if "run" in self.settings:
-                    args["container"] = self.settings[self.name] = self.settings["run"]
-                    self.client.remove_container(**args)
-                else:
-                    self.settings[self.name] = "No containers existed!"
-            else:
-                self.settings[self.name] = args["container"]
-                self.client.remove_container(**args)
+            self.settings[self.name] = args["container"]
+            self.client.remove_container(**args)
         except APIError as e:
             raise e
 
