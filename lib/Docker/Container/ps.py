@@ -17,7 +17,7 @@ class Ps(Command):
     name = "ps"
     require = []
 
-    defaultTemplate = '{{ID}}\t{{Image}}\t"{{Command}}"\t{{Created}}\t{{Status}}\t{{Ports}}\t{{Names}}'
+    defaultTemplate = '{{Id}}\t{{Image}}\t"{{Command}}"\t{{Created}}\t{{Status}}\t{{Ports}}\t{{Names}}'
 
     def __init__(self):
         Command.__init__(self)
@@ -45,7 +45,7 @@ class Ps(Command):
 
         nodes = self.client.containers(**args)
         for node in nodes:
-            node["ID"] = node["Id"][:12]
+            node["Id"] = node["Id"][:12]
             node["Created"] = arrow.get(node["Created"]).humanize()
             node["Ports"] = self.process_ports(node['Ports'])
             node["Names"] = ', '.join([e[1:] for e in node["Names"]])

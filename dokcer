@@ -68,7 +68,7 @@ class Dokcer(object):
                 self.remove = False
         except KeyError:
             self.docker.load(args)
-            return self.docker.recv()["Version"]  # docker --version
+            return self.docker.recv()  # docker --version
 
         if self.dry:
             self.docker.dry()
@@ -89,27 +89,34 @@ if __name__ == "__main__":
         p = argparse.ArgumentParser()
         p.add_argument('--console', '-c',
                        action="store_true",
-                       help="Enter console mode")
+                       help="enter console mode")
         p.add_argument('--color',
                        action="store_true",
-                       help="Set terminal color")
+                       help="set terminal color")
         p.add_argument('--debug',
                        action="store_true",
-                       help="DEBUG on/off")
+                       help="debug on/off")
         p.add_argument('--dry',
                        action="store_true",
                        help="dry-run on/off")
         p.add_argument('--verbose', '-v',
                        action="count", dest="verbosity", default=0,
-                       help="Set verbosity level")
+                       help="set verbosity level")
         p.add_argument('--version',
                        action="version",
-                       version="%(prog)s v0.1 with: Docker {}".format(dokcer.eval({"command_flag": "version"})))
+                       version="%(prog)s v0.1 with:\n{}\n".format(dokcer.eval({"command_flag": "version"})))
 
         # ------------------------------------------------------------
 
         sp = p.add_subparsers(
-            title="Commands", dest="command_flag", help='additional help')
+            title="Commands", dest="command_flag", help='type [COMMAND] --help to get additional help')
+
+        # --------------------------VERSION--------------------------
+
+        version = sp.add_parser('version')
+        version.add_argument('--format',
+                             type=str,
+                             help="Pretty-print containers using a Python template")
 
         # --------------------------IMAGES----------------------------
 
@@ -208,6 +215,19 @@ if __name__ == "__main__":
                             dest="tty",
                             help="Allocate a pseudo-TTY")
 
+        # ---------------------------RMI------------------------------
+
+        rmi = sp.add_parser('rmi')
+        rmi.add_argument('image',
+                         type=str,
+                         metavar="IMAGE ID",
+                         nargs="?",
+                         help="Image to remove")
+        rmi.add_argument('--force', '-f',
+                         action="store_true",
+                         dest="force",
+                         help="Force removal of the image")
+
         # ---------------------------RM-------------------------------
 
         rm = sp.add_parser('rm')
@@ -238,6 +258,15 @@ if __name__ == "__main__":
         ps.add_argument('--quiet', '-q',
                         action="store_true",
                         help="Only display numeric IDs")
+
+        # ------------------------HISTORY-----------------------------
+
+        history = sp.add_parser('history')
+        history.add_argument('image',
+                             type=str,
+                             metavar="IMAGE ID",
+                             nargs="?",
+                             help="The image to show history for")
 
         # ---------------------------END------------------------------
 

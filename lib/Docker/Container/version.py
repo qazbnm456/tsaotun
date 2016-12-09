@@ -1,6 +1,9 @@
 """This module contains `docker version` class"""
 
+import json
+
 from .command import Command
+
 
 class Version(Command):
     """This class implements `docker version` command"""
@@ -13,7 +16,8 @@ class Version(Command):
         self.settings[self.name] = None
 
     def eval_command(self, args):
-        self.settings[self.name] = self.client.version()
+        self.settings[self.name] = json.dumps(
+            self.client.version(), indent=4) + "\n"
 
     def final(self):
         return self.settings[self.name]

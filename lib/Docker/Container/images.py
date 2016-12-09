@@ -18,7 +18,7 @@ class Images(Command):
     name = "images"
     require = []
 
-    defaultTemplate = '{{Repository}}\t{{Tag}}\t{{ID}}\t{{Created}}\t{{Size}}'
+    defaultTemplate = '{{Repository}}\t{{Tag}}\t{{Id}}\t{{Created}}\t{{Size}}'
 
     def __init__(self):
         Command.__init__(self)
@@ -37,7 +37,7 @@ class Images(Command):
         nodes = self.client.images(**args)
         for node in nodes:
             node["Repository"], node["Tag"] = node["RepoTags"][0].split(":")
-            node["ID"] = node["Id"].split(":")[1][:12]
+            node["Id"] = node["Id"].split(":")[1][:12]
             node["Created"] = arrow.get(node["Created"]).humanize()
             node["Size"] = humanize.naturalsize(node["VirtualSize"])
             self.settings[
