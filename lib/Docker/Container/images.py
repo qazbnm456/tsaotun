@@ -1,7 +1,8 @@
 """This module contains `docker images` class"""
 
-import pystache
 import arrow
+import humanize
+import pystache
 
 from .command import Command
 
@@ -38,7 +39,7 @@ class Images(Command):
             node["Repository"], node["Tag"] = node["RepoTags"][0].split(":")
             node["ID"] = node["Id"].split(":")[1][:12]
             node["Created"] = arrow.get(node["Created"]).humanize()
-            node["Size"] = node["VirtualSize"]
+            node["Size"] = humanize.naturalsize(node["VirtualSize"])
             self.settings[
                 self.name] += pprint_images(pystache.render(fm, node))
 

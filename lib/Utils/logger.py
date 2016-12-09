@@ -1,4 +1,6 @@
+"""This module contains Logger class"""
 import sys
+
 
 class Logger(object):
     """Logger class"""
@@ -14,42 +16,38 @@ class Logger(object):
         pass
 
     @classmethod
-    def log(self, fmt_string, *args):
+    def log(cls, fmt_string, *args):
         if len(args) == 0:
-            print(fmt_string)
+            print fmt_string,
         else:
-            print(fmt_string.format(*args))
-        sys.stdout.write(self.STD)
+            print fmt_string.format(*args),
+        sys.stdout.write(cls.STD)
 
     @classmethod
-    def logInfo(self, fmt_string, *args):
-        sys.stdout.write(self.BLUE)
-        self.log(fmt_string, *args)
-        
+    def logInfo(cls, fmt_string, *args):
+        sys.stdout.write(cls.BLUE)
+        cls.log(fmt_string, *args)
 
     @classmethod
-    def logWarning(self, fmt_string, *args):
-        sys.stdout.write(self.YELLOW)
-        self.log(fmt_string, *args)
-        
+    def logWarning(cls, fmt_string, *args):
+        sys.stdout.write(cls.YELLOW)
+        cls.log(fmt_string, *args)
 
     @classmethod
-    def logError(self, fmt_string, *args):
-        sys.stdout.write(self.RED)
-        self.log(fmt_string, *args)
-        
+    def logError(cls, fmt_string, *args):
+        sys.stdout.write(cls.RED)
+        cls.log(fmt_string, *args)
 
     @classmethod
-    def logSuccess(self, fmt_string, *args):
-        sys.stdout.write(self.GREEN)
-        self.log(fmt_string, *args)
-        
+    def logSuccess(cls, fmt_string, *args):
+        sys.stdout.write(cls.GREEN)
+        cls.log(fmt_string, *args)
 
     @classmethod
-    def logProgressInfo(self, fmt_string, *args):
-        sys.stdout.write(self.BLUE)
+    def logProgressInfo(cls, fmt_string, *args):
+        sys.stdout.write(cls.BLUE)
         if len(args) == 0:
             sys.stdout.write(fmt_string)
         else:
             sys.stdout.write(fmt_string.format(*args))
-        sys.stdout.write(self.STD)
+        sys.stdout.write(cls.STD)

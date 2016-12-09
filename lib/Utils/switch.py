@@ -1,3 +1,5 @@
+"""This module provides switch functionality"""
+
 class switch(object):
     """An implementation of classical switch method"""
     def __init__(self, value):

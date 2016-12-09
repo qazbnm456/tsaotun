@@ -129,6 +129,15 @@ if __name__ == "__main__":
                             action="store_true",
                             help="Only show numeric IDs")
 
+        # ---------------------------PULL------------------------------
+
+        pull = sp.add_parser('pull')
+        pull.add_argument('image',
+                          type=str,
+                          metavar="IMAGE",
+                          nargs=1,
+                          help="Pull an image or a repository from a registry")
+
         # ---------------------------RUN------------------------------
 
         run = sp.add_parser('run')
@@ -253,8 +262,9 @@ if __name__ == "__main__":
     except (KeyboardInterrupt, SystemExit):
         pass
     except APIError as e:
+        msg = e.response.json()["message"]
         if dokcer.color:
-            logger.Logger.logError(str(e.explanation))
+            logger.Logger.logError("Error response from daemon: {}\n", msg)
         else:
-            logger.Logger.log(str(e.explanation))
+            logger.Logger.log("Error response from daemon: {}\n", msg)
         exit(1)

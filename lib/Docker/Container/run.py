@@ -2,6 +2,7 @@
 
 from .command import Command
 
+
 class Run(Command):
     """This class implements `docker run` command"""
 
@@ -13,7 +14,7 @@ class Run(Command):
         self.settings[self.name] = None
 
     def eval_command(self, args):
-        self.settings[self.name] = self.settings["create"]["Id"]
+        self.settings[self.name] = self.settings["create"]["Id"] + "\n"
 
     def final(self):
         return self.settings[self.name]

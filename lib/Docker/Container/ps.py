@@ -17,7 +17,7 @@ class Ps(Command):
     name = "ps"
     require = []
 
-    defaultTemplate = '{{ID}}\t{{Image}}\t"{{Command}}"\t{{Created}} ago\t{{Status}}\t{{Ports}}\t{{Names}}'
+    defaultTemplate = '{{ID}}\t{{Image}}\t"{{Command}}"\t{{Created}}\t{{Status}}\t{{Ports}}\t{{Names}}'
 
     def __init__(self):
         Command.__init__(self)
