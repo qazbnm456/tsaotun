@@ -83,6 +83,8 @@ class Dokcer(object):
             logger.Logger.log(self.docker.recv())
 
 if __name__ == "__main__":
+    version = None
+    exec(open('version.py').read())
     try:
         dokcer = Dokcer()
         # -------------------------START------------------------------
@@ -104,7 +106,7 @@ if __name__ == "__main__":
                        help="set verbosity level")
         p.add_argument('--version',
                        action="version",
-                       version="%(prog)s v0.1 with:\n{}\n".format(dokcer.eval({"command_flag": "version"})))
+                       version="%(prog)s {} with:\n{}\n".format(version, dokcer.eval({"command_flag": "version"})))
 
         # ------------------------------------------------------------
 
