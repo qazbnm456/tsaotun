@@ -16,7 +16,7 @@ class Rm(Command):
 
     def eval_command(self, args):
         try:
-            self.settings[self.name] = args["container"] + "\n"
+            self.settings[self.name] = args["container"]
             self.client.remove_container(**args)
         except APIError as e:
             raise e

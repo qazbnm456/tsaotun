@@ -53,7 +53,7 @@ class Dokcer(object):
         """Set verbosity level"""
         self.verbose = min(level, 3)
 
-    def eval(self, args):
+    def eval(self, args, suppress=False):
         """Evaluate commands"""
         try:
             del args["console"]
@@ -76,11 +76,12 @@ class Dokcer(object):
             self.docker.load(args)
             if self.remove:
                 self.eval(args={"command_flag": "rm", "force": False, "container": self.docker.recv(
-                ), "console": False, "color": False, "debug": False, "dry": False, "verbosity": False})
-        if self.color:
-            logger.Logger.logSuccess(self.docker.recv())
-        else:
-            logger.Logger.log(self.docker.recv())
+                ), "console": False, "color": False, "debug": False, "dry": False, "verbosity": False}, suppress=True)
+        if suppress is not True:
+            if self.color:
+                logger.Logger.logSuccess("{}\n", self.docker.recv())
+            else:
+                logger.Logger.log("{}\n", self.docker.recv())
 
 if __name__ == "__main__":
     version = None
@@ -293,7 +294,10 @@ if __name__ == "__main__":
     except (KeyboardInterrupt, SystemExit):
         pass
     except APIError as e:
-        msg = e.response.json()["message"]
+        try:
+            msg = e.response.json()["message"]
+        except ValueError:
+            msg = str(e.response.text[:-1])
         if dokcer.color:
             logger.Logger.logError("Error response from daemon: {}\n", msg)
         else:
