@@ -4,25 +4,11 @@
 from __future__ import absolute_import
 
 import argparse
+import textwrap
 from docker.errors import APIError
 
 from lib.Docker.docker_client import Docker
 from lib.Utils import logger
-
-
-def enter_shell(dokcer_instance):
-    """Enter Dokcer shell"""
-    sA = shellAgent()
-    logger.Logger.logInfo("Dokcer ready (press Ctrl+D to end input)")
-    while True:
-        result = dokcer_instance.parse(sA.prompt())
-        if result == "CTRL+D":
-            logger.Logger.logInfo("[INFO] CTRL+D captured. Exit.")
-            raise RuntimeError
-        elif result is not None:
-            logger.Logger.logSuccess(result)
-        else:
-            logger.Logger.logError("Unreconized keyword!")
 
 
 class Dokcer(object):
@@ -79,9 +65,9 @@ class Dokcer(object):
                 )], "console": False, "color": False, "debug": False, "dry": False, "verbosity": False}, suppress=True)
         if suppress is not True:
             if self.color:
-                logger.Logger.logSuccess("{}\n", self.docker.recv())
+                logger.Logger.logSuccess("{}", self.docker.recv())
             else:
-                logger.Logger.log("{}\n", self.docker.recv())
+                logger.Logger.log("{}", self.docker.recv())
 
 if __name__ == "__main__":
     version = None
@@ -89,7 +75,8 @@ if __name__ == "__main__":
     try:
         dokcer = Dokcer()
         # -------------------------START------------------------------
-        p = argparse.ArgumentParser()
+        p = argparse.ArgumentParser(
+            formatter_class=argparse.RawDescriptionHelpFormatter)
         p.add_argument('--console', '-c',
                        action="store_true",
                        help="enter console mode")
@@ -289,7 +276,16 @@ if __name__ == "__main__":
         # --------------------------CP--------------------------------
 
         cp = sp.add_parser('cp',
-                           help="Copy files/folders between a container and the local filesystem")
+                           formatter_class=argparse.RawDescriptionHelpFormatter,
+                           usage="\n%(prog)s [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-\ndocker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH",
+                           description=textwrap.dedent('''\
+        Copy files/folders between a container and the local filesystem
+
+        Use '-' as the source to read a tar archive from stdin
+        and extract it to a directory destination in a container.
+        Use '-' as the destination to stream a tar archive of a
+        container source to stdout.
+         '''))
         cp.add_argument('src',
                         type=str,
                         metavar="CONTAINER:SRC_PATH",
@@ -323,9 +319,9 @@ if __name__ == "__main__":
         pass
     except (AttributeError, ValueError) as e:
         if dokcer.color:
-            logger.Logger.logError("Error response from dokcer: {}\n", str(e))
+            logger.Logger.logError("Error response from dokcer: {}", str(e))
         else:
-            logger.Logger.log("Error response from dokcer: {}\n", str(e))
+            logger.Logger.log("Error response from dokcer: {}", str(e))
         exit(1)
     except APIError as e:
         try:
@@ -333,7 +329,7 @@ if __name__ == "__main__":
         except ValueError:
             msg = str(e.response.text[:-1])
         if dokcer.color:
-            logger.Logger.logError("Error response from daemon: {}\n", msg)
+            logger.Logger.logError("Error response from daemon: {}", msg)
         else:
-            logger.Logger.log("Error response from daemon: {}\n", msg)
+            logger.Logger.log("Error response from daemon: {}", msg)
         exit(1)

@@ -1,6 +1,7 @@
 """This module contains `docker cp` class"""
 
 import os
+import sys
 import tempfile
 import tarfile
 from enum import Enum
@@ -40,29 +41,39 @@ class Cp(Command):
         args['container'] = src_container
         args['path'] = src_path
         tar, stat = self.client.get_archive(**args)
-        fd = tempfile.NamedTemporaryFile(delete=False)
-        fd.write(tar.read())
-        fd.close()
-        with tarfile.open(fd.name, 'r') as t:
-            t.extractall(path=dst_path)
-        os.unlink(fd.name)
-        self.settings[self.name] = stat
+        if dst_path == '-':
+            self.settings[self.name] = tar.read()
+        else:
+            fd = tempfile.NamedTemporaryFile(delete=False)
+            fd.write(tar.read())
+            fd.close()
+            with tarfile.open(fd.name, 'r') as t:
+                t.extractall(path=dst_path)
+            os.unlink(fd.name)
+            self.settings[self.name] = stat
 
     def copy_to_container(self, args, src_path, dst_container, dst_path):
         """Preprocess arguments and tarfile provided for `docker cp`"""
         args['container'] = dst_container
         args['path'] = dst_path
-        fd = tempfile.NamedTemporaryFile(delete=False)
-        with tarfile.open(fd.name, 'w') as t:
-            t.add(src_path)
-        fd.close()
-        with open(fd.name, 'rb') as f:
-            args['data'] = f.read()
+        if src_path == '-':
+            args['data'] = sys.stdin.read()
             if self.client.put_archive(**args):
                 self.settings[self.name] = "Done!"
             else:
                 self.settings[self.name] = "Failed!"
-        os.unlink(fd.name)
+        else:
+            fd = tempfile.NamedTemporaryFile(delete=False)
+            with tarfile.open(fd.name, 'w') as t:
+                t.add(src_path)
+            fd.close()
+            with open(fd.name, 'rb') as f:
+                args['data'] = f.read()
+                if self.client.put_archive(**args):
+                    self.settings[self.name] = "Done!"
+                else:
+                    self.settings[self.name] = "Failed!"
+            os.unlink(fd.name)
 
     def eval_command(self, args):
         try:

@@ -27,4 +27,4 @@ setup(name='dokcer',
       url='https://github.com/qazbnm456/dokcer',
       packages=find_packages(),
       install_requires=requirements
-)
+     )

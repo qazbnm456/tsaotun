@@ -21,27 +21,30 @@ class Logger(object):
             print fmt_string,
         else:
             print fmt_string.format(*args),
-        sys.stdout.write(cls.STD)
 
     @classmethod
     def logInfo(cls, fmt_string, *args):
         sys.stdout.write(cls.BLUE)
         cls.log(fmt_string, *args)
+        sys.stdout.write(cls.STD)
 
     @classmethod
     def logWarning(cls, fmt_string, *args):
         sys.stdout.write(cls.YELLOW)
         cls.log(fmt_string, *args)
+        sys.stdout.write(cls.STD)
 
     @classmethod
     def logError(cls, fmt_string, *args):
         sys.stdout.write(cls.RED)
         cls.log(fmt_string, *args)
+        sys.stdout.write(cls.STD)
 
     @classmethod
     def logSuccess(cls, fmt_string, *args):
         sys.stdout.write(cls.GREEN)
         cls.log(fmt_string, *args)
+        sys.stdout.write(cls.STD)
 
     @classmethod
     def logProgressInfo(cls, fmt_string, *args):

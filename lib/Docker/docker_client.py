@@ -1,13 +1,10 @@
+"""This module contains Docker class"""
 import platform
 import os
 import re
-import time
 import json
 
 from docker import Client
-from docker.errors import APIError, NullResource, NotFound
-
-from ..Utils import (logger, shell_escape, switch)
 
 try:
     import urlparse
@@ -18,6 +15,7 @@ nonspace = re.compile(r'\S')
 
 
 def jsoniterparse(j):
+    """This method implements iterative json parsing"""
     decoder = json.JSONDecoder()
     pos = 0
     while True:
@@ -27,27 +25,6 @@ def jsoniterparse(j):
         pos = matched.start()
         decoded, pos = decoder.raw_decode(j, pos)
         yield decoded
-
-
-class time_limit(object):
-
-    def __init__(self, seconds):
-        self.seconds = seconds
-
-    def __enter__(self):
-        self.die_after = time.time() + self.seconds
-        return self
-
-    def __exit__(self, type, value, traceback):
-        pass
-
-    @property
-    def timed_reset(self):
-        self.die_after = time.time() + self.seconds
-
-    @property
-    def timed_out(self):
-        return time.time() > self.die_after
 
 
 class Docker(object):
