@@ -17,9 +17,10 @@ class Rmi(Command):
 
     def eval_command(self, args):
         try:
-            Images = args['images']
+            Images = []
+            images = args['images']
             del args['images']
-            for Image in Images:
+            for Image in images:
                 Images.append(Image)
                 args['image'] = Image
                 self.client.remove_image(**args)
