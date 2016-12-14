@@ -4,4 +4,3 @@ arrow>=0.10.0
 humanize>=0.5.1
 pystache==0.5.4
 colorama==0.3.7
-    

@@ -17,8 +17,14 @@ class Rmi(Command):
 
     def eval_command(self, args):
         try:
-            self.settings[self.name] = args["image"] + "\n"
-            self.client.remove_image(**args)
+            Images = args['images']
+            del args['images']
+            for Image in Images:
+                Images.append(Image)
+                args['image'] = Image
+                self.client.remove_image(**args)
+                del args['image']
+            self.settings[self.name] = '\n'.join(Images)
         except APIError as e:
             raise e
 

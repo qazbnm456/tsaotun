@@ -75,8 +75,8 @@ class Dokcer(object):
         else:
             self.docker.load(args)
             if self.remove:
-                self.eval(args={"command_flag": "rm", "force": False, "container": self.docker.recv(
-                ), "console": False, "color": False, "debug": False, "dry": False, "verbosity": False}, suppress=True)
+                self.eval(args={"command_flag": "rm", "force": False, "containers": [self.docker.recv(
+                )], "console": False, "color": False, "debug": False, "dry": False, "verbosity": False}, suppress=True)
         if suppress is not True:
             if self.color:
                 logger.Logger.logSuccess("{}\n", self.docker.recv())
@@ -188,17 +188,32 @@ if __name__ == "__main__":
         logs = sp.add_parser('logs')
         logs.add_argument('container',
                           type=str,
-                          metavar="IMAGE ID",
-                          nargs="?",
+                          metavar="CONTAINER",
+                          nargs=1,
                           help="Fetch the logs of a container")
+
+        # -------------------------RESTART----------------------------
+
+        restart = sp.add_parser('restart')
+        restart.add_argument('containers',
+                             type=str,
+                             metavar="CONTAINER",
+                             nargs="+",
+                             help="Restart one or more containers")
+        restart.add_argument('--time', '-t',
+                             type=int,
+                             metavar='int',
+                             dest="timeout",
+                             default=10,
+                             help="Seconds to wait for stop before killing the container (default 10)")
 
         # --------------------------EXEC------------------------------
 
         exec_d = sp.add_parser('exec')
         exec_d.add_argument('container',
                             type=str,
-                            metavar="IMAGE ID",
-                            nargs="?",
+                            metavar="CONTAINER",
+                            nargs=1,
                             help="Target container where exec instance will be created")
         exec_d.add_argument('cmd',
                             type=str,
@@ -221,11 +236,11 @@ if __name__ == "__main__":
         # ---------------------------RMI------------------------------
 
         rmi = sp.add_parser('rmi')
-        rmi.add_argument('image',
+        rmi.add_argument('images',
                          type=str,
-                         metavar="IMAGE ID",
-                         nargs="?",
-                         help="Image to remove")
+                         metavar="IMAGE",
+                         nargs="+",
+                         help="Remove one or more images")
         rmi.add_argument('--force', '-f',
                          action="store_true",
                          dest="force",
@@ -234,11 +249,11 @@ if __name__ == "__main__":
         # ---------------------------RM-------------------------------
 
         rm = sp.add_parser('rm')
-        rm.add_argument('container',
+        rm.add_argument('containers',
                         type=str,
-                        metavar="IMAGE ID",
-                        nargs="?",
-                        help="Container to remove")
+                        metavar="CONTAINER",
+                        nargs="+",
+                        help="Remove one or more containers")
         rm.add_argument('--force', '-f',
                         action="store_true",
                         dest="force",
@@ -267,9 +282,22 @@ if __name__ == "__main__":
         history = sp.add_parser('history')
         history.add_argument('image',
                              type=str,
-                             metavar="IMAGE ID",
-                             nargs="?",
+                             metavar="IMAGE",
+                             nargs=1,
                              help="The image to show history for")
+
+        # --------------------------CP--------------------------------
+
+        cp = sp.add_parser('cp',
+                           help="Copy files/folders between a container and the local filesystem")
+        cp.add_argument('src',
+                        type=str,
+                        metavar="CONTAINER:SRC_PATH",
+                        nargs=1)
+        cp.add_argument('dest',
+                        type=str,
+                        metavar="DEST_PATH",
+                        nargs=1)
 
         # ---------------------------END------------------------------
 
@@ -293,6 +321,12 @@ if __name__ == "__main__":
             print repr(arguments)
     except (KeyboardInterrupt, SystemExit):
         pass
+    except (AttributeError, ValueError) as e:
+        if dokcer.color:
+            logger.Logger.logError("Error response from dokcer: {}\n", str(e))
+        else:
+            logger.Logger.log("Error response from dokcer: {}\n", str(e))
+        exit(1)
     except APIError as e:
         try:
             msg = e.response.json()["message"]
