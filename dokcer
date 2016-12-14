@@ -108,6 +108,10 @@ if __name__ == "__main__":
                              type=str,
                              help="Pretty-print containers using a Python template")
 
+        # ---------------------------INFO----------------------------
+
+        info = sp.add_parser('info')
+
         # --------------------------IMAGES----------------------------
 
         images = sp.add_parser('images')
