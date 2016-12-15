@@ -1,10 +1,10 @@
 """This module contains Exec_create class"""
 
 import dockerpty
-
 from docker.errors import APIError
 
 from .command import Command
+
 
 class Exec_create(Command):
     """This class sets up an exec instance in a running container"""

@@ -4,6 +4,7 @@ from docker.errors import APIError
 
 from .command import Command
 
+
 class Remove(Command):
     """This class implements `docker network remove` command"""
 

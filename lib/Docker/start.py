@@ -4,6 +4,7 @@ import dockerpty
 
 from .command import Command
 
+
 class Start(Command):
     """This class implements `docker start` command"""
 

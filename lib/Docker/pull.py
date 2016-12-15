@@ -5,6 +5,7 @@ import colorama
 from .command import Command
 from ..Utils import (json_iterparse)
 
+
 colorama.init()
 info = {
     "title": "",

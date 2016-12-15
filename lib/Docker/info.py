@@ -4,6 +4,7 @@ import json
 
 from .command import Command
 
+
 class Info(Command):
     """This class implements `docker info` command"""
 

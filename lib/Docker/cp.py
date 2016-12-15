@@ -10,6 +10,7 @@ from ..Utils import switch
 
 from .command import Command
 
+
 Direction = Enum(
     'Direction', 'fromContainer toContainer acrossContainers', start=0)
 

@@ -6,6 +6,7 @@ import pystache
 
 from .command import Command
 
+
 def pprint_images(l):
     """Pretty print"""
     return ''.join("{:26}".format(e) for e in l.split("\t")) + "\n"

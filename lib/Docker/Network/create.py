@@ -6,6 +6,7 @@ from docker.errors import APIError
 
 from .command import Command
 
+
 class Create(Command):
     """This class implements `docker network create` command"""
 

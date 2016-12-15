@@ -4,6 +4,7 @@ from docker.errors import APIError
 
 from .command import Command
 
+
 class Restart(Command):
     """This class implements `docker restart` command"""
 

@@ -2,6 +2,7 @@
 
 from .command import Command
 
+
 class Exec(Command):
     """This class implements `docker exec` command"""
 

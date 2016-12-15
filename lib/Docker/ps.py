@@ -5,6 +5,7 @@ import arrow
 
 from .command import Command
 
+
 def pprint_ps(l):
     """Pretty print"""
     return ''.join("{:25}".format(e) for e in l.split("\t")) + "\n"

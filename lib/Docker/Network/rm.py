@@ -4,6 +4,7 @@ from docker.errors import APIError
 
 from .command import Command
 
+
 class Rm(Command):
     """This class implements `docker network rm` command"""
 

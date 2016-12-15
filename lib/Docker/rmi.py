@@ -4,6 +4,7 @@ from docker.errors import APIError
 
 from .command import Command
 
+
 class Rmi(Command):
     """This class implements `docker rmi` command"""
 

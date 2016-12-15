@@ -2,6 +2,7 @@
 
 from .command import Command
 
+
 class Logs(Command):
     """This class implements `docker logs` command"""
 

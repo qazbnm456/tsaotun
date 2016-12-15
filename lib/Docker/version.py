@@ -4,6 +4,7 @@ import json
 
 from .command import Command
 
+
 class Version(Command):
     """This class implements `docker version` command"""
 

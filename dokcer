@@ -63,7 +63,7 @@ class Dokcer(object):
         else:
             self.docker.load(args)
             if self.remove:
-                self.eval(args={"command_flag": "rm", "force": False, "containers": [self.docker.recv(
+                self.eval(args={"command_flag": "rm", "force": True, "containers": [self.docker.recv(
                 )], "console": False, "color": False, "debug": False, "dry": False, "verbosity": False}, suppress=True)
         if suppress is not True:
             if self.color:
@@ -366,6 +366,19 @@ if __name__ == "__main__":
                                     metavar="NETWORK",
                                     nargs="+",
                                     help="Remove one or more networks")
+
+        # -----------------------NETWORK-INSPECT-----------------------
+
+        network_inspect = network.add_parser(
+            'inspect', formatter_class=argparse.RawDescriptionHelpFormatter,
+            description=textwrap.dedent('''\
+            Display detailed information on one or more networks
+            '''))
+        network_inspect.add_argument('networks',
+                                     type=str,
+                                     metavar="NETWORK",
+                                     nargs="+",
+                                     help="Display detailed information on one or more networks")
 
         # ---------------------------END------------------------------
 

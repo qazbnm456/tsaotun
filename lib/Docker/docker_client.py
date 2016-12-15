@@ -1,4 +1,5 @@
 """This module contains Docker class"""
+
 import platform
 import os
 import re

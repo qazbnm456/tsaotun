@@ -1,11 +1,11 @@
 """This module contains `docker create` class"""
 
-
 import time
 from hashlib import sha1
 from docker.errors import APIError
 
 from .command import Command
+
 
 class Create(Command):
     """This class implements `docker create` command"""
@@ -22,7 +22,7 @@ class Create(Command):
         # port_bindings
         if args.get("port_bindings"):
             tmp = args["port_bindings"]
-            args["port_bindings"] = dict([tmp.strip('{}').split(':'),])
+            args["port_bindings"] = dict([tmp.strip('{}').split(':'), ])
 
         # image
         image = args["image"][0]
