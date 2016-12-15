@@ -24,6 +24,8 @@
     - dokcer `version, info, images, pull, run, logs, restart, exec, rmi, rm, ps, history, cp`
     - dokcer network `ls`
 
+- **If you want auto-complete feature, you should configure [argcomplete](https://github.com/kislyuk/argcomplete).**
+
 <a name="feature"></a>
 ## Feature
 
