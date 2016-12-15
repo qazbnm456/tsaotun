@@ -13,7 +13,8 @@ requirements = [
     'arrow >= 0.10.0',
     'humanize >= 0.5.1',
     'pystache >= 0.5.4',
-    'colorama >= 0.3.7'
+    'colorama >= 0.3.7',
+    'argcomplete >= 1.7.0'
 ]
 
 version = None
