@@ -2,7 +2,6 @@
 
 from .command import Command
 
-
 class Run(Command):
     """This class implements `docker run` command"""
 

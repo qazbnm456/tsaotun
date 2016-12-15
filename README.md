@@ -1,1 +1,65 @@
 # dokcer - Python based Assistance for Docker
+
+## **Table of contents**
+
+* [Releases](#releases)
+* [Status quo](#status)
+* [Feature](#feature)
+* [Install](#install)
+* [Contribute](#contribute)
+* [LICENSE](#license)
+
+---------------------------------------
+
+<a name="releases"></a>
+## Releases
+
+- 0.1 -- Initial release
+- 0.2 -- More commands supported
+
+<a name="status"></a>
+## Status quo
+
+- Currently support folloing commands:
+    - dokcer `version, info, images, pull, run, logs, restart, exec, rmi, rm, ps, history, cp`
+    - dokcer network `ls`
+
+<a name="feature"></a>
+## Feature
+
+- You can run any command docker can run on dokcer.
+- It's written in Python with love of docker API, so you can tune it by yourself!
+- It means you can have your own docker command line tool. :smirk:
+
+<a name="install"></a>
+## Install
+
+### Normal Way
+
+- Clone the repo, and `python ./setup.py install`. Done! :tada:
+
+### Docker Way
+
+1. Pull from docker hub
+    - `docker pull qazbnm456/dokcer`
+        - `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock qazbnm456/dokcer version`
+
+2. Build it yourself
+    - [Dockerfile](Dockerfile) is provided, and you can build it with: `docker build -t dokcer .`. Once you finished, you'd like to run any command, such as:
+        - `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock dokcer version`
+
+![dokcer_version](http://i.imgur.com/t8zcoK9.png "dokcer_version")
+
+<a name="contribute"></a>
+## Contribute
+
+| Linux | Windows | MacOSX |
+|------------------|---------|---------|
+| ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-1.12.3-blue.svg) | ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-1.12.3-blue.svg) | ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-1.12.3-blue.svg) |
+
+Wanna enrich the possibilities that dokcer can inspire? Send pull requests or issues immediately!
+
+<a name="license"></a>
+## LICENSE
+
+This project use [Apache License, Version 2.0](LICENSE).

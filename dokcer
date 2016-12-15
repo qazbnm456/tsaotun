@@ -299,6 +299,16 @@ if __name__ == "__main__":
                         metavar="DEST_PATH",
                         nargs=1)
 
+        # ------------------------NETWORK-----------------------------
+
+        network_p = sp.add_parser('network')
+        network = network_p.add_subparsers(
+            title="Networks", dest="network_flag", help='type [COMMAND] --help to get additional help')
+        ls = network.add_parser('ls')
+        ls.add_argument('--format',
+                        type=str,
+                        help="Pretty-print networks using a Python template")
+
         # ---------------------------END------------------------------
 
         arguments = p.parse_args()

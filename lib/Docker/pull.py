@@ -3,7 +3,7 @@
 import colorama
 
 from .command import Command
-from ...Utils import (json_iterparse)
+from ..Utils import (json_iterparse)
 
 colorama.init()
 info = {
@@ -12,7 +12,6 @@ info = {
     "final": []
 }
 MINY, OFFSET = 1, 2
-
 
 def put_cursor(x, y):
     print "\x1b[{};{}H".format(y + 1, x + 1)

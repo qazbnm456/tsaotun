@@ -63,9 +63,15 @@ class Docker(object):
 
     def load(self, args):
         """Load the command_flag and configure the environment"""
-        command_flag = args["command_flag"]
+        if "network_flag" in args:
+            category = "{}.".format(args["command_flag"])
+            command_flag = args["network_flag"]
+            del args["network_flag"]
+        else:
+            category = ""
+            command_flag = args["command_flag"]
         del args["command_flag"]
-        mod = __import__("Container." + command_flag,
+        mod = __import__("{}{}".format(category.capitalize(), command_flag),
                          globals(), locals(), ['dummy'], -1)
         mod_instance = getattr(mod, command_flag.capitalize())()
 

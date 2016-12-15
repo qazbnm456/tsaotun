@@ -6,7 +6,7 @@ import tempfile
 import tarfile
 from enum import Enum
 from docker.errors import APIError
-from ...Utils import switch
+from ..Utils import switch
 
 from .command import Command
 

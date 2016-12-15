@@ -6,7 +6,6 @@ from docker.errors import APIError
 
 from .command import Command
 
-
 class Exec_start(Command):
     """This class start a previously set up exec instance"""
 
