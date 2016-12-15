@@ -44,6 +44,7 @@ class Dokcer(object):
     def eval(self, args, suppress=False):
         """Evaluate commands"""
         try:
+            command_flag = args["command_flag"]
             del args["console"]
             del args["color"]
             del args["debug"]
@@ -63,8 +64,10 @@ class Dokcer(object):
         else:
             self.docker.load(args)
             if self.remove:
-                self.eval(args={"command_flag": "rm", "force": True, "containers": [self.docker.recv(
-                )], "console": False, "color": False, "debug": False, "dry": False, "verbosity": False}, suppress=True)
+                self.docker.client.remove_container(
+                    self.docker.recv()["create"]["Id"], force=True)
+            if command_flag == "run":
+                self.docker.set_recv(self.docker.recv()["run"])
         if suppress is not True:
             if self.color:
                 logger.Logger.logSuccess("{}", self.docker.recv())
@@ -166,6 +169,7 @@ if __name__ == "__main__":
         run.add_argument('--interactive', '-i',
                          action="store_true",
                          dest="stdin_open",
+                         default=True,
                          help="Keep STDIN open even if not attached")
         run.add_argument('--tty', '-t',
                          action="store_true",
@@ -220,6 +224,7 @@ if __name__ == "__main__":
         exec_d.add_argument('--interactive', '-i',
                             action="store_true",
                             dest="stdin_open",
+                            default=True,
                             help="Keep STDIN open even if not attached")
         exec_d.add_argument('--tty', '-t',
                             action="store_true",

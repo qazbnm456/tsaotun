@@ -84,3 +84,7 @@ class Docker(object):
     def recv(self):
         """Receive outcome"""
         return self.buf
+
+    def set_recv(self, buf):
+        """Set received outcome"""
+        self.buf = buf

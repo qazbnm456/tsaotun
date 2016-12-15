@@ -14,7 +14,11 @@ class Run(Command):
         self.settings[self.name] = None
 
     def eval_command(self, args):
-        self.settings[self.name] = self.settings["create"]["Id"]
+        if args["detach"] is False:
+            self.settings[self.name] = self.client.logs(
+                self.settings["create"])
+        else:
+            self.settings[self.name] = self.settings["create"]["Id"]
 
     def final(self):
-        return self.settings[self.name]
+        return self.settings
