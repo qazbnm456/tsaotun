@@ -4,7 +4,7 @@ import os
 import re
 import json
 
-from docker import Client
+from docker import APIClient
 
 try:
     import urlparse
@@ -45,17 +45,17 @@ class Docker(object):
                 from docker.utils import kwargs_from_env
                 self.host = '{0}'.format(urlparse.urlparse(
                     os.environ['DOCKER_HOST']).netloc.split(':')[0])
-                self.client = Client(
+                self.client = APIClient(
                     base_url='{0}'.format(os.environ['DOCKER_HOST']))
                 kwargs = kwargs_from_env()
                 kwargs['tls'].assert_hostname = False
-                self.client = Client(**kwargs)
+                self.client = APIClient(**kwargs)
             except KeyError:
                 self.host = '127.0.0.1'
-                self.client = Client(base_url='unix://var/run/docker.sock')
+                self.client = APIClient(base_url='unix://var/run/docker.sock')
         else:
             self.host = '127.0.0.1'
-            self.client = Client(base_url='unix://var/run/docker.sock')
+            self.client = APIClient(base_url='unix://var/run/docker.sock')
 
     def dry(self):
         """Load the command and configure the environment with dry-run"""

@@ -8,7 +8,7 @@ ROOT_DIR = os.path.dirname(__file__)
 SOURCE_DIR = os.path.join(ROOT_DIR)
 
 requirements = [
-    'docker-py >= 1.10.6',
+    'docker >= 2.0.0',
     'dockerpty >= 0.4.1',
     'arrow >= 0.10.0',
     'humanize >= 0.5.1',

@@ -304,10 +304,66 @@ if __name__ == "__main__":
         network_p = sp.add_parser('network')
         network = network_p.add_subparsers(
             title="Networks", dest="network_flag", help='type [COMMAND] --help to get additional help')
-        ls = network.add_parser('ls')
-        ls.add_argument('--format',
-                        type=str,
-                        help="Pretty-print networks using a Python template")
+
+        # -----------------------NETWORK-LS---------------------------
+
+        network_ls = network.add_parser('ls')
+        network_ls.add_argument('--format',
+                                type=str,
+                                help="Pretty-print networks using a Python template")
+
+        # ---------------------NETWORK-CREATE--------------------------
+
+        network_create = network.add_parser('create')
+        network_create.add_argument('name',
+                                    type=str,
+                                    metavar="NETWORK",
+                                    nargs=1,
+                                    help="Create a network")
+        network_create.add_argument('--driver', '-d',
+                                    type=str,
+                                    dest="driver",
+                                    default="bridge",
+                                    help="Driver to manage the Network (default \"bridge\")")
+        network_create.add_argument('--gateway',
+                                    type=str,
+                                    dest="gateway",
+                                    help="Custom IP address for the pool's gateway.")
+        network_create.add_argument('--subnet',
+                                    type=str,
+                                    dest="subnet",
+                                    help="Custom subnet for this IPAM pool using the CIDR notation. Defaults to None.")
+
+        # -----------------------NETWORK-RM----------------------------
+
+        network_rm = network.add_parser(
+            'rm', formatter_class=argparse.RawDescriptionHelpFormatter,
+            description=textwrap.dedent('''\
+            Remove one or more networks
+
+            Aliases:
+              rm, remove
+            '''))
+        network_rm.add_argument('networks',
+                                type=str,
+                                metavar="NETWORK",
+                                nargs="+",
+                                help="Remove one or more networks")
+
+        network_remove = network.add_parser(
+            'remove', formatter_class=argparse.RawDescriptionHelpFormatter,
+            description=textwrap.dedent('''\
+            Remove one or more networks
+
+            Aliases:
+              rm, remove
+            '''))
+
+        network_remove.add_argument('networks',
+                                    type=str,
+                                    metavar="NETWORK",
+                                    nargs="+",
+                                    help="Remove one or more networks")
 
         # ---------------------------END------------------------------
 

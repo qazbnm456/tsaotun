@@ -32,7 +32,10 @@ class Pull(Command):
         self.settings[self.name] = None
 
     def preprocess(self, args):
-        repository, tag = args["image"][0].split(':')
+        try:
+            repository, tag = args["image"][0].split(':', 2)
+        except ValueError:
+            repository, tag = args["image"][0], None
         del args["image"]
         args["repository"] = repository
         if tag:
