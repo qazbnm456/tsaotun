@@ -171,7 +171,6 @@ if __name__ == "__main__":
         run.add_argument('image',
                          type=str,
                          metavar="IMAGE",
-                         nargs=1,
                          help="Image to run")
         run.add_argument('command',
                          type=str,
@@ -219,8 +218,44 @@ if __name__ == "__main__":
         logs.add_argument('container',
                           type=str,
                           metavar="CONTAINER",
-                          nargs=1,
                           help="Fetch the logs of a container")
+
+        # --------------------------STATS-----------------------------
+
+        stats = sp.add_parser('stats')
+        stats.add_argument('containers',
+                           type=str,
+                           metavar="CONTAINER",
+                           nargs="+",
+                           help="Display a live stream of container(s) resource usage statistics")
+        """
+        stats.add_argument('--all', '-a',
+                           action="store_true",
+                           default=False,
+                           help="Show all containers (default shows just running)")
+        """
+        stats.add_argument('--no-stream',
+                           action="store_true",
+                           dest="stream",
+                           default=True,
+                           help="Disable streaming stats and only pull the first result")
+
+        # -------------------------RENAME-----------------------------
+
+        rename = sp.add_parser('rename',
+                               formatter_class=argparse.RawDescriptionHelpFormatter,
+                               usage="\n%(prog)s rename CONTAINER NEW_NAME",
+                               description=textwrap.dedent('''\
+        Rename a container
+         '''))
+        rename.add_argument('container',
+                            type=str,
+                            metavar="CONTAINER",
+                            help="Rename a container")
+        rename.add_argument('name',
+                            type=str,
+                            metavar="NAME",
+                            help="Rename a container")
 
         # -------------------------RESTART----------------------------
 
@@ -243,7 +278,6 @@ if __name__ == "__main__":
         exec_d.add_argument('container',
                             type=str,
                             metavar="CONTAINER",
-                            nargs=1,
                             help="Target container where exec instance will be created")
         exec_d.add_argument('cmd',
                             type=str,
@@ -308,13 +342,29 @@ if __name__ == "__main__":
                         action="store_true",
                         help="Only display numeric IDs")
 
+        # -------------------------TOP--------------------------------
+
+        top = sp.add_parser('top',
+                            formatter_class=argparse.RawDescriptionHelpFormatter,
+                            usage="\n%(prog)s CONTAINER [ps OPTIONS]",
+                            description=textwrap.dedent('''\
+        Display the running processes of a container
+         '''))
+        top.add_argument('container',
+                         type=str,
+                         metavar="CONTAINER",
+                         help="Display the running processes of a container")
+        top.add_argument('ps_args',
+                         type=str,
+                         nargs="?",
+                         help="Display the running processes of a container")
+
         # ------------------------HISTORY-----------------------------
 
         history = sp.add_parser('history')
         history.add_argument('image',
                              type=str,
                              metavar="IMAGE",
-                             nargs=1,
                              help="The image to show history for")
 
         # --------------------------CP--------------------------------
@@ -332,12 +382,10 @@ if __name__ == "__main__":
          '''))
         cp.add_argument('src',
                         type=str,
-                        metavar="CONTAINER:SRC_PATH",
-                        nargs=1)
+                        metavar="CONTAINER:SRC_PATH")
         cp.add_argument('dest',
                         type=str,
-                        metavar="DEST_PATH",
-                        nargs=1)
+                        metavar="DEST_PATH")
 
         # ------------------------NETWORK-----------------------------
 
@@ -358,7 +406,6 @@ if __name__ == "__main__":
         network_create.add_argument('name',
                                     type=str,
                                     metavar="NETWORK",
-                                    nargs=1,
                                     help="Create a network")
         network_create.add_argument('--driver', '-d',
                                     type=str,

@@ -43,7 +43,7 @@ class Create(Command):
                 volumes.append(container)
 
         # image
-        image = args["image"][0]
+        image = args["image"]
         del args["image"]
 
         # name

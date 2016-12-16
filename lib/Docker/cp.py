@@ -79,8 +79,8 @@ class Cp(Command):
     def eval_command(self, args):
         try:
             direction = 0
-            src_container, src_path = self.split_cp_arg(args['src'][0])
-            dst_container, dst_path = self.split_cp_arg(args['dest'][0])
+            src_container, src_path = self.split_cp_arg(args['src'])
+            dst_container, dst_path = self.split_cp_arg(args['dest'])
             del args['src']
             del args['dest']
 

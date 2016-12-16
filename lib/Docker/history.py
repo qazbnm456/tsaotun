@@ -7,7 +7,7 @@ import pystache
 from .command import Command
 
 
-def pprint_images(l):
+def pprint_things(l):
     """Pretty print"""
     return ''.join("{:26}".format(e) for e in l.split("\t")) + "\n"
 
@@ -26,9 +26,8 @@ class History(Command):
 
     def eval_command(self, args):
         fm = self.defaultTemplate
-        self.settings[self.name] = pprint_images(
+        self.settings[self.name] = pprint_things(
             "IMAGE\tCREATED\tCREATED BY\tSIZE\tCOMMENT")
-        args["image"] = args["image"][0]
         nodes = self.client.history(**args)
         for node in nodes:
             try:
@@ -39,7 +38,7 @@ class History(Command):
             node["CreatedBy"] = node["CreatedBy"][:18] + "..."
             node["Size"] = humanize.naturalsize(node["Size"])
             self.settings[
-                self.name] += pprint_images(pystache.render(fm, node))
+                self.name] += pprint_things(pystache.render(fm, node))
 
     def final(self):
         return self.settings[self.name]

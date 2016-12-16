@@ -5,7 +5,7 @@ import pystache
 from .command import Command
 
 
-def pprint_ps(l):
+def pprint_things(l):
     """Pretty print"""
     return ''.join("{:25}".format(e) for e in l.split("\t")) + "\n"
 
@@ -25,7 +25,7 @@ class Ls(Command):
     def eval_command(self, args):
         if args["format"] is None:
             fm = self.defaultTemplate
-            self.settings[self.name] = pprint_ps(
+            self.settings[self.name] = pprint_things(
                 "NETWORK ID\tNAME\tDRIVER\tSCOPE")
         else:
             fm = args["format"]
@@ -35,7 +35,7 @@ class Ls(Command):
         nodes = self.client.networks(**args)
         for node in nodes:
             node["Id"] = node["Id"][:12]
-            self.settings[self.name] += pprint_ps(pystache.render(fm, node))
+            self.settings[self.name] += pprint_things(pystache.render(fm, node))
 
     def final(self):
         return self.settings[self.name]

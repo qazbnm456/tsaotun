@@ -43,7 +43,6 @@ class Create(Command):
         """Create host config for containers"""
         try:
             args["ipam"] = self.preprocess(args)
-            args["name"] = args["name"][0]
             self.settings[self.name] = self.client.create_network(**args)
         except APIError as e:
             raise e

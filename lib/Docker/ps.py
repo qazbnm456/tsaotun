@@ -6,7 +6,7 @@ import arrow
 from .command import Command
 
 
-def pprint_ps(l):
+def pprint_things(l):
     """Pretty print"""
     return ''.join("{:25}".format(e) for e in l.split("\t")) + "\n"
 
@@ -36,7 +36,7 @@ class Ps(Command):
     def eval_command(self, args):
         if args["format"] is None:
             fm = self.defaultTemplate
-            self.settings[self.name] = pprint_ps(
+            self.settings[self.name] = pprint_things(
                 "CONTAINER ID\tIMAGE\tCOMMAND\tCREATED\tSTATUS\tPORTS\tNAMES")
         else:
             fm = args["format"]
@@ -49,7 +49,7 @@ class Ps(Command):
             node["Created"] = arrow.get(node["Created"]).humanize()
             node["Ports"] = self.process_ports(node['Ports'])
             node["Names"] = ', '.join([e[1:] for e in node["Names"]])
-            self.settings[self.name] += pprint_ps(pystache.render(fm, node))
+            self.settings[self.name] += pprint_things(pystache.render(fm, node))
 
     def final(self):
         return self.settings[self.name]

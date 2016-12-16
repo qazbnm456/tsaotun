@@ -1,12 +1,14 @@
-"""This module contains `docker logs` class"""
+"""This module contains `docker rename` class"""
+
+import json
 
 from .command import Command
 
 
-class Logs(Command):
-    """This class implements `docker logs` command"""
+class Rename(Command):
+    """This class implements `docker rename` command"""
 
-    name = "logs"
+    name = "rename"
     require = []
 
     def __init__(self):
@@ -14,7 +16,8 @@ class Logs(Command):
         self.settings[self.name] = None
 
     def eval_command(self, args):
-        self.settings[self.name] = self.client.logs(**args) if self.client.logs(**args) else "\r"
+        self.client.rename(**args)
+        self.settings[self.name] = "\r"
 
     def final(self):
         return self.settings[self.name]

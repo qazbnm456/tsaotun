@@ -7,7 +7,7 @@ import pystache
 from .command import Command
 
 
-def pprint_images(l):
+def pprint_things(l):
     """Pretty print"""
     return ''.join("{:26}".format(e) for e in l.split("\t")) + "\n"
 
@@ -27,7 +27,7 @@ class Images(Command):
     def eval_command(self, args):
         if args["format"] is None:
             fm = self.defaultTemplate
-            self.settings[self.name] = pprint_images(
+            self.settings[self.name] = pprint_things(
                 "REPOSITORY\tTAG\tIMAGE ID\tCREATED\tSIZE")
         else:
             fm = args["format"]
@@ -41,7 +41,7 @@ class Images(Command):
             node["Created"] = arrow.get(node["Created"]).humanize()
             node["Size"] = humanize.naturalsize(node["VirtualSize"])
             self.settings[
-                self.name] += pprint_images(pystache.render(fm, node))
+                self.name] += pprint_things(pystache.render(fm, node))
 
     def final(self):
         return self.settings[self.name]
