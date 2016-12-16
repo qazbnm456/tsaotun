@@ -21,7 +21,7 @@
 ## Status quo
 
 - Currently support following commands:
-    - dokcer `version, info, images, pull, build, run, logs, restart, exec, rmi, rm, ps, history, cp`
+    - dokcer `version, info, images, pull, build, run, logs, stats, rename, restart, exec, rmi, rm, ps, top, history, cp`
     - dokcer network `ls, create, rm, remove, inspect`
 
 - **If you want auto-complete feature, you should configure [argcomplete](https://github.com/kislyuk/argcomplete).**
@@ -31,7 +31,7 @@
 
 - You can run any command docker can run on dokcer.
 - It's written in Python with love of docker API, so you can tune it by yourself!
-- It means you can have your own docker command line tool. :smirk:
+- It means you can have your own implementation of docker command line tool. :smirk:
 
 <a name="install"></a>
 ## Install
