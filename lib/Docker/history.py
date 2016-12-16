@@ -28,6 +28,7 @@ class History(Command):
         fm = self.defaultTemplate
         self.settings[self.name] = pprint_images(
             "IMAGE\tCREATED\tCREATED BY\tSIZE\tCOMMENT")
+        args["image"] = args["image"][0]
         nodes = self.client.history(**args)
         for node in nodes:
             try:

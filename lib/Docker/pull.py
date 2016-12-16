@@ -95,7 +95,7 @@ class Pull(Command):
             raise KeyboardInterrupt
         put_cursor(0, MINY + OFFSET + line_n)
         colorama.deinit()
-        self.settings[self.name] = ""
+        self.settings[self.name] = "\r"
 
     def final(self):
         return self.settings[self.name]

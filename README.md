@@ -20,9 +20,9 @@
 <a name="status"></a>
 ## Status quo
 
-- Currently support folloing commands:
-    - dokcer `version, info, images, pull, run, logs, restart, exec, rmi, rm, ps, history, cp`
-    - dokcer network `ls`
+- Currently support following commands:
+    - dokcer `version, info, images, pull, build, run, logs, restart, exec, rmi, rm, ps, history, cp`
+    - dokcer network `ls, create, rm, remove, inspect`
 
 - **If you want auto-complete feature, you should configure [argcomplete](https://github.com/kislyuk/argcomplete).**
 

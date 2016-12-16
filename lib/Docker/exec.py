@@ -15,7 +15,7 @@ class Exec(Command):
 
     def eval_command(self, args):
         """Execute a command in a running container"""
-        self.settings[self.name] = ""
+        self.settings[self.name] = "\r"
 
     def final(self):
         return self.settings[self.name]

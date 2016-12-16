@@ -20,9 +20,27 @@ class Create(Command):
     def preprocess(self, args):
         """Preprocess arguments provided for `docker create`"""
         # port_bindings
+        ports = []
         if args.get("port_bindings"):
-            tmp = args["port_bindings"]
-            args["port_bindings"] = dict([tmp.strip('{}').split(':'), ])
+            port_bindings = args["port_bindings"]
+            args["port_bindings"] = {}
+            for port_binding in port_bindings:
+                host, container = port_binding.strip('{}').split(':', 2)
+                args["port_bindings"].update([[container, host], ])
+                ports.append(container)
+
+        # binds
+        volumes = []
+        if args.get("binds"):
+            volume_bindings = args["binds"]
+            args["binds"] = []
+            for volume_binding in volume_bindings:
+                try:
+                    host, container, _ = volume_binding.split(':', 3)
+                except ValueError:
+                    host, container = volume_binding.split(':', 2)
+                args["binds"].append(volume_binding)
+                volumes.append(container)
 
         # image
         image = args["image"][0]
@@ -57,6 +75,9 @@ class Create(Command):
 
         # store back arguments
         del args["port_bindings"]
+        args["ports"] = ports
+        del args["binds"]
+        args["volumes"] = volumes
         args["host_config"] = host_config
         args["image"] = image
         args["name"] = name

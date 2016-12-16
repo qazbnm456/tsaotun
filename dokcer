@@ -50,7 +50,7 @@ class Dokcer(object):
             del args["debug"]
             del args["dry"]
             del args["verbosity"]
-            if "rm" in args:
+            if (command_flag == "run") and ("rm" in args):
                 self.remove = args["rm"]
                 del args["rm"]
             else:
@@ -127,7 +127,7 @@ if __name__ == "__main__":
         images.add_argument('--filter', '-f',
                             type=dict,
                             dest="filters",
-                            help="Filter output based on conditions provided (default [])")
+                            help="Filter output based on conditions provided")
         images.add_argument('--format',
                             type=str,
                             help="Pretty-print containers using a Python template")
@@ -143,6 +143,27 @@ if __name__ == "__main__":
                           metavar="IMAGE",
                           nargs=1,
                           help="Pull an image or a repository from a registry")
+
+        # ---------------------------BUILD-----------------------------
+
+        build = sp.add_parser('build',
+                              formatter_class=argparse.RawDescriptionHelpFormatter,
+                              usage="\n%(prog)s build [OPTIONS] PATH | URL | -",
+                              description=textwrap.dedent('''\
+        Build an image from a Dockerfile
+         '''))
+        build.add_argument('path',
+                           type=str,
+                           metavar="PATH",
+                           help="Build an image from a Dockerfile")
+        build.add_argument('--tag', '-t',
+                           type=str,
+                           dest="tag",
+                           help="Name and optionally a tag in the 'name:tag' format")
+        build.add_argument('--rm',
+                           action="store_true",
+                           default=True,
+                           help="Remove intermediate containers after a successful build (default true)")
 
         # ---------------------------RUN------------------------------
 
@@ -162,6 +183,7 @@ if __name__ == "__main__":
                          dest="detach",
                          help="Run container in background and print container ID")
         run.add_argument('--publish', '-p',
+                         action="append",
                          type=str,
                          metavar="PORT[:PORT]",
                          dest="port_bindings",
@@ -175,9 +197,20 @@ if __name__ == "__main__":
                          action="store_true",
                          dest="tty",
                          help="Allocate a pseudo-TTY")
+        run.add_argument('--volume', '-v',
+                         action="append",
+                         type=str,
+                         dest="binds",
+                         help=textwrap.dedent('''\
+        Bind mount a volume (default []). The format
+        is [host-src:]container-dest[:<options>].
+        The comma-delimited options are [rw|ro],
+        [z|Z], [[r]shared|[r]slave|[r]private], and
+        [nocopy]. The 'host-src' is an absolute path
+        or a name value.
+        '''))
         run.add_argument('--rm',
                          action="store_true",
-                         dest="rm",
                          help="Automatically remove the container when it exits")
 
         # --------------------------LOGS------------------------------
@@ -346,11 +379,11 @@ if __name__ == "__main__":
         network_rm = network.add_parser(
             'rm', formatter_class=argparse.RawDescriptionHelpFormatter,
             description=textwrap.dedent('''\
-            Remove one or more networks
+        Remove one or more networks
 
-            Aliases:
-              rm, remove
-            '''))
+        Aliases:
+            rm, remove
+        '''))
         network_rm.add_argument('networks',
                                 type=str,
                                 metavar="NETWORK",

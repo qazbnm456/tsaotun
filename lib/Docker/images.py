@@ -18,7 +18,7 @@ class Images(Command):
     name = "images"
     require = []
 
-    defaultTemplate = '{{Repository}}\t{{Tag}}\t{{Id}}\t{{Created}}\t{{Size}}'
+    defaultTemplate = '{{{Repository}}}\t{{{Tag}}}\t{{Id}}\t{{Created}}\t{{Size}}'
 
     def __init__(self):
         Command.__init__(self)
