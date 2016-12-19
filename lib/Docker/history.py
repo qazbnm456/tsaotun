@@ -30,10 +30,7 @@ class History(Command):
             "IMAGE\tCREATED\tCREATED BY\tSIZE\tCOMMENT")
         nodes = self.client.history(**args)
         for node in nodes:
-            try:
-                node["Id"] = node["Id"].split(":")[1][:12]
-            except IndexError:
-                pass
+            node["Id"] = node["Id"].split(":")[1][:12] if ":" in node["Id"] else node["Id"]
             node["Created"] = arrow.get(node["Created"]).humanize()
             node["CreatedBy"] = node["CreatedBy"][:18] + "..."
             node["Size"] = humanize.naturalsize(node["Size"])

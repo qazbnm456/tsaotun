@@ -1,6 +1,7 @@
 """This module contains `docker network ls` class"""
 
 import pystache
+from collections import defaultdict
 
 from .command import Command
 
@@ -31,6 +32,17 @@ class Ls(Command):
             fm = args["format"]
             self.settings[self.name] = ""
         del args["format"]
+
+        if args["filters"]:
+            filters = args["filters"]
+            args["filters"] = []
+            d = defaultdict(list)
+            for k, v in filters:
+                d[k].append(v)
+            args["filters"] = dict(d)
+
+        # wait for PR: https://github.com/docker/docker-py/pull/1362
+        del args["filters"]
 
         nodes = self.client.networks(**args)
         for node in nodes:

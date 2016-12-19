@@ -25,6 +25,10 @@ class Create(Command):
         pool["subnet"] = args["subnet"]
         del args["subnet"]
 
+        # iprange
+        pool["iprange"] = args["iprange"]
+        del args["iprange"]
+
         # gateway
         pool["gateway"] = args["gateway"]
         del args["gateway"]
@@ -32,8 +36,12 @@ class Create(Command):
         # create ipam
         ipam_pool = IPAMPool(**pool)
         ipam_config = IPAMConfig(
-            pool_configs=[ipam_pool]
+            driver=args["ipamdriver"],
+            pool_configs=[ipam_pool],
+            options=dict(args["ipamopt"]) if args["ipamopt"] else None
         )
+        del args["ipamdriver"]
+        del args["ipamopt"]
         if "None" in str(ipam_config):
             return None
         else:
@@ -43,6 +51,8 @@ class Create(Command):
         """Create host config for containers"""
         try:
             args["ipam"] = self.preprocess(args)
+            args["labels"] = dict(args["labels"]) if args["labels"] else None
+            args["options"] = dict(args["options"]) if args["options"] else None
             self.settings[self.name] = self.client.create_network(**args)
         except APIError as e:
             raise e

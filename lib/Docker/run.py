@@ -1,7 +1,5 @@
 """This module contains `docker run` class"""
 
-import time
-
 from .command import Command
 
 
@@ -16,7 +14,7 @@ class Run(Command):
         self.settings[self.name] = None
 
     def eval_command(self, args):
-        if args["detach"] is False:
+        if args["detach"] is False and not args["tty"]:
             for line in self.client.logs(
                     self.settings["create"], stream=True):
                 print line,

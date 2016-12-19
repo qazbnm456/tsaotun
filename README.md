@@ -16,6 +16,7 @@
 
 - 0.1 -- Initial release
 - 0.2 -- More commands supported
+- 0.3 -- More commands and options
 
 <a name="status"></a>
 ## Status quo

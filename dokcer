@@ -108,24 +108,44 @@ if __name__ == "__main__":
 
         # --------------------------VERSION--------------------------
 
-        version = sp.add_parser('version')
+        version = sp.add_parser('version',
+                                formatter_class=argparse.RawDescriptionHelpFormatter,
+                                usage="%(prog)s [OPTIONS]",
+                                description=textwrap.dedent('''\
+        Show the Docker version information
+         '''))
         version.add_argument('--format',
                              type=str,
                              help="Pretty-print containers using a Python template")
 
         # ---------------------------INFO----------------------------
 
-        info = sp.add_parser('info')
+        info = sp.add_parser('info',
+                             formatter_class=argparse.RawDescriptionHelpFormatter,
+                             usage="%(prog)s",
+                             description=textwrap.dedent('''\
+        Display system-wide information
+         '''))
 
         # --------------------------IMAGES----------------------------
 
-        images = sp.add_parser('images')
+        images = sp.add_parser('images',
+                               formatter_class=argparse.RawDescriptionHelpFormatter,
+                               usage="%(prog)s [OPTIONS] [REPOSITORY[:TAG]]",
+                               description=textwrap.dedent('''\
+        List images
+         '''))
         images.add_argument('--all', '-a',
                             action="store_true",
                             dest="all",
                             help="Show all images (default hides intermediate images)")
+        images.add_argument('--digests',
+                            action="store_true",
+                            dest="digests",
+                            help="Show digests")
         images.add_argument('--filter', '-f',
-                            type=dict,
+                            type=lambda kv: kv.split("=", 1),
+                            action="append",
                             dest="filters",
                             help="Filter output based on conditions provided")
         images.add_argument('--format',
@@ -137,7 +157,12 @@ if __name__ == "__main__":
 
         # ---------------------------PULL------------------------------
 
-        pull = sp.add_parser('pull')
+        pull = sp.add_parser('pull',
+                             formatter_class=argparse.RawDescriptionHelpFormatter,
+                             usage="%(prog)s [OPTIONS] NAME[:TAG|@DIGEST]",
+                             description=textwrap.dedent('''\
+        Pull an image or a repository from a registry
+         '''))
         pull.add_argument('image',
                           type=str,
                           metavar="IMAGE",
@@ -148,7 +173,7 @@ if __name__ == "__main__":
 
         build = sp.add_parser('build',
                               formatter_class=argparse.RawDescriptionHelpFormatter,
-                              usage="\n%(prog)s build [OPTIONS] PATH | URL | -",
+                              usage="%(prog)s [OPTIONS] PATH | URL | -",
                               description=textwrap.dedent('''\
         Build an image from a Dockerfile
          '''))
@@ -167,7 +192,12 @@ if __name__ == "__main__":
 
         # ---------------------------RUN------------------------------
 
-        run = sp.add_parser('run')
+        run = sp.add_parser('run',
+                            formatter_class=argparse.RawDescriptionHelpFormatter,
+                            usage="%(prog)s [OPTIONS] IMAGE [COMMAND] [ARG...]",
+                            description=textwrap.dedent('''\
+        Run a command in a new container
+         '''))
         run.add_argument('image',
                          type=str,
                          metavar="IMAGE",
@@ -214,7 +244,12 @@ if __name__ == "__main__":
 
         # --------------------------LOGS------------------------------
 
-        logs = sp.add_parser('logs')
+        logs = sp.add_parser('logs',
+                             formatter_class=argparse.RawDescriptionHelpFormatter,
+                             usage="%(prog)s [OPTIONS] CONTAINER",
+                             description=textwrap.dedent('''\
+        Fetch the logs of a container
+         '''))
         logs.add_argument('container',
                           type=str,
                           metavar="CONTAINER",
@@ -222,7 +257,12 @@ if __name__ == "__main__":
 
         # --------------------------STATS-----------------------------
 
-        stats = sp.add_parser('stats')
+        stats = sp.add_parser('stats',
+                              formatter_class=argparse.RawDescriptionHelpFormatter,
+                              usage="%(prog)s [OPTIONS] [CONTAINER...]",
+                              description=textwrap.dedent('''\
+        Display a live stream of container(s) resource usage statistics
+         '''))
         stats.add_argument('containers',
                            type=str,
                            metavar="CONTAINER",
@@ -244,7 +284,7 @@ if __name__ == "__main__":
 
         rename = sp.add_parser('rename',
                                formatter_class=argparse.RawDescriptionHelpFormatter,
-                               usage="\n%(prog)s rename CONTAINER NEW_NAME",
+                               usage="%(prog)s CONTAINER NEW_NAME",
                                description=textwrap.dedent('''\
         Rename a container
          '''))
@@ -259,7 +299,12 @@ if __name__ == "__main__":
 
         # -------------------------RESTART----------------------------
 
-        restart = sp.add_parser('restart')
+        restart = sp.add_parser('restart',
+                                formatter_class=argparse.RawDescriptionHelpFormatter,
+                                usage="%(prog)s [OPTIONS] CONTAINER [CONTAINER...]",
+                                description=textwrap.dedent('''\
+        Restart one or more containers
+         '''))
         restart.add_argument('containers',
                              type=str,
                              metavar="CONTAINER",
@@ -274,7 +319,12 @@ if __name__ == "__main__":
 
         # --------------------------EXEC------------------------------
 
-        exec_d = sp.add_parser('exec')
+        exec_d = sp.add_parser('exec',
+                               formatter_class=argparse.RawDescriptionHelpFormatter,
+                               usage="%(prog)s [OPTIONS] CONTAINER COMMAND [ARG...]",
+                               description=textwrap.dedent('''\
+        Run a command in a running container
+         '''))
         exec_d.add_argument('container',
                             type=str,
                             metavar="CONTAINER",
@@ -300,7 +350,12 @@ if __name__ == "__main__":
 
         # ---------------------------RMI------------------------------
 
-        rmi = sp.add_parser('rmi')
+        rmi = sp.add_parser('rmi',
+                            formatter_class=argparse.RawDescriptionHelpFormatter,
+                            usage="%(prog)s [OPTIONS] IMAGE [IMAGE...]",
+                            description=textwrap.dedent('''\
+        Remove one or more images
+         '''))
         rmi.add_argument('images',
                          type=str,
                          metavar="IMAGE",
@@ -313,7 +368,12 @@ if __name__ == "__main__":
 
         # ---------------------------RM-------------------------------
 
-        rm = sp.add_parser('rm')
+        rm = sp.add_parser('rm',
+                           formatter_class=argparse.RawDescriptionHelpFormatter,
+                           usage="%(prog)s [OPTIONS] CONTAINER [CONTAINER...]",
+                           description=textwrap.dedent('''\
+        Remove one or more containers
+         '''))
         rm.add_argument('containers',
                         type=str,
                         metavar="CONTAINER",
@@ -326,7 +386,12 @@ if __name__ == "__main__":
 
         # ---------------------------PS-------------------------------
 
-        ps = sp.add_parser('ps')
+        ps = sp.add_parser('ps',
+                           formatter_class=argparse.RawDescriptionHelpFormatter,
+                           usage="%(prog)s [OPTIONS]",
+                           description=textwrap.dedent('''\
+        List containers
+         '''))
         ps.add_argument('--all', '-a',
                         action="store_true",
                         dest="all",
@@ -346,7 +411,7 @@ if __name__ == "__main__":
 
         top = sp.add_parser('top',
                             formatter_class=argparse.RawDescriptionHelpFormatter,
-                            usage="\n%(prog)s CONTAINER [ps OPTIONS]",
+                            usage="%(prog)s CONTAINER [ps OPTIONS]",
                             description=textwrap.dedent('''\
         Display the running processes of a container
          '''))
@@ -361,7 +426,12 @@ if __name__ == "__main__":
 
         # ------------------------HISTORY-----------------------------
 
-        history = sp.add_parser('history')
+        history = sp.add_parser('history',
+                                formatter_class=argparse.RawDescriptionHelpFormatter,
+                                usage="%(prog)s [OPTIONS] IMAGE",
+                                description=textwrap.dedent('''\
+        Show the history of an image
+         '''))
         history.add_argument('image',
                              type=str,
                              metavar="IMAGE",
@@ -371,7 +441,7 @@ if __name__ == "__main__":
 
         cp = sp.add_parser('cp',
                            formatter_class=argparse.RawDescriptionHelpFormatter,
-                           usage="\n%(prog)s [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-\ndocker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH",
+                           usage="%(prog)s [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-\ndocker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH",
                            description=textwrap.dedent('''\
         Copy files/folders between a container and the local filesystem
 
@@ -395,14 +465,29 @@ if __name__ == "__main__":
 
         # -----------------------NETWORK-LS---------------------------
 
-        network_ls = network.add_parser('ls')
+        network_ls = network.add_parser('ls',
+                                        formatter_class=argparse.RawDescriptionHelpFormatter,
+                                        usage="%(prog)s [OPTIONS]",
+                                        description=textwrap.dedent('''\
+        List networks
+         '''))
+        network_ls.add_argument('--filter', '-f',
+                                type=lambda kv: kv.split("=", 1),
+                                action="append",
+                                dest="filters",
+                                help="Provide filter values (e.g. 'driver=bridge')")
         network_ls.add_argument('--format',
                                 type=str,
                                 help="Pretty-print networks using a Python template")
 
         # ---------------------NETWORK-CREATE--------------------------
 
-        network_create = network.add_parser('create')
+        network_create = network.add_parser('create',
+                                            formatter_class=argparse.RawDescriptionHelpFormatter,
+                                            usage="%(prog)s [OPTIONS] NETWORK",
+                                            description=textwrap.dedent('''\
+        Create a network
+         '''))
         network_create.add_argument('name',
                                     type=str,
                                     metavar="NETWORK",
@@ -416,6 +501,39 @@ if __name__ == "__main__":
                                     type=str,
                                     dest="gateway",
                                     help="Custom IP address for the pool's gateway.")
+        network_create.add_argument('--internal',
+                                    action="store_true",
+                                    default=False,
+                                    help="Restrict external access to the network")
+        network_create.add_argument('--ip-range',
+                                    type=str,
+                                    dest="iprange",
+                                    help="Allocate container ip from a sub-range")
+        network_create.add_argument('--ipam-driver',
+                                    type=str,
+                                    dest="ipamdriver",
+                                    default="default",
+                                    help="IP Address Management Driver (default \"default\")")
+        network_create.add_argument('--ipam-opt',
+                                    type=lambda kv: kv.split("=", 1),
+                                    action="append",
+                                    dest="ipamopt",
+                                    help="Set IPAM driver specific options (default None)")
+        network_create.add_argument('--ipv6',
+                                    action="store_true",
+                                    dest="enable_ipv6",
+                                    default=False,
+                                    help="Enable IPv6 networking")
+        network_create.add_argument('--label',
+                                    type=lambda kv: kv.split("=", 1),
+                                    action="append",
+                                    dest="labels",
+                                    help="Set metadata on a network (default [])")
+        network_create.add_argument('--opt', '-o',
+                                    type=lambda kv: kv.split("=", 1),
+                                    action="append",
+                                    dest="options",
+                                    help="Set driver specific options")
         network_create.add_argument('--subnet',
                                     type=str,
                                     dest="subnet",
@@ -425,6 +543,7 @@ if __name__ == "__main__":
 
         network_rm = network.add_parser(
             'rm', formatter_class=argparse.RawDescriptionHelpFormatter,
+            usage="%(prog)s NETWORK [NETWORK...]",
             description=textwrap.dedent('''\
         Remove one or more networks
 
@@ -439,6 +558,7 @@ if __name__ == "__main__":
 
         network_remove = network.add_parser(
             'remove', formatter_class=argparse.RawDescriptionHelpFormatter,
+            usage="%(prog)s NETWORK [NETWORK...]",
             description=textwrap.dedent('''\
             Remove one or more networks
 
@@ -456,6 +576,7 @@ if __name__ == "__main__":
 
         network_inspect = network.add_parser(
             'inspect', formatter_class=argparse.RawDescriptionHelpFormatter,
+            usage="%(prog)s [OPTIONS] NETWORK [NETWORK...]",
             description=textwrap.dedent('''\
             Display detailed information on one or more networks
             '''))
@@ -464,6 +585,10 @@ if __name__ == "__main__":
                                      metavar="NETWORK",
                                      nargs="+",
                                      help="Display detailed information on one or more networks")
+        network_inspect.add_argument('--format', '-f',
+                                     type=str,
+                                     dest="format",
+                                     help="Pretty-print containers using a Python template")
 
         # ---------------------------END------------------------------
 

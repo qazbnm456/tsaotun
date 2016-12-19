@@ -1,6 +1,7 @@
 """This module contains `docker network inspect` class"""
 
 import json
+import pystache
 from docker.errors import APIError
 
 from .command import Command
@@ -22,8 +23,12 @@ class Inspect(Command):
             networks = args["networks"]
             del args["networks"]
             for Network in networks:
-                Networks.append(json.dumps(
-                    self.client.inspect_network(Network), indent=4))
+                if args["format"]:
+                    Networks.append(pystache.render(
+                        args["format"], self.client.inspect_network(Network)))
+                else:
+                    Networks.append(json.dumps(
+                        self.client.inspect_network(Network), indent=4))
             self.settings[self.name] = '\n'.join(Networks)
         except APIError as e:
             raise e
