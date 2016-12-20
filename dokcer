@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
-# -*- coding: utf-8 -*-
+# -*- coding: UTF-8 -*-
 
 from __future__ import absolute_import
 
@@ -118,7 +118,7 @@ if __name__ == "__main__":
                              type=str,
                              help="Pretty-print containers using a Python template")
 
-        # ---------------------------INFO----------------------------
+        # ----------------------------INFO----------------------------
 
         info = sp.add_parser('info',
                              formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -126,6 +126,22 @@ if __name__ == "__main__":
                              description=textwrap.dedent('''\
         Display system-wide information
          '''))
+
+        # ---------------------------INSPECT--------------------------
+
+        inspect = sp.add_parser(
+            'inspect', formatter_class=argparse.RawDescriptionHelpFormatter,
+            usage="%(prog)s [OPTIONS] CONTAINER|IMAGE|TASK [CONTAINER|IMAGE|TASK...]",
+            description=textwrap.dedent('''\
+            Return low-level information on a container, image or task
+            '''))
+        inspect.add_argument('object',
+                             type=str,
+                             help="Return low-level information on a container, image or task")
+        inspect.add_argument('--format', '-f',
+                             type=str,
+                             dest="format",
+                             help="Pretty-print containers using a Python template")
 
         # --------------------------IMAGES----------------------------
 
@@ -207,25 +223,313 @@ if __name__ == "__main__":
                          metavar="COMMAND",
                          nargs="*",
                          help="Commands to run")
+        run.add_argument('--add-host',
+                         type=lambda kv: kv.split(":", 1),
+                         action="append",
+                         dest="extra_hosts",
+                         metavar="list",
+                         help="Add a custom host-to-IP mapping (host:ip) (default [])")
+        run.add_argument('--blkio-weight',
+                         type=int,
+                         dest="blkio_weight",
+                         metavar="uint16",
+                         default=0,
+                         help="Block IO (relative weight), between 10 and 1000, or 0 to disable (default 0)")
+        run.add_argument('--cap-add',
+                         action="append",
+                         type=str,
+                         dest="cap_add",
+                         metavar="list",
+                         help="Add Linux capabilities (default [])")
+        run.add_argument('--cap-drop',
+                         action="append",
+                         type=str,
+                         dest="cap_drop",
+                         metavar="list",
+                         help="Drop Linux capabilities (default [])")
+        run.add_argument('--cgroup-parent',
+                         type=str,
+                         dest="cgroup_parent",
+                         metavar="string",
+                         help="Optional parent cgroup for the container")
+        run.add_argument('--cidfile',
+                         type=str,
+                         dest="cidfile",
+                         metavar="string",
+                         help="Write the container ID to the file")
+        run.add_argument('--cpu-period',
+                         type=int,
+                         dest="cpu_period",
+                         metavar="int",
+                         help="Limit CPU CFS (Completely Fair Scheduler) period")
+        run.add_argument('--cpu-quota',
+                         type=int,
+                         dest="cpu_quota",
+                         metavar="int",
+                         help="Limit CPU CFS (Completely Fair Scheduler) quota")
+        run.add_argument('--cpu-shares', '-c',
+                         type=int,
+                         dest="cpu_shares",
+                         metavar="int",
+                         help="CPU shares (relative weight)")
+        run.add_argument('--cpuset-cpus',
+                         type=str,
+                         dest="cpuset_cpus",
+                         metavar="string",
+                         help="CPUs in which to allow execution (0-3, 0,1)")
+        run.add_argument('--cpuset-mems',
+                         type=str,
+                         dest="cpuset_mems",
+                         metavar="string",
+                         help="MEMs in which to allow execution (0-3, 0,1)")
         run.add_argument('--detach', '-d',
                          action="store_true",
                          dest="detach",
                          help="Run container in background and print container ID")
-        run.add_argument('--publish', '-p',
+        run.add_argument('--device',
                          action="append",
                          type=str,
-                         metavar="PORT[:PORT]",
-                         dest="port_bindings",
-                         help="Specify ports")
+                         dest="devices",
+                         metavar="list",
+                         help="Add a host device to the container (default [])")
+        run.add_argument('--dns',
+                         action="append",
+                         type=str,
+                         dest="dns",
+                         metavar="list",
+                         help="Set custom DNS servers (default [])")
+        run.add_argument('--dns-option',
+                         action="append",
+                         type=str,
+                         dest="dns_opt",
+                         metavar="list",
+                         help="Set DNS options (default [])")
+        run.add_argument('--dns-search',
+                         action="append",
+                         type=str,
+                         dest="dns_search",
+                         metavar="list",
+                         help="Set custom DNS search domains (default [])")
+        run.add_argument('--entrypoint',
+                         type=str,
+                         dest="entrypoint",
+                         metavar="string",
+                         help="Overwrite the default ENTRYPOINT of the image")
+        run.add_argument('--env', '-e',
+                         action="append",
+                         type=str,
+                         dest="environment",
+                         metavar="list",
+                         help="Set environment variables (default [])")
+        run.add_argument('--group-add',
+                         action="append",
+                         type=str,
+                         dest="group_add",
+                         metavar="list",
+                         help="Add additional groups to join (default [])")
+        run.add_argument('--health-cmd',
+                         type=str,
+                         dest="health_cmd",
+                         metavar="string",
+                         help="Command to run to check health")
+        run.add_argument('--health-interval',
+                         type=str,
+                         dest="health_interval",
+                         metavar="duration",
+                         help="Time between running the check (ns|us|ms|s|m|h) (default 0s)")
+        run.add_argument('--health-retries',
+                         type=int,
+                         dest="health_retries",
+                         metavar="int",
+                         help="Consecutive failures needed to report unhealthy")
+        run.add_argument('--health-timeout',
+                         type=str,
+                         dest="health_timeout",
+                         metavar="duration",
+                         help="Maximum time to allow one check to run (ns|us|ms|s|m|h) (default 0s)")
+        run.add_argument('--hostname',
+                         type=str,
+                         metavar="string",
+                         help="Container host name")
         run.add_argument('--interactive', '-i',
                          action="store_true",
                          dest="stdin_open",
                          default=True,
                          help="Keep STDIN open even if not attached")
+        run.add_argument('--ip',
+                         type=str,
+                         dest="ipv4_address",
+                         metavar="string",
+                         help="Container IPv4 address (e.g. 172.30.100.104)")
+        run.add_argument('--ip6',
+                         type=str,
+                         dest="ipv6_address",
+                         metavar="string",
+                         help="Container IPv6 address (e.g. 2001:db8::33)")
+        run.add_argument('--ipc',
+                         type=str,
+                         dest="ipc_mode",
+                         metavar="string",
+                         help="IPC namespace to use")
+        run.add_argument('--isolation',
+                         type=str,
+                         metavar="string",
+                         help="Container isolation technology")
+        run.add_argument('--kernel-memory',
+                         type=str,
+                         dest="kernel_memory",
+                         metavar="string",
+                         help="Kernel memory limit")
+        run.add_argument('--label', '-l',
+                         type=lambda kv: kv.split("=", 1),
+                         action="append",
+                         dest="labels",
+                         metavar="list",
+                         help="Set meta data on a container (default [])")
+        run.add_argument('--link',
+                         type=str,
+                         action="append",
+                         dest="links",
+                         metavar="list",
+                         help="Add link to another container (default [])")
+        run.add_argument('--link-local-ip',
+                         type=str,
+                         action="append",
+                         dest="link_local_ips",
+                         metavar="list",
+                         help="Container IPv4/IPv6 link-local addresses (default [])")
+        run.add_argument('--mac-address',
+                         type=str,
+                         dest="mac_address",
+                         metavar="string",
+                         help="Container MAC address (e.g. 92:d0:c6:0a:29:33)")
+        run.add_argument('--memory', '-m',
+                         type=str,
+                         dest="mem_limit",
+                         metavar="string",
+                         help="Memory limit")
+        run.add_argument('--memory-reservation',
+                         type=str,
+                         dest="mem_reservation",
+                         metavar="string",
+                         help="Memory soft limit")
+        run.add_argument('--memory-swap',
+                         type=str,
+                         dest="memswap_limit",
+                         metavar="string",
+                         help="Swap limit equal to memory plus swap: '-1' to enable unlimited swap")
+        run.add_argument('--memory-swappiness',
+                         type=int,
+                         dest="mem_swappiness",
+                         default=-1,
+                         metavar="int",
+                         help="Tune container memory swappiness (0 to 100) (default -1)")
+        run.add_argument('--name',
+                         type=str,
+                         metavar="string",
+                         help="Assign a name to the container")
+        run.add_argument('--network',
+                         type=str,
+                         dest="network",
+                         default="default",
+                         metavar="string",
+                         help="Connect a container to a network (default \"default\")")
+        run.add_argument('--network-alias',
+                         type=str,
+                         action="append",
+                         dest="aliases",
+                         metavar="list",
+                         help="Add network-scoped alias for the container (default [])")
+        run.add_argument('--no-healthcheck',
+                         action="store_true",
+                         dest="no_healthcheck",
+                         help="Disable any container-specified HEALTHCHECK")
+        run.add_argument('--oom-kill-disable',
+                         action="store_true",
+                         dest="oom_kill_disable",
+                         help="Disable OOM Killer")
+        run.add_argument('--oom-score-adj',
+                         type=int,
+                         dest="oom_score_adj",
+                         metavar="int",
+                         help="Tune host's OOM preferences (-1000 to 1000)")
+        run.add_argument('--pid',
+                         type=str,
+                         dest="pid_mode",
+                         metavar="string",
+                         help="PID namespace to use")
+        run.add_argument('--pids-limit',
+                         type=int,
+                         dest="pids_limit",
+                         metavar="int",
+                         help="Tune container pids limit (set -1 for unlimited)")
+        run.add_argument('--privileged',
+                         action="store_true",
+                         help="Give extended privileges to this container")
+        run.add_argument('--publish', '-p',
+                         action="append",
+                         type=str,
+                         metavar="list",
+                         dest="port_bindings",
+                         help="Publish a container's port(s) to the host (default [])")
+        run.add_argument('--publish-all', '-P',
+                         action="store_true",
+                         dest="publish_all_ports",
+                         help="Publish all exposed ports to random ports")
+        run.add_argument('--read-only',
+                         action="store_true",
+                         dest="read_only",
+                         help="Mount the container's root filesystem as read only")
+        run.add_argument('--restart',
+                         dest="restart_policy",
+                         default="no",
+                         metavar="string",
+                         help="Restart policy to apply when a container exits (default \"no\")")
+        run.add_argument('--rm',
+                         action="store_true",
+                         help="Automatically remove the container when it exits")
+        run.add_argument('--security-opt',
+                         action="append",
+                         dest="security_opt",
+                         metavar="list",
+                         help="Security Options (default [])")
+        run.add_argument('--shm-size',
+                         dest="shm_size",
+                         default="64MB",
+                         metavar="string",
+                         help="Size of /dev/shm, default value is 64MB")
+        run.add_argument('--stop-signal',
+                         type=str,
+                         dest="stop_signal",
+                         default="SIGTERM",
+                         metavar="string",
+                         help="Signal to stop a container, SIGTERM by default (default \"SIGTERM\")")
+        run.add_argument('--sysctl',
+                         type=lambda kv: kv.split("=", 1),
+                         action="append",
+                         dest="sysctls",
+                         metavar="map",
+                         help="Sysctl options (default map[])")
+        run.add_argument('--tmpfs',
+                         type=lambda kv: kv.split(":", 1),
+                         action="append",
+                         metavar="list",
+                         help="Mount a tmpfs directory (default [])")
         run.add_argument('--tty', '-t',
                          action="store_true",
                          dest="tty",
                          help="Allocate a pseudo-TTY")
+        run.add_argument('--ulimit',
+                         type=lambda kv: kv.split("=", 1),
+                         action="append",
+                         dest="ulimits",
+                         metavar="ulimit",
+                         help="Ulimit options (default [])")
+        run.add_argument('--userns',
+                         type=str,
+                         dest="userns_mode",
+                         metavar="string",
+                         help="User namespace to use")
         run.add_argument('--volume', '-v',
                          action="append",
                          type=str,
@@ -238,9 +542,17 @@ if __name__ == "__main__":
         [nocopy]. The 'host-src' is an absolute path
         or a name value.
         '''))
-        run.add_argument('--rm',
-                         action="store_true",
-                         help="Automatically remove the container when it exits")
+        run.add_argument('--volumes-driver',
+                         type=str,
+                         dest="volume_driver",
+                         metavar="string",
+                         help="Optional volume driver for the container")
+        run.add_argument('--volumes-from',
+                         type=lambda kv: kv.split(":", 1),
+                         action="append",
+                         dest="volumes_from",
+                         metavar="list",
+                         help="Mount volumes from the specified container(s) (default [])")
 
         # --------------------------LOGS------------------------------
 
@@ -610,7 +922,9 @@ if __name__ == "__main__":
         dokcer.eval(arguments)
 
         if dokcer.debug:
-            print repr(arguments)
+            import json
+            print json.dumps(
+                arguments, indent=4)
     except (KeyboardInterrupt, SystemExit):
         pass
     except (AttributeError, ValueError) as e:
