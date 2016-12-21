@@ -66,7 +66,7 @@ class Cp(Command):
         else:
             fd = tempfile.NamedTemporaryFile(delete=False)
             with tarfile.open(fd.name, 'w') as t:
-                t.add(src_path)
+                t.add(src_path, os.path.basename(src_path))
             fd.close()
             with open(fd.name, 'rb') as f:
                 args['data'] = f.read()
