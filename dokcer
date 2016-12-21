@@ -902,6 +902,87 @@ if __name__ == "__main__":
                                      dest="format",
                                      help="Pretty-print containers using a Python template")
 
+        # ------------------------NETWORK-CONNECT-----------------------
+
+        network_connect = network.add_parser(
+            'connect', formatter_class=argparse.RawDescriptionHelpFormatter,
+            usage="%(prog)s [OPTIONS] NETWORK CONTAINER",
+            description=textwrap.dedent('''\
+            Connect a container to a network
+            '''))
+        network_connect.add_argument('net_id',
+                                     type=str,
+                                     metavar="NETWORK",
+                                     help="Connect a container to a network")
+        network_connect.add_argument('container',
+                                     type=str,
+                                     metavar="CONTAINER",
+                                     help="Connect a container to a network")
+        network_connect.add_argument('--alias',
+                                     action="append",
+                                     type=str,
+                                     dest="aliases",
+                                     metavar="stringSlice",
+                                     help="Add network-scoped alias for the container")
+        network_connect.add_argument('--ip',
+                                     type=str,
+                                     dest="ipv4_address",
+                                     metavar="string",
+                                     help="IP Address")
+        network_connect.add_argument('--ip6',
+                                     type=str,
+                                     dest="ipv6_address",
+                                     metavar="string",
+                                     help="IPv6 Address")
+        network_connect.add_argument('--link',
+                                     action="append",
+                                     type=str,
+                                     dest="links",
+                                     metavar="list",
+                                     help="Add link to another container (default [])")
+        network_connect.add_argument('--link-local-ip',
+                                     action="append",
+                                     type=str,
+                                     dest="link_local_ips",
+                                     metavar="stringSlice",
+                                     help="Add a link-local address for the container")
+
+        # ------------------------NETWORK-DISCONNECT--------------------
+
+        network_disconnect = network.add_parser(
+            'disconnect', formatter_class=argparse.RawDescriptionHelpFormatter,
+            usage="%(prog)s [OPTIONS] NETWORK CONTAINER",
+            description=textwrap.dedent('''\
+            Disconnect a container from a network
+            '''))
+        network_disconnect.add_argument('net_id',
+                                        type=str,
+                                        metavar="NETWORK",
+                                        help="Disconnect a container from a network")
+        network_disconnect.add_argument('container',
+                                        type=str,
+                                        metavar="CONTAINER",
+                                        help="Disconnect a container from a network")
+        network_disconnect.add_argument('--force', '-f',
+                                        action="store_true",
+                                        dest="force",
+                                        help="Force the container to disconnect from a network")
+
+        # ---------------------------NETWORK-PRUNE----------------------
+
+        """
+        network_prune = network.add_parser(
+            'prune', formatter_class=argparse.RawDescriptionHelpFormatter,
+            usage="%(prog)s [OPTIONS]",
+            description=textwrap.dedent('''\
+            Remove all unused networks
+            '''))
+        network_prune.add_argument('--force', '-f',
+                                   action="store_true",
+                                   dest="force",
+                                   help="Do not prompt for confirmation")
+        """
+
         # ---------------------------END------------------------------
 
         argcomplete.autocomplete(p)

@@ -23,7 +23,7 @@
 
 - Currently support following commands:
     - dokcer `version, info, inspect, images, pull, build, run, logs, stats, rename, restart, exec, rmi, rm, ps, top, history, cp`
-    - dokcer network `ls, create, rm, remove, inspect`
+    - dokcer network `ls, create, rm, remove, inspect, connect, disconnect`
 
 - **If you want auto-complete feature, you should configure [argcomplete](https://github.com/kislyuk/argcomplete).**
 
