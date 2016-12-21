@@ -1,4 +1,4 @@
-"""This module contains `docker network ls` class"""
+"""This module contains `docker volume ls` class"""
 
 from collections import defaultdict
 import pystache
@@ -12,12 +12,12 @@ def pprint_things(l):
 
 
 class Ls(Command):
-    """This class implements `docker network ls` command"""
+    """This class implements `docker volume ls` command"""
 
-    name = "network ls"
+    name = "volume ls"
     require = []
 
-    defaultTemplate = '{{Id}}\t{{Name}}\t{{Driver}}\t{{Scope}}'
+    defaultTemplate = '{{Driver}}\t{{Name}}'
 
     def __init__(self):
         Command.__init__(self)
@@ -27,7 +27,7 @@ class Ls(Command):
         if args["format"] is None:
             fm = self.defaultTemplate
             self.settings[self.name] = pprint_things(
-                "NETWORK ID\tNAME\tDRIVER\tSCOPE")
+                "DRIVER\tVOLUME NAME")
         else:
             fm = args["format"]
             self.settings[self.name] = ""
@@ -41,13 +41,9 @@ class Ls(Command):
                 d[k].append(v)
             args["filters"] = dict(d)
 
-        # wait for PR: https://github.com/docker/docker-py/pull/1362
-        del args["filters"]
-
-        nodes = self.client.networks(**args)
+        nodes = self.client.volumes(**args)["Volumes"]
         if nodes:
             for node in nodes:
-                node["Id"] = node["Id"][:12]
                 self.settings[self.name] += pprint_things(pystache.render(fm, node))
 
     def final(self):

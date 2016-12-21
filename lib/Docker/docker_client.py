@@ -57,6 +57,7 @@ class Docker(object):
         else:
             self.host = '127.0.0.1'
             self.client = APIClient(base_url='unix://var/run/docker.sock')
+        self.client.ping()
 
     def dry(self):
         """Load the command and configure the environment with dry-run"""
@@ -68,6 +69,10 @@ class Docker(object):
             category = "{}.".format(args["command_flag"])
             command_flag = args["network_flag"]
             del args["network_flag"]
+        elif "volume_flag" in args:
+            category = "{}.".format(args["command_flag"])
+            command_flag = args["volume_flag"]
+            del args["volume_flag"]
         else:
             category = ""
             command_flag = args["command_flag"]

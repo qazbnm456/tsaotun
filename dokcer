@@ -8,6 +8,7 @@ import argparse
 import textwrap
 import argcomplete
 from docker.errors import APIError
+from requests import ConnectionError
 
 from lib.Docker.docker_client import Docker
 from lib.Utils import logger
@@ -787,6 +788,7 @@ if __name__ == "__main__":
                                 type=lambda kv: kv.split("=", 1),
                                 action="append",
                                 dest="filters",
+                                metavar="filter",
                                 help="Provide filter values (e.g. 'driver=bridge')")
         network_ls.add_argument('--format',
                                 type=str,
@@ -808,6 +810,7 @@ if __name__ == "__main__":
                                     type=str,
                                     dest="driver",
                                     default="bridge",
+                                    metavar="string",
                                     help="Driver to manage the Network (default \"bridge\")")
         network_create.add_argument('--gateway',
                                     type=str,
@@ -983,6 +986,121 @@ if __name__ == "__main__":
                                    help="Do not prompt for confirmation")
         """
 
+        # -------------------------VOLUME-----------------------------
+
+        volume_p = sp.add_parser('volume')
+        volume = volume_p.add_subparsers(
+            title="Volumes", dest="volume_flag", help='type [COMMAND] --help to get additional help')
+
+        # ------------------------VOLUME-LS---------------------------
+
+        volume_ls = volume.add_parser('ls',
+                                      formatter_class=argparse.RawDescriptionHelpFormatter,
+                                      usage="%(prog)s [OPTIONS]",
+                                      description=textwrap.dedent('''\
+        List volumes
+         '''))
+        volume_ls.add_argument('--filter', '-f',
+                               type=lambda kv: kv.split("=", 1),
+                               action="append",
+                               dest="filters",
+                               metavar="filter",
+                               help="Provide filter values (e.g. 'dangling=true')")
+        volume_ls.add_argument('--format',
+                               type=str,
+                               help="Pretty-print networks using a Python template")
+
+        # ----------------------VOLUME-CREATE--------------------------
+
+        volume_create = volume.add_parser('create',
+                                          formatter_class=argparse.RawDescriptionHelpFormatter,
+                                          usage="%(prog)s [OPTIONS] [VOLUME]",
+                                          description=textwrap.dedent('''\
+        Create a volume
+         '''))
+        volume_create.add_argument('name',
+                                   type=str,
+                                   metavar="VOLUME",
+                                   help="Create a volume")
+        volume_create.add_argument('--driver', '-d',
+                                   type=str,
+                                   dest="driver",
+                                   default="local",
+                                   metavar="string",
+                                   help="Specify volume driver name (default \"local\")")
+        volume_create.add_argument('--opt', '-o',
+                                   type=lambda kv: kv.split("=", 1),
+                                   action="append",
+                                   dest="driver_opts",
+                                   metavar="map",
+                                   help="Set driver specific options (default map[])")
+        volume_create.add_argument('--label',
+                                   type=lambda kv: kv.split("=", 1),
+                                   action="append",
+                                   dest="labels",
+                                   metavar="list",
+                                   help="Set metadata for a volume (default [])")
+
+        # ------------------------VOLUME-RM----------------------------
+
+        volume_rm = volume.add_parser('rm',
+                                      formatter_class=argparse.RawDescriptionHelpFormatter,
+                                      usage="%(prog)s [OPTIONS] VOLUME [VOLUME...]",
+                                      description=textwrap.dedent('''\
+        Remove one or more volumes
+
+        Aliases:
+        rm, remove
+
+        Examples:
+
+        $ docker volume rm hello
+        hello
+         '''))
+        volume_rm.add_argument('volumes',
+                               type=str,
+                               metavar="VOLUME",
+                               nargs="+",
+                               help="Remove one or more volumes")
+
+        volume_remove = volume.add_parser('remove',
+                                          formatter_class=argparse.RawDescriptionHelpFormatter,
+                                          usage="%(prog)s [OPTIONS] VOLUME [VOLUME...]",
+                                          description=textwrap.dedent('''\
+        Remove one or more volumes
+
+        Aliases:
+        rm, remove
+
+        Examples:
+
+        $ docker volume rm hello
+        hello
+         '''))
+        volume_remove.add_argument('volumes',
+                                   type=str,
+                                   metavar="VOLUME",
+                                   nargs="+",
+                                   help="Remove one or more volumes")
+
+        # ------------------------VOLUME-INSPECT-----------------------
+
+        volume_inspect = volume.add_parser(
+            'inspect', formatter_class=argparse.RawDescriptionHelpFormatter,
+            usage="%(prog)s [OPTIONS] VOLUME [VOLUME...]",
+            description=textwrap.dedent('''\
+            Display detailed information on one or more volumes
+            '''))
+        volume_inspect.add_argument('volumes',
+                                    type=str,
+                                    metavar="VOLUME",
+                                    nargs="+",
+                                    help="Display detailed information on one or more volumes")
+        volume_inspect.add_argument('--format', '-f',
+                                    type=str,
+                                    dest="format",
+                                    help="Pretty-print containers using a Python template")
+
         # ---------------------------END------------------------------
 
         argcomplete.autocomplete(p)
@@ -1008,6 +1126,9 @@ if __name__ == "__main__":
                 arguments, indent=4)
     except (KeyboardInterrupt, SystemExit):
         pass
+    except ConnectionError as e:
+        logger.Logger.log("Error response from dokcer: {}\n", e.message[0])
+        exit(1)
     except (AttributeError, ValueError) as e:
         if dokcer.color:
             logger.Logger.logError("Error response from dokcer: {}", str(e))
@@ -1019,8 +1140,5 @@ if __name__ == "__main__":
             msg = e.response.json()["message"]
         except ValueError:
             msg = str(e.response.text[:-1])
-        if dokcer.color:
-            logger.Logger.logError("Error response from daemon: {}", msg)
-        else:
-            logger.Logger.log("Error response from daemon: {}", msg)
+        logger.Logger.log("Error response from daemon: {}", msg)
         exit(1)

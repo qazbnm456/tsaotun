@@ -17,6 +17,7 @@
 - 0.1 -- Initial release
 - 0.2 -- More commands supported
 - 0.3 -- More commands and options
+- 0.4 -- Commands and options are almost done, except for swarm, node, service categories.
 
 <a name="status"></a>
 ## Status quo
@@ -24,6 +25,7 @@
 - Currently support following commands:
     - dokcer `version, info, inspect, images, pull, build, run, logs, stats, rename, restart, exec, rmi, rm, ps, top, history, cp`
     - dokcer network `ls, create, rm, remove, inspect, connect, disconnect`
+    - dokcer volume `ls, create, rm, remove, inspect`
 
 - **If you want auto-complete feature, you should configure [argcomplete](https://github.com/kislyuk/argcomplete).**
 

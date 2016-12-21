@@ -1,4 +1,4 @@
-"""This module contains base class of `docker network command` class"""
+"""This module contains base class of `docker volume command` class"""
 
 from abc import ABCMeta, abstractmethod
 from six import with_metaclass
