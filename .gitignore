@@ -8,4 +8,16 @@
 *~
 .project
 .DS_Store
-.idea
+env/
+venv/
+.idea/
+build
+dist
+*.egg-info
+*.egg/
+.tox
+.coverage
+
+# Ignore compiled documentation
+_build/
+README.rst

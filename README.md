@@ -18,6 +18,7 @@
 - 0.2 -- More commands supported
 - 0.3 -- More commands and options
 - 0.4 -- Commands and options are almost done, except for swarm, node, service categories.
+- 0.5 -- Now it's usable. :tada:
 
 <a name="status"></a>
 ## Status quo
@@ -41,7 +42,7 @@
 
 ### Normal Way
 
-- Clone the repo, and `python ./setup.py install`. Done! :tada:
+- Clone the repo, and `sudo python ./setup.py install`. Done!
 
 ### Docker Way
 

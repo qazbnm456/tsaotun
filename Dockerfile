@@ -1,2 +1,3 @@
 FROM pypy:2-onbuild
-ENTRYPOINT [ "pypy", "./dokcer" ]
+RUN pypy setup.py install
+ENTRYPOINT [ "pypy", "/usr/local/bin/dokcer" ]

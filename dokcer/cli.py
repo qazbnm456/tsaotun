@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
 # -*- coding: UTF-8 -*-
 
@@ -10,8 +9,9 @@ import argcomplete
 from docker.errors import APIError
 from requests import ConnectionError
 
-from lib.Docker.docker_client import Docker
-from lib.Utils import logger
+from . import __version__
+from .lib.Docker.docker_client import Docker
+from .lib.Utils import logger
 
 
 class Dokcer(object):
@@ -75,9 +75,9 @@ class Dokcer(object):
             else:
                 logger.Logger.log("{}", self.docker.recv())
 
-if __name__ == "__main__":
-    version = None
-    exec(open('version.py').read())
+
+def cli():
+    """Entry point of dokcer"""
     try:
         dokcer = Dokcer()
         # -------------------------START------------------------------
@@ -100,7 +100,7 @@ if __name__ == "__main__":
                        help="set verbosity level")
         p.add_argument('--version',
                        action="version",
-                       version="%(prog)s {} with:\n{}\n".format(version, dokcer.eval({"command_flag": "version"})))
+                       version="%(prog)s {} with:\n{}\n".format(__version__, dokcer.eval({"command_flag": "version"})))
 
         # ------------------------------------------------------------
 
@@ -121,10 +121,10 @@ if __name__ == "__main__":
 
         # ----------------------------INFO----------------------------
 
-        info = sp.add_parser('info',
-                             formatter_class=argparse.RawDescriptionHelpFormatter,
-                             usage="%(prog)s",
-                             description=textwrap.dedent('''\
+        sp.add_parser('info',
+                      formatter_class=argparse.RawDescriptionHelpFormatter,
+                      usage="%(prog)s",
+                      description=textwrap.dedent('''\
         Display system-wide information
          '''))
 
@@ -184,7 +184,7 @@ if __name__ == "__main__":
                           type=str,
                           metavar="IMAGE",
                           nargs=1,
-                          help="Pull an image or a repository from a registry")
+                          help="Image to pull")
 
         # ---------------------------BUILD-----------------------------
 
@@ -197,7 +197,7 @@ if __name__ == "__main__":
         build.add_argument('path',
                            type=str,
                            metavar="PATH",
-                           help="Build an image from a Dockerfile")
+                           help="The path containing Dockerfile")
         build.add_argument('--tag', '-t',
                            type=str,
                            dest="tag",
@@ -223,7 +223,7 @@ if __name__ == "__main__":
                          type=str,
                          metavar="COMMAND",
                          nargs="*",
-                         help="Commands to run")
+                         help="Command to run")
         run.add_argument('--add-host',
                          type=lambda kv: kv.split(":", 1),
                          action="append",
@@ -604,11 +604,11 @@ if __name__ == "__main__":
         rename.add_argument('container',
                             type=str,
                             metavar="CONTAINER",
-                            help="Rename a container")
+                            help="Container to be renamed")
         rename.add_argument('name',
                             type=str,
                             metavar="NAME",
-                            help="Rename a container")
+                            help="New container name")
 
         # -------------------------RESTART----------------------------
 
@@ -622,7 +622,7 @@ if __name__ == "__main__":
                              type=str,
                              metavar="CONTAINER",
                              nargs="+",
-                             help="Restart one or more containers")
+                             help="Containers to be restarted")
         restart.add_argument('--time', '-t',
                              type=int,
                              metavar='int',
@@ -673,7 +673,7 @@ if __name__ == "__main__":
                          type=str,
                          metavar="IMAGE",
                          nargs="+",
-                         help="Remove one or more images")
+                         help="Images to be removed")
         rmi.add_argument('--force', '-f',
                          action="store_true",
                          dest="force",
@@ -691,7 +691,7 @@ if __name__ == "__main__":
                         type=str,
                         metavar="CONTAINER",
                         nargs="+",
-                        help="Remove one or more containers")
+                        help="Containers to be removed")
         rm.add_argument('--force', '-f',
                         action="store_true",
                         dest="force",
@@ -712,9 +712,11 @@ if __name__ == "__main__":
         ps.add_argument('--filter', '-f',
                         type=dict,
                         dest="filters",
+                        metavar="filter",
                         help="Filter output based on conditions provided (default [])")
         ps.add_argument('--format',
                         type=str,
+                        metavar="string",
                         help="Pretty-print containers using a Python template")
         ps.add_argument('--quiet', '-q',
                         action="store_true",
@@ -735,7 +737,7 @@ if __name__ == "__main__":
         top.add_argument('ps_args',
                          type=str,
                          nargs="?",
-                         help="Display the running processes of a container")
+                         help="Ps options")
 
         # ------------------------HISTORY-----------------------------
 
@@ -748,7 +750,7 @@ if __name__ == "__main__":
         history.add_argument('image',
                              type=str,
                              metavar="IMAGE",
-                             help="The image to show history for")
+                             help="Image to show history")
 
         # --------------------------CP--------------------------------
 
@@ -805,7 +807,7 @@ if __name__ == "__main__":
         network_create.add_argument('name',
                                     type=str,
                                     metavar="NETWORK",
-                                    help="Create a network")
+                                    help="Network name")
         network_create.add_argument('--driver', '-d',
                                     type=str,
                                     dest="driver",
@@ -869,7 +871,7 @@ if __name__ == "__main__":
                                 type=str,
                                 metavar="NETWORK",
                                 nargs="+",
-                                help="Remove one or more networks")
+                                help="Networks to be removed")
 
         network_remove = network.add_parser(
             'remove', formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -916,11 +918,11 @@ if __name__ == "__main__":
         network_connect.add_argument('net_id',
                                      type=str,
                                      metavar="NETWORK",
-                                     help="Connect a container to a network")
+                                     help="Network to be connected")
         network_connect.add_argument('container',
                                      type=str,
                                      metavar="CONTAINER",
-                                     help="Connect a container to a network")
+                                     help="Container to be assigned")
         network_connect.add_argument('--alias',
                                      action="append",
                                      type=str,
@@ -961,11 +963,11 @@ if __name__ == "__main__":
         network_disconnect.add_argument('net_id',
                                         type=str,
                                         metavar="NETWORK",
-                                        help="Disconnect a container from a network")
+                                        help="Network to be disconnected")
         network_disconnect.add_argument('container',
                                         type=str,
                                         metavar="CONTAINER",
-                                        help="Disconnect a container from a network")
+                                        help="Container to be assigned")
         network_disconnect.add_argument('--force', '-f',
                                         action="store_true",
                                         dest="force",
@@ -1021,7 +1023,7 @@ if __name__ == "__main__":
         volume_create.add_argument('name',
                                    type=str,
                                    metavar="VOLUME",
-                                   help="Create a volume")
+                                   help="Volume name")
         volume_create.add_argument('--driver', '-d',
                                    type=str,
                                    dest="driver",
@@ -1061,7 +1063,7 @@ if __name__ == "__main__":
                                type=str,
                                metavar="VOLUME",
                                nargs="+",
-                               help="Remove one or more volumes")
+                               help="Volumes to be removed")
 
         volume_remove = volume.add_parser('remove',
                                           formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -1081,7 +1083,7 @@ if __name__ == "__main__":
                                    type=str,
                                    metavar="VOLUME",
                                    nargs="+",
-                                   help="Remove one or more volumes")
+                                   help="Volumes to be removed")
 
         # ------------------------VOLUME-INSPECT-----------------------
 
