@@ -31,11 +31,16 @@ def jsoniterparse(j):
 class Docker(object):
     """Class for manipulating the docker client."""
 
+    __stack = None
+
     host = None
     client = None
     ctr = None
     current_ctr = None
     buf = dict()
+
+    category = None
+    command_flag = None
 
     def __init__(self):
         """Loading docker environments"""
@@ -59,32 +64,36 @@ class Docker(object):
             self.client = APIClient(base_url='unix://var/run/docker.sock')
         self.client.ping()
 
-    def dry(self):
+    def __dry(self):
         """Load the command and configure the environment with dry-run"""
         self.buf = "dry-run complete"
 
-    def load(self, args):
+    def load(self, args, dry=False):
         """Load the command_flag and configure the environment"""
-        if "network_flag" in args:
-            category = "{}.".format(args["command_flag"])
-            command_flag = args["network_flag"]
-            del args["network_flag"]
-        elif "volume_flag" in args:
-            category = "{}.".format(args["command_flag"])
-            command_flag = args["volume_flag"]
-            del args["volume_flag"]
+        if dry:
+            self.__dry()
         else:
-            category = ""
-            command_flag = args["command_flag"]
-        del args["command_flag"]
-        mod = __import__("{}{}".format(category.capitalize(), command_flag),
-                         globals(), locals(), ['dummy'], -1)
-        mod_instance = getattr(mod, command_flag.capitalize())()
+            if "network_flag" in args:
+                self.category = "{}.".format(args["command_flag"])
+                self.command_flag = args["network_flag"]
+                del args["network_flag"]
+            elif "volume_flag" in args:
+                self.category = "{}.".format(args["command_flag"])
+                self.command_flag = args["volume_flag"]
+                del args["volume_flag"]
+            else:
+                self.category = ""
+                self.command_flag = args["command_flag"]
+            del args["command_flag"]
+            mod = __import__("Docker.{}{}".format(self.category.capitalize(), self.command_flag),
+                             globals(), locals(), ['dummy'], -1)
+            self.__intrude(mod)
+            mod_instance = getattr(mod, self.command_flag.capitalize())()
 
-        if mod_instance.require:
-            mod_instance.load_require(args, self.client)
+            if mod_instance.require:
+                mod_instance.load_require(args, self.client)
 
-        self.buf = mod_instance.command(args, self.client)
+            self.buf = mod_instance.command(args, self.client)
 
     def recv(self):
         """Receive outcome"""
@@ -93,3 +102,13 @@ class Docker(object):
     def set_recv(self, buf):
         """Set received outcome"""
         self.buf = buf
+
+    def push(self, **kwargs):
+        """Push custom classes into Docker.__stack"""
+        self.__stack = kwargs
+
+    def __intrude(self, mod):
+        """Intrude classes"""
+        if self.__stack:
+            for k, v in self.__stack.iteritems():
+                setattr(mod, k.capitalize(), v)

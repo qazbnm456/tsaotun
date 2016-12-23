@@ -6,11 +6,12 @@ from __future__ import absolute_import
 import argparse
 import textwrap
 import argcomplete
+from sys import exit
 from docker.errors import APIError
 from requests import ConnectionError
 
 from . import __version__
-from .lib.Docker.docker_client import Docker
+from .lib.docker_client import Docker
 from .lib.Utils import logger
 
 
@@ -23,8 +24,9 @@ class Dokcer(object):
     verbose = 0
     remove = False
 
-    def __init__(self):
+    def __init__(self, **intruders):
         self.docker = Docker()
+        self.push(**intruders)
 
     def set_color(self):
         """Set terminal color"""
@@ -41,6 +43,10 @@ class Dokcer(object):
     def set_verbose(self, level):
         """Set verbosity level"""
         self.verbose = min(level, 3)
+
+    def push(self, **kwargs):
+        """Push custom classes to docker"""
+        self.docker.push(**kwargs)
 
     def eval(self, args, suppress=False):
         """Evaluate commands"""
@@ -60,15 +66,12 @@ class Dokcer(object):
             self.docker.load(args)
             return self.docker.recv()  # docker --version
 
-        if self.dry:
-            self.docker.dry()
-        else:
-            self.docker.load(args)
-            if self.remove:
-                self.docker.client.remove_container(
-                    self.docker.recv()["create"]["Id"], force=True)
-            if command_flag == "run":
-                self.docker.set_recv(self.docker.recv()["run"])
+        self.docker.load(args, dry=self.dry)
+        if self.remove:
+            self.docker.client.remove_container(
+                self.docker.recv()["create"]["Id"], force=True)
+        if command_flag == "run":
+            self.docker.set_recv(self.docker.recv()["run"])
         if suppress is not True:
             if self.color:
                 logger.Logger.logSuccess("{}", self.docker.recv())
@@ -76,10 +79,10 @@ class Dokcer(object):
                 logger.Logger.log("{}", self.docker.recv())
 
 
-def cli():
+def cli(args=None, **intruders):
     """Entry point of dokcer"""
     try:
-        dokcer = Dokcer()
+        dokcer = Dokcer(**intruders)
         # -------------------------START------------------------------
         p = argparse.ArgumentParser(
             formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -1106,7 +1109,10 @@ def cli():
         # ---------------------------END------------------------------
 
         argcomplete.autocomplete(p)
-        arguments = p.parse_args()
+        if args:
+            arguments = p.parse_args(args.split())
+        else:
+            arguments = p.parse_args()
         arguments = vars(arguments)
 
         if arguments["console"]:

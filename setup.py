@@ -3,7 +3,7 @@ import codecs
 import os
 import re
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 ROOT_DIR = os.path.dirname(__file__)
 SOURCE_DIR = os.path.join(ROOT_DIR)
@@ -44,7 +44,7 @@ setup(name='dokcer',
       author='Boik Su',
       author_email='boik@tdohacker.org',
       url='https://github.com/qazbnm456/dokcer',
-      packages=['dokcer'],
+      packages=find_packages(),
       install_requires=requirements,
       entry_points="""
             [console_scripts]
@@ -64,4 +64,4 @@ setup(name='dokcer',
           'Programming Language :: Python :: 2.6',
           'Programming Language :: Python :: 2.7'
       ]
-      )
+     )
