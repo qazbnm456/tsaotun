@@ -3,13 +3,9 @@
 import arrow
 import humanize
 import pystache
+from pytabwriter import TabWriter
 
 from .command import Command
-
-
-def pprint_things(l):
-    """Pretty print"""
-    return ''.join("{:26}".format(e) for e in l.split("\t")) + "\n"
 
 
 class Images(Command):
@@ -26,13 +22,16 @@ class Images(Command):
         self.settings[self.name] = None
 
     def eval_command(self, args):
+        tw = TabWriter()
         if args["digests"]:
+            tw.padding = [3, 10, 3, 8, 8]
             fm = self.digestsTemplate
-            self.settings[self.name] = pprint_things(
+            tw.writeln(
                 "REPOSITORY\tTAG\tDIGEST\tIMAGE ID\tCREATED\tSIZE")
         elif args["format"] is None:
+            tw.padding = [3, 10, 8, 8]
             fm = self.defaultTemplate
-            self.settings[self.name] = pprint_things(
+            tw.writeln(
                 "REPOSITORY\tTAG\tIMAGE ID\tCREATED\tSIZE")
         else:
             fm = args["format"]
@@ -45,16 +44,18 @@ class Images(Command):
         nodes = self.client.images(**args)
         for node in nodes:
             try:
-                node["Repository"], node["Tag"] = node["RepoTags"][0].split(":")
+                node["Repository"], node["Tag"] = node[
+                    "RepoTags"][0].split(":")
             except TypeError:
                 node["Repository"] = node["RepoDigests"][0].split('@', 2)[0]
                 node["Tag"] = "<none>"
-            node["Digest"] = node["RepoDigests"][0].split('@', 2)[1][:24] if node["RepoDigests"] else '<' + str(node["RepoDigests"]) + '>'
+            node["Digest"] = node["RepoDigests"][0].split('@', 2)[1] if node[
+                "RepoDigests"] else '<' + str(node["RepoDigests"]) + '>'
             node["Id"] = node["Id"].split(":")[1][:12]
             node["Created"] = arrow.get(node["Created"]).humanize()
             node["Size"] = humanize.naturalsize(node["VirtualSize"])
-            self.settings[
-                self.name] += pprint_things(pystache.render(fm, node))
+            tw.writeln(pystache.render(fm, node))
+        self.settings[self.name] = str(tw)
 
     def final(self):
         return self.settings[self.name]

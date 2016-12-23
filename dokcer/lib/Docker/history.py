@@ -3,13 +3,9 @@
 import arrow
 import humanize
 import pystache
+from pytabwriter import TabWriter
 
 from .command import Command
-
-
-def pprint_things(l):
-    """Pretty print"""
-    return ''.join("{:26}".format(e) for e in l.split("\t")) + "\n"
 
 
 class History(Command):
@@ -18,24 +14,29 @@ class History(Command):
     name = "history"
     require = []
 
-    defaultTemplate = '{{{Id}}}\t{{Created}}\t{{{CreatedBy}}}\t{{Size}}\t{{Comment}}'
+    defaultTemplate = '{{{Id}}}@{{Created}}@{{{CreatedBy}}}@{{Size}}@{{Comment}}'
 
     def __init__(self):
         Command.__init__(self)
         self.settings[self.name] = None
 
     def eval_command(self, args):
+        tw = TabWriter(tabchar='@')
+        tw.padding = [8, 9, 3, 8]
         fm = self.defaultTemplate
-        self.settings[self.name] = pprint_things(
-            "IMAGE\tCREATED\tCREATED BY\tSIZE\tCOMMENT")
+        tw.writeln(
+            "IMAGE@CREATED@CREATED BY@SIZE@COMMENT")
         nodes = self.client.history(**args)
-        for node in nodes:
-            node["Id"] = node["Id"].split(":")[1][:12] if ":" in node["Id"] else node["Id"]
-            node["Created"] = arrow.get(node["Created"]).humanize()
-            node["CreatedBy"] = node["CreatedBy"][:18] + "..."
-            node["Size"] = humanize.naturalsize(node["Size"])
-            self.settings[
-                self.name] += pprint_things(pystache.render(fm, node))
+        if nodes:
+            for node in nodes:
+                node["Id"] = node["Id"].split(":")[1][:12] if ":" in node[
+                    "Id"] else node["Id"]
+                node["Created"] = arrow.get(node["Created"]).humanize()
+                node["CreatedBy"] = (node["CreatedBy"][
+                    :42] + "...") if len(node["CreatedBy"]) >= 45 else node["CreatedBy"]
+                node["Size"] = humanize.naturalsize(node["Size"])
+                tw.writeln(pystache.render(fm, node))
+        self.settings[self.name] = str(tw)
 
     def final(self):
         return self.settings[self.name]

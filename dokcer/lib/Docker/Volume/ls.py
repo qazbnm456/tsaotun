@@ -2,13 +2,9 @@
 
 from collections import defaultdict
 import pystache
+from pytabwriter import TabWriter
 
 from .command import Command
-
-
-def pprint_things(l):
-    """Pretty print"""
-    return ''.join("{:25}".format(e) for e in l.split("\t")) + "\n"
 
 
 class Ls(Command):
@@ -24,13 +20,14 @@ class Ls(Command):
         self.settings[self.name] = None
 
     def eval_command(self, args):
+        tw = TabWriter()
         if args["format"] is None:
+            tw.padding = [14]
             fm = self.defaultTemplate
-            self.settings[self.name] = pprint_things(
+            tw.writeln(
                 "DRIVER\tVOLUME NAME")
         else:
             fm = args["format"]
-            self.settings[self.name] = ""
         del args["format"]
 
         if args["filters"]:
@@ -44,7 +41,8 @@ class Ls(Command):
         nodes = self.client.volumes(**args)["Volumes"]
         if nodes:
             for node in nodes:
-                self.settings[self.name] += pprint_things(pystache.render(fm, node))
+                tw.writeln(pystache.render(fm, node))
+        self.settings[self.name] = str(tw)
 
     def final(self):
         return self.settings[self.name]

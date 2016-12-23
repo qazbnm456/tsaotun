@@ -1,13 +1,9 @@
 """This module contains `docker top` class"""
 
 import pystache
+from pytabwriter import TabWriter
 
 from .command import Command
-
-
-def pprint_things(l):
-    """Pretty print"""
-    return ''.join("{:20}".format(e) for e in l.split("\t")) + "\n"
 
 
 class Top(Command):
@@ -23,17 +19,20 @@ class Top(Command):
         self.settings[self.name] = None
 
     def eval_command(self, args):
-        self.settings[self.name] = pprint_things(
+        tw = TabWriter()
+        tw.padding = [8, 8, 8]
+        tw.writeln(
             "PID\tUSER\tTime\tCOMMAND")
         infos = self.client.top(**args)
-        for info in infos["Processes"]:
-            process = {}
-            process["Pid"] = info[0]
-            process["User"] = info[1]
-            process["Time"] = info[2]
-            process["Command"] = info[3]
-            self.settings[
-                self.name] += pprint_things(pystache.render(self.defaultTemplate, process))
+        if infos:
+            for info in infos["Processes"]:
+                process = {}
+                process["Pid"] = info[0]
+                process["User"] = info[1]
+                process["Time"] = info[2]
+                process["Command"] = info[3]
+                tw.writeln(pystache.render(self.defaultTemplate, process))
+        self.settings[self.name] = str(tw)
 
     def final(self):
         return self.settings[self.name]

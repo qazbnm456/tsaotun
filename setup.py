@@ -44,10 +44,11 @@ setup(name='dokcer',
       author='Boik Su',
       author_email='boik@tdohacker.org',
       url='https://github.com/qazbnm456/dokcer',
-      download_url='https://codeload.github.com/qazbnm456/dokcer/tar.gz/0.5',
-      keywords=['0.5'],
+      download_url='https://codeload.github.com/qazbnm456/dokcer/tar.gz/0.6',
+      keywords=['0.6'],
       packages=find_packages(),
       install_requires=requirements,
+      dependency_links=['https://github.com/qazbnm456/pytabwriter/tarball/master#egg=pytabwriter-0.1.1'],
       entry_points="""
             [console_scripts]
             dokcer=dokcer.cli:cli

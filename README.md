@@ -19,8 +19,9 @@
 - 0.1 -- Initial release
 - 0.2 -- More commands supported
 - 0.3 -- More commands and options
-- 0.4 -- Commands and options are almost done, except for swarm, node, service categories.
-- 0.5 -- Now it's usable. :tada:
+- 0.4 -- Commands and options are almost done, except for swarm, node, service categories
+- 0.5 -- Now it's usable :tada:
+- 0.6 -- Fix format problems within lots of commands
 
 <a name="status"></a>
 ## Status quo
