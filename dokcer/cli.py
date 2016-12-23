@@ -3,7 +3,6 @@
 
 from __future__ import absolute_import
 
-from sys import exit
 import argparse
 import textwrap
 import argcomplete
@@ -15,6 +14,14 @@ from .lib.docker_client import Docker
 from .lib.Utils import logger
 
 
+class ArgumentParser(argparse.ArgumentParser):
+    """Custom ArgumentParser"""
+    def error(self, message):
+        import sys
+        self.print_help(sys.stderr)
+        raise RuntimeError
+
+
 class Dokcer(object):
     """Entrypoint of Dokcer"""
     color = 0
@@ -23,91 +30,41 @@ class Dokcer(object):
     level = 0
     verbose = 0
     remove = False
+    parser = None
+    args = None
 
     def __init__(self, **intruders):
         self.docker = Docker()
         self.push(**intruders)
+        self.__register()
 
-    def set_color(self):
-        """Set terminal color"""
-        self.color = 1
-
-    def set_debug(self):
-        """DEBUG on/off"""
-        self.debug = 1
-
-    def set_dry(self):
-        """dry-run on/off"""
-        self.dry = 1
-
-    def set_verbose(self, level):
-        """Set verbosity level"""
-        self.verbose = min(level, 3)
-
-    def push(self, **kwargs):
-        """Push custom classes to docker"""
-        self.docker.push(**kwargs)
-
-    def eval(self, args, suppress=False):
-        """Evaluate commands"""
-        try:
-            command_flag = args["command_flag"]
-            del args["console"]
-            del args["color"]
-            del args["debug"]
-            del args["dry"]
-            del args["verbosity"]
-            if (command_flag == "run") and ("rm" in args):
-                self.remove = args["rm"]
-                del args["rm"]
-            else:
-                self.remove = False
-        except KeyError:
-            self.docker.load(args)
-            return self.docker.recv()  # docker --version
-
-        self.docker.load(args, dry=self.dry)
-        if self.remove:
-            self.docker.client.remove_container(
-                self.docker.recv()["create"]["Id"], force=True)
-        if command_flag == "run":
-            self.docker.set_recv(self.docker.recv()["run"])
-        if suppress is not True:
-            if self.color:
-                logger.Logger.logSuccess("{}", self.docker.recv())
-            else:
-                logger.Logger.log("{}", self.docker.recv())
-
-
-def cli(args=None, **intruders):
-    """Entry point of dokcer"""
-    try:
-        dokcer = Dokcer(**intruders)
+    def __register(self):
+        """Register arguments"""
         # -------------------------START------------------------------
-        p = argparse.ArgumentParser(
+        self.parser = ArgumentParser(
             formatter_class=argparse.RawDescriptionHelpFormatter)
-        p.add_argument('--console', '-c',
-                       action="store_true",
-                       help="enter console mode")
-        p.add_argument('--color',
-                       action="store_true",
-                       help="set terminal color")
-        p.add_argument('--debug',
-                       action="store_true",
-                       help="debug on/off")
-        p.add_argument('--dry',
-                       action="store_true",
-                       help="dry-run on/off")
-        p.add_argument('--verbose', '-v',
-                       action="count", dest="verbosity", default=0,
-                       help="set verbosity level")
-        p.add_argument('--version',
-                       action="version",
-                       version="%(prog)s {} with:\n{}\n".format(__version__, dokcer.eval({"command_flag": "version"})))
+        self.parser.add_argument('--console', '-c',
+                                 action="store_true",
+                                 help="enter console mode")
+        self.parser.add_argument('--color',
+                                 action="store_true",
+                                 help="set terminal color")
+        self.parser.add_argument('--debug',
+                                 action="store_true",
+                                 help="debug on/off")
+        self.parser.add_argument('--dry',
+                                 action="store_true",
+                                 help="dry-run on/off")
+        self.parser.add_argument('--verbose', '-v',
+                                 action="count", dest="verbosity", default=0,
+                                 help="set verbosity level")
+        self.parser.add_argument('--version',
+                                 action="version",
+                                 version="%(prog)s {}\n".format(__version__))
 
         # ------------------------------------------------------------
 
-        sp = p.add_subparsers(
+        sp = self.parser.add_subparsers(
             title="Commands", dest="command_flag", help='type [COMMAND] --help to get additional help')
 
         # --------------------------VERSION--------------------------
@@ -213,6 +170,7 @@ def cli(args=None, **intruders):
         # ---------------------------RUN------------------------------
 
         run = sp.add_parser('run',
+                            add_help=False,
                             formatter_class=argparse.RawDescriptionHelpFormatter,
                             usage="%(prog)s [OPTIONS] IMAGE [COMMAND] [ARG...]",
                             description=textwrap.dedent('''\
@@ -351,8 +309,9 @@ def cli(args=None, **intruders):
                          dest="health_timeout",
                          metavar="duration",
                          help="Maximum time to allow one check to run (ns|us|ms|s|m|h) (default 0s)")
-        run.add_argument('--hostname',
+        run.add_argument('--hostname', '-h',
                          type=str,
+                         dest="hostname",
                          metavar="string",
                          help="Container host name")
         run.add_argument('--interactive', '-i',
@@ -557,6 +516,8 @@ def cli(args=None, **intruders):
                          dest="volumes_from",
                          metavar="list",
                          help="Mount volumes from the specified container(s) (default [])")
+        run.add_argument('--help', action='help',
+                         help='show this help message and exit')
 
         # --------------------------LOGS------------------------------
 
@@ -1108,45 +1069,110 @@ def cli(args=None, **intruders):
 
         # ---------------------------END------------------------------
 
-        argcomplete.autocomplete(p)
-        if args:
-            arguments = p.parse_args(args.split())
-        else:
-            arguments = p.parse_args()
-        arguments = vars(arguments)
+        argcomplete.autocomplete(self.parser)
 
-        if arguments["console"]:
-            enter_shell(dokcer)
+    def parse(self, argv):
+        """parse argv into list of args"""
+        if argv:
+            self.args = self.parser.parse_args(argv.split())
         else:
-            dokcer.set_verbose(arguments["verbosity"])
-            if arguments["color"]:
-                dokcer.set_color()
-            if arguments["debug"]:
-                dokcer.set_debug()
-            if arguments["dry"]:
-                dokcer.set_dry()
+            self.args = self.parser.parse_args()
+        self.args = vars(self.args)
 
-        dokcer.eval(arguments)
+        self.set_verbose(self.args["verbosity"])
+        if self.args["color"]:
+            self.set_color()
+        if self.args["debug"]:
+            self.set_debug()
+        if self.args["dry"]:
+            self.set_dry()
 
-        if dokcer.debug:
-            import json
-            print json.dumps(
-                arguments, indent=4)
-    except (KeyboardInterrupt, SystemExit):
-        pass
-    except ConnectionError as e:
-        logger.Logger.log("Error response from dokcer: {}\n", e.message[0])
-        exit(1)
-    except (AttributeError, ValueError) as e:
-        if dokcer.color:
-            logger.Logger.logError("Error response from dokcer: {}", str(e))
-        else:
-            logger.Logger.log("Error response from dokcer: {}", str(e))
-        exit(1)
-    except APIError as e:
+    def set_color(self):
+        """Set terminal color"""
+        self.color = 1
+
+    def set_debug(self):
+        """DEBUG on/off"""
+        self.debug = 1
+
+    def set_dry(self):
+        """dry-run on/off"""
+        self.dry = 1
+
+    def set_verbose(self, level):
+        """Set verbosity level"""
+        self.verbose = min(level, 3)
+
+    def push(self, **kwargs):
+        """Push custom classes to docker"""
+        self.docker.push(**kwargs)
+
+    def eval(self, suppress=False):
+        """Evaluate commands"""
         try:
-            msg = e.response.json()["message"]
-        except ValueError:
-            msg = str(e.response.text[:-1])
-        logger.Logger.log("Error response from daemon: {}", msg)
-        exit(1)
+            if self.debug:
+                import json
+                print json.dumps(self.args, indent=4)
+            try:
+                command_flag = self.args["command_flag"]
+                del self.args["console"]
+                del self.args["color"]
+                del self.args["debug"]
+                del self.args["dry"]
+                del self.args["verbosity"]
+                if (command_flag == "run") and ("rm" in self.args):
+                    self.remove = self.args["rm"]
+                    del self.args["rm"]
+                else:
+                    self.remove = False
+            except KeyError:
+                self.docker.load(self.args)
+                return self.docker.recv()  # docker --version
+
+            self.docker.load(self.args, dry=self.dry)
+            if self.remove:
+                self.docker.client.remove_container(
+                    self.docker.recv()["create"]["Id"], force=True)
+            if command_flag == "run":
+                self.docker.set_recv(self.docker.recv()["run"])
+            if suppress is not True:
+                if self.color:
+                    logger.Logger.logSuccess("{}", self.docker.recv())
+                else:
+                    logger.Logger.log("{}", self.docker.recv())
+        except (KeyboardInterrupt, SystemExit):
+            pass
+        except ConnectionError as e:
+            if self.color:
+                logger.Logger.logError(
+                    "Error response from dokcer: {}\n", e.message[0])
+            else:
+                logger.Logger.log(
+                    "Error response from dokcer: {}\n", e.message[0])
+        except (AttributeError, ValueError) as e:
+            if self.color:
+                logger.Logger.logError(
+                    "Error response from dokcer: {}", str(e))
+            else:
+                logger.Logger.log("Error response from dokcer: {}", str(e))
+        except APIError as e:
+            try:
+                msg = e.response.json()["message"]
+            except ValueError:
+                msg = str(e.response.text[:-1])
+            if self.color:
+                logger.Logger.logError("Error response from daemon: {}", msg)
+            else:
+                logger.Logger.log("Error response from daemon: {}", msg)
+        except RuntimeError:
+            raise RuntimeError
+
+
+def cli(argv=None, **intruders):
+    """Entry point of dokcer"""
+    try:
+        dokcer = Dokcer(**intruders)
+        dokcer.parse(argv)
+        dokcer.eval()
+    except RuntimeError:
+        pass
