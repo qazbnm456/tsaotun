@@ -42,7 +42,8 @@
 
 ### Normal Way
 
-- Clone the repo, and `sudo python ./setup.py install`. Done!
+1. `pip install dokcer`, or
+2. Clone the repo, and `sudo python ./setup.py install`
 
 ### Docker Way
 

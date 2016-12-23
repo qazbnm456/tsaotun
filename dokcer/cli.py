@@ -3,10 +3,10 @@
 
 from __future__ import absolute_import
 
+from sys import exit
 import argparse
 import textwrap
 import argcomplete
-from sys import exit
 from docker.errors import APIError
 from requests import ConnectionError
 
