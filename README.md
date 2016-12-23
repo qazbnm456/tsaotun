@@ -11,6 +11,8 @@
 
 ---------------------------------------
 
+[![asciicast](https://asciinema.org/a/97089.png)](https://asciinema.org/a/97089?autoplay=1)
+
 <a name="releases"></a>
 ## Releases
 
@@ -28,7 +30,7 @@
     - dokcer network `ls, create, rm, remove, inspect, connect, disconnect`
     - dokcer volume `ls, create, rm, remove, inspect`
 
-- **If you want auto-complete feature, you should configure [argcomplete](https://github.com/kislyuk/argcomplete).**
+- **If you want auto-complete feature, you could use [bash completion for dokcer](completion/dokcer), taken and modified from docker one, or configure [argcomplete](https://github.com/kislyuk/argcomplete).**
 
 <a name="feature"></a>
 ## Feature

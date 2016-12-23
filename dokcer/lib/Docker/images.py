@@ -44,8 +44,12 @@ class Images(Command):
 
         nodes = self.client.images(**args)
         for node in nodes:
-            node["Repository"], node["Tag"] = node["RepoTags"][0].split(":")
-            node["Digest"] = node["RepoDigests"][0].split('@', 2)[1][:24]  if node["RepoDigests"] else '<' + str(node["RepoDigests"]) + '>'
+            try:
+                node["Repository"], node["Tag"] = node["RepoTags"][0].split(":")
+            except TypeError:
+                node["Repository"] = node["RepoDigests"][0].split('@', 2)[0]
+                node["Tag"] = "<none>"
+            node["Digest"] = node["RepoDigests"][0].split('@', 2)[1][:24] if node["RepoDigests"] else '<' + str(node["RepoDigests"]) + '>'
             node["Id"] = node["Id"].split(":")[1][:12]
             node["Created"] = arrow.get(node["Created"]).humanize()
             node["Size"] = humanize.naturalsize(node["VirtualSize"])

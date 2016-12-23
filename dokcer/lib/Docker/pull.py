@@ -14,6 +14,7 @@ info = {
 }
 MINY, OFFSET = 1, 2
 
+
 def put_cursor(x, y):
     print "\x1b[{};{}H".format(y + 1, x + 1)
 
@@ -47,6 +48,7 @@ class Pull(Command):
 
     def output(self, infos, args):
         try:
+            print infos
             if infos["id"] == args["tag"]:
                 info["title"] = "{}: {}".format(infos["id"], infos["status"])
             elif "Pulling" in infos["status"]:
@@ -65,8 +67,17 @@ class Pull(Command):
                             infos_key] = infos[infos_key]
                 clear()
                 put_cursor(0, MINY)
-                s = '\n'.join(["%s: %s: %s" % (info_key, info["layers"][info_key]["status"], info[
-                              "layers"][info_key]["progressDetail"]) for info_key in info["layers"].keys()])
+
+                tmp = []
+                for info_key, info_value in info["layers"].iteritems():
+                    if "progress" in info_value:
+                        tmp.append("%s: %s: %s" % (info_key, info_value[
+                            "status"], info_value["progress"]))
+                    else:
+                        tmp.append("%s: %s: %s" % (info_key, info_value[
+                            "status"], info_value["progressDetail"]))
+
+                s = '\n'.join(tmp)
                 line_n = len(s.split('\n'))
                 print "%s\n%s" % (info["title"], s)
                 return line_n
