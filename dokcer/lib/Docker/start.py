@@ -18,7 +18,7 @@ class Start(Command):
     def eval_command(self, args):
         """Start containers"""
         if (args["detach"] is False) and (args["tty"]):
-            dockerpty.start(self.client, self.settings["create"])
+            dockerpty.start(self.client, self.settings["create"], interactive=args["stdin_open"])
         else:
             self.client.start(self.settings["create"])
 

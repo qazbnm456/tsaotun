@@ -22,7 +22,7 @@ class Exec_start(Command):
             detach = args["detach"]
             del args["detach"]
             dockerpty.start_exec(
-                self.client, self.settings["exec_create"])
+                self.client, self.settings["exec_create"], interactive=args["interactive"])
         except APIError as e:
             raise e
 

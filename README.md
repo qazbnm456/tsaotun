@@ -27,7 +27,7 @@
 ## Status quo
 
 - Currently support following commands:
-    - dokcer `version, info, inspect, images, pull, build, run, logs, stats, rename, restart, exec, rmi, rm, ps, top, history, cp`
+    - dokcer `version, info, inspect, images, pull, build, run, save, logs, stats, rename, restart, exec, rmi, rm, ps, top, history, cp`
     - dokcer network `ls, create, rm, remove, inspect, connect, disconnect`
     - dokcer volume `ls, create, rm, remove, inspect`
 

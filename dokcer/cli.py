@@ -16,6 +16,7 @@ from .lib.Utils import logger
 
 class ArgumentParser(argparse.ArgumentParser):
     """Custom ArgumentParser"""
+
     def error(self, message):
         import sys
         self.print_help(sys.stderr)
@@ -317,7 +318,6 @@ class Dokcer(object):
         run.add_argument('--interactive', '-i',
                          action="store_true",
                          dest="stdin_open",
-                         default=True,
                          help="Keep STDIN open even if not attached")
         run.add_argument('--ip',
                          type=str,
@@ -350,7 +350,7 @@ class Dokcer(object):
                          metavar="list",
                          help="Set meta data on a container (default [])")
         run.add_argument('--link',
-                         type=str,
+                         type=lambda kv: kv.split(":", 1),
                          action="append",
                          dest="links",
                          metavar="list",
@@ -519,6 +519,25 @@ class Dokcer(object):
         run.add_argument('--help', action='help',
                          help='show this help message and exit')
 
+        # --------------------------SAVE------------------------------
+
+        save = sp.add_parser('save',
+                             formatter_class=argparse.RawDescriptionHelpFormatter,
+                             usage="%(prog)s [OPTIONS] IMAGE [IMAGE...]",
+                             description=textwrap.dedent('''\
+        Save one or more images to a tar archive (streamed to STDOUT by default)
+         '''))
+        save.add_argument('image',
+                          type=str,
+                          metavar="IMAGE",
+                          help="Image to be saved")
+
+        save.add_argument('--output', '-o',
+                          type=str,
+                          dest="output",
+                          metavar="string",
+                          help="Write to a file, instead of STDOUT")
+
         # --------------------------LOGS------------------------------
 
         logs = sp.add_parser('logs',
@@ -617,7 +636,7 @@ class Dokcer(object):
                             help="Detached mode: run command in the background")
         exec_d.add_argument('--interactive', '-i',
                             action="store_true",
-                            dest="stdin_open",
+                            dest="interactive",
                             default=True,
                             help="Keep STDIN open even if not attached")
         exec_d.add_argument('--tty', '-t',
@@ -1130,11 +1149,12 @@ class Dokcer(object):
                 return self.docker.recv()  # docker --version
 
             self.docker.load(self.args, dry=self.dry)
-            if self.remove:
-                self.docker.client.remove_container(
-                    self.docker.recv()["create"]["Id"], force=True)
-            if command_flag == "run":
-                self.docker.set_recv(self.docker.recv()["run"])
+            if not self.dry:
+                if self.remove:
+                    self.docker.client.remove_container(
+                        self.docker.recv()["create"]["Id"], force=True)
+                if command_flag == "run":
+                    self.docker.set_recv(self.docker.recv()["run"])
             if suppress is not True:
                 if self.color:
                     logger.Logger.logSuccess("{}", self.docker.recv())

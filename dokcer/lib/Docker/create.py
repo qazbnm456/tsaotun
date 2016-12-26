@@ -134,20 +134,17 @@ class Create(Command):
         ipv4_address = args["ipv4_address"]
         ipv6_address = args["ipv6_address"]
         aliases = args["aliases"]
-        links = args["links"]
         link_local_ips = args["link_local_ips"]
         del args["network"]
         del args["ipv4_address"]
         del args["ipv6_address"]
         del args["aliases"]
-        del args["links"]
         del args["link_local_ips"]
         networking_config = self.client.create_networking_config({
             '{}'.format(network): self.client.create_endpoint_config(
                 ipv4_address=ipv4_address,
                 ipv6_address=ipv6_address,
                 aliases=aliases,
-                links=links,
                 link_local_ips=link_local_ips
             )
         })
@@ -157,6 +154,10 @@ class Create(Command):
         del args["cpuset_mems"]
         args["extra_hosts"] = dict(args["extra_hosts"]) if args[
             "extra_hosts"] else None
+        for e in args["links"]:
+            if len(e) == 1:
+                e.append(e[0])
+        args["links"] = dict(args["links"])
         args["restart_policy"] = {
             "Name": args["restart_policy"],
             "MaximumRetryCount": 0
@@ -185,6 +186,7 @@ class Create(Command):
         del args["ipc_mode"]
         del args["isolation"]
         del args["kernel_memory"]
+        del args["links"]
         del args["mem_limit"]
         del args["mem_reservation"]
         del args["memswap_limit"]
