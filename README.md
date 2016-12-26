@@ -31,6 +31,42 @@
     - dokcer network `ls, create, rm, remove, inspect, connect, disconnect`
     - dokcer volume `ls, create, rm, remove, inspect`
 
+- Plugins feature is testing right now, and each plugin should has its own folder with `__init__.py` inside. Plugins folder struture shows like:
+
+```
+$HOME
+└───.dokcer
+    └───plugins
+        ├── plugin_A - __init__.py, ...
+        ├── plugin_B - __init__.py, ...
+        └───__init__.py
+```
+
+- Sample plugin:
+
+```python
+"""This module implements a sample plugin that only print out 'Plugin test\n'"""
+
+from dokcer.lib.Docker.command import Command
+
+
+class Version(Command):
+    """This class implements and intrudes into `docker version` command"""
+
+    name = "version"
+    require = []
+
+    def __init__(self):
+        Command.__init__(self)
+        self.settings[self.name] = None
+
+    def eval_command(self, args):
+        self.settings[self.name] = "Plugin test" + "\n"
+
+    def final(self):
+        return self.settings[self.name]
+```
+
 - **If you want auto-complete feature, you could use [bash completion for dokcer](completion/dokcer), taken and modified from docker one, or configure [argcomplete](https://github.com/kislyuk/argcomplete).**
 
 <a name="feature"></a>
