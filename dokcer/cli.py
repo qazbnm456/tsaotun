@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import
 
+from os import listdir, path
 import argparse
 import textwrap
 import argcomplete
@@ -30,6 +31,7 @@ class Dokcer(object):
     dry = 0
     level = 0
     verbose = 0
+    original = 0
     remove = False
     parser = None
     args = None
@@ -59,6 +61,9 @@ class Dokcer(object):
         self.parser.add_argument('--verbose', '-v',
                                  action="count", dest="verbosity", default=0,
                                  help="set verbosity level")
+        self.parser.add_argument('--original', '-o',
+                                 action="store_true", dest="original",
+                                 help="original on/off")
         self.parser.add_argument('--version',
                                  action="version",
                                  version="%(prog)s {}\n".format(__version__))
@@ -1086,6 +1091,24 @@ class Dokcer(object):
                                     dest="format",
                                     help="Pretty-print containers using a Python template")
 
+        # -------------------------PLUGINS----------------------------
+
+        import pkgutil
+        import imp
+        plugins_dir = "{}/.dokcer/plugins".format(path.expanduser("~"))
+        dirs = listdir(plugins_dir)
+        for module in dirs:
+            class_names = [n for _, n, _ in pkgutil.iter_modules(
+                ["{}/{}".format(plugins_dir, module)])]
+            for name in class_names:
+                cls = '{}/{}/{}.py'.format(plugins_dir, module, name)
+                try:
+                    mod = imp.load_source(name, cls)
+                    tmp = {name: getattr(mod, name.capitalize())}
+                    self.push(**tmp)
+                except ImportError as e:
+                    logger.Logger.logError(e)
+
         # ---------------------------END------------------------------
 
         argcomplete.autocomplete(self.parser)
@@ -1105,6 +1128,8 @@ class Dokcer(object):
             self.set_debug()
         if self.args["dry"]:
             self.set_dry()
+        if self.args["original"]:
+            self.set_original()
 
     def set_color(self):
         """Set terminal color"""
@@ -1118,6 +1143,10 @@ class Dokcer(object):
         """dry-run on/off"""
         self.dry = 1
 
+    def set_original(self):
+        """dry-run on/off"""
+        self.original = 1
+
     def set_verbose(self, level):
         """Set verbosity level"""
         self.verbose = min(level, 3)
@@ -1129,6 +1158,8 @@ class Dokcer(object):
     def eval(self, suppress=False):
         """Evaluate commands"""
         try:
+            if self.original:
+                self.docker.clear()
             if self.debug:
                 import json
                 print json.dumps(self.args, indent=4)
@@ -1139,6 +1170,7 @@ class Dokcer(object):
                 del self.args["debug"]
                 del self.args["dry"]
                 del self.args["verbosity"]
+                del self.args["original"]
                 if (command_flag == "run") and ("rm" in self.args):
                     self.remove = self.args["rm"]
                     del self.args["rm"]

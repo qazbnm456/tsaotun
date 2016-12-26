@@ -107,6 +107,10 @@ class Docker(object):
         """Push custom classes into Docker.__stack"""
         self.__stack = kwargs
 
+    def clear(self):
+        """Clear custom classes pushed into Docker.__stack"""
+        self.__stack = None
+
     def __intrude(self, mod):
         """Intrude classes"""
         if self.__stack:
