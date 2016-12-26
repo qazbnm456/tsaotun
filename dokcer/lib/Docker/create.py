@@ -154,10 +154,11 @@ class Create(Command):
         del args["cpuset_mems"]
         args["extra_hosts"] = dict(args["extra_hosts"]) if args[
             "extra_hosts"] else None
-        for e in args["links"]:
-            if len(e) == 1:
-                e.append(e[0])
-        args["links"] = dict(args["links"])
+        if args["links"]:
+            for e in args["links"]:
+                if len(e) == 1:
+                    e.append(e[0])
+            args["links"] = dict(args["links"])
         args["restart_policy"] = {
             "Name": args["restart_policy"],
             "MaximumRetryCount": 0
