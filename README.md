@@ -42,18 +42,20 @@ $HOME
         └───__init__.py
 ```
 
-- Sample plugin:
+- Sample plugin to remove "ALL" containers at once:
 
 ```python
-"""This module implements a sample plugin that only print out 'Plugin test\n'"""
+"""This module contains `docker rm` class"""
 
+from docker.errors import APIError
 from dokcer.lib.Docker.command import Command
+from dokcer.cli import Dokcer
 
 
-class Version(Command):
-    """This class implements and intrudes into `docker version` command"""
+class Rm(Command):
+    """This class implements `docker rm` command"""
 
-    name = "version"
+    name = "rm"
     require = []
 
     def __init__(self):
@@ -61,7 +63,31 @@ class Version(Command):
         self.settings[self.name] = None
 
     def eval_command(self, args):
-        self.settings[self.name] = "Plugin test" + "\n"
+        try:
+            containers = args["containers"]
+            del args["containers"]
+            Ids = []
+            if "ALL" in containers: # dokcer rm ALL
+                d = Dokcer()
+                d.parse('ps -a --format {{Id}}')
+                d.send()
+                ress = d.recv().split('\n')
+                ress = [res[0:4] for res in ress]
+                for Id in ress:
+                    Ids.append(Id)
+                    args['container'] = Id
+                    self.client.remove_container(**args)
+                    del args['container']
+            else:
+                for Id in containers:
+                    Ids.append(Id)
+                    args['container'] = Id
+                    self.client.remove_container(**args)
+                    del args['container']
+            self.settings[self.name] = '\n'.join(Ids)
+
+        except APIError as e:
+            raise e
 
     def final(self):
         return self.settings[self.name]

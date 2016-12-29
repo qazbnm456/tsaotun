@@ -7,7 +7,7 @@ from os import listdir, path
 import argparse
 import textwrap
 import argcomplete
-from docker.errors import APIError
+from docker.errors import APIError, NotFound
 from requests import ConnectionError
 
 from .lib.docker_client import Docker
@@ -177,6 +177,12 @@ class Dokcer(object):
                            type=str,
                            metavar="PATH",
                            help="The path containing Dockerfile")
+        build.add_argument('--build-arg',
+                         type=lambda kv: kv.split("=", 1),
+                         action="append",
+                         dest="buildargs",
+                         metavar="list",
+                         help="Set build-time variables (default [])")
         build.add_argument('--tag', '-t',
                            type=str,
                            dest="tag",
@@ -1199,21 +1205,21 @@ class Dokcer(object):
             if suppress is not True:
                 self.buf = self.docker.buffer()
         except (KeyboardInterrupt, SystemExit) as e:
-            self.response.set_exception(e)
+            self.response.set_exception(type(e))
         except ConnectionError as e:
-            self.response.set_exception(e)
+            self.response.set_exception(type(e))
             self.response.message = e.message[0]
         except (AttributeError, ValueError) as e:
-            self.response.set_exception(e)
+            self.response.set_exception(type(e))
             self.response.message = str(e)
-        except APIError as e:
-            self.response.set_exception(e)
+        except (APIError, NotFound) as e:
+            self.response.set_exception(type(e))
             try:
                 self.response.message = e.response.json()["message"]
             except ValueError:
                 self.response.message = str(e.response.text[:-1])
         except RuntimeError:
-            self.response.set_exception(e)
+            self.response.set_exception(type(e))
 
     def recv(self):
         """Return the buffer of dokcer"""
@@ -1223,7 +1229,7 @@ class Dokcer(object):
         """Finalize the result"""
         if self.response.exception:
             for case in switch.switch(self.response.exception):
-                if case(ConnectionError) or case(AttributeError) or case(ValueError):
+                if case(ConnectionError, AttributeError, ValueError):
                     if self.color:
                         logger.Logger.logError(
                             "Error response from dokcer: {}\n", self.response.message)
@@ -1231,7 +1237,7 @@ class Dokcer(object):
                         logger.Logger.log(
                             "Error response from dokcer: {}\n", self.response.message)
                     break
-                if case(APIError):
+                if case(APIError, NotFound):
                     if self.color:
                         logger.Logger.logError(
                             "Error response from daemon: {}\n", self.response.message)
@@ -1239,7 +1245,7 @@ class Dokcer(object):
                         logger.Logger.log(
                             "Error response from daemon: {}\n", self.response.message)
                     break
-                if case(SystemExit) or case(KeyboardInterrupt) or case(RuntimeError):
+                if case(SystemExit, KeyboardInterrupt, RuntimeError):
                     pass
         else:
             if self.color:

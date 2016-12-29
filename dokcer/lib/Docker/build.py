@@ -29,6 +29,7 @@ class Build(Command):
                 break
             if case():
                 break
+        args["buildargs"] = dict(args["buildargs"])
 
     def eval_command(self, args):
         self.preprocess(args)
