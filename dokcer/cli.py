@@ -10,7 +10,6 @@ import argcomplete
 from docker.errors import APIError
 from requests import ConnectionError
 
-from . import __version__
 from .lib.docker_client import Docker
 from .lib.Utils import logger
 
@@ -64,9 +63,6 @@ class Dokcer(object):
         self.parser.add_argument('--original', '-o',
                                  action="store_true", dest="original",
                                  help="original on/off")
-        self.parser.add_argument('--version',
-                                 action="version",
-                                 version="%(prog)s {}\n".format(__version__))
 
         # ------------------------------------------------------------
 

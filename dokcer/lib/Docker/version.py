@@ -1,6 +1,9 @@
 """This module contains `docker version` class"""
 
-import json
+from platform import python_version, system, processor
+import pystache
+import arrow
+from ... import __version__
 
 from .command import Command
 
@@ -16,8 +19,29 @@ class Version(Command):
         self.settings[self.name] = None
 
     def eval_command(self, args):
-        self.settings[self.name] = json.dumps(
-            self.client.version(), indent=4) + "\n"
+        versions = self.client.version()
+        versions["ClientVersion"] = __version__
+        versions["PythonVersion"] = python_version()
+        versions["ClientOs"] = system()
+        versions["ClientArch"] = processor()
+        versions["BuildTime"] = arrow.get(versions["BuildTime"]).humanize()
+
+        self.settings[self.name] = pystache.render("""\
+Client:
+    Version:         {{ClientVersion}}
+    Python version:  {{PythonVersion}}
+    OS/Arch:         {{ClientOs}}/{{ClientArch}}
+
+Server:
+    Version:         {{Version}}
+    API version:     {{ApiVersion}} (minimum version {{MinAPIVersion}})
+    Go version:      {{GoVersion}}
+    Git commit:      {{GitCommit}}
+    Built:           {{BuildTime}}
+    OS/Arch:         {{Os}}/{{Arch}}
+    Kernel version:  {{KernelVersion}}
+    Experimental:    {{Experimental}}
+        """, versions)
 
     def final(self):
         return self.settings[self.name]

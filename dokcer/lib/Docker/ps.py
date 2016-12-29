@@ -44,7 +44,7 @@ class Ps(Command):
         for node in nodes:
             node["Id"] = node["Id"][:12]
             node["Command"] = (node["Command"][
-                               :17] + "...") if len(node["Command"]) >= 20 else node["Command"]
+                :17] + "...") if len(node["Command"]) >= 20 else node["Command"]
             node["Created"] = arrow.get(node["Created"]).humanize()
             node["Ports"] = self.process_ports(node['Ports'])
             node["Names"] = ', '.join([e[1:] for e in node["Names"]])
