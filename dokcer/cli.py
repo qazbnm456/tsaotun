@@ -11,8 +11,7 @@ from docker.errors import APIError
 from requests import ConnectionError
 
 from .lib.docker_client import Docker
-from .lib.Utils import logger
-
+from .lib.Utils import logger, switch
 
 class ArgumentParser(argparse.ArgumentParser):
     """Custom ArgumentParser"""
@@ -34,6 +33,24 @@ class Dokcer(object):
     remove = False
     parser = None
     args = None
+    buf = None
+    class Response(object):
+        """Response of dokcer processing"""
+        okay = False
+        exception = None
+        message = None
+
+        def is_okay(self):
+            """Return if response is okay"""
+            return self.okay
+
+        def set_exception(self, e):
+            """Set exception type"""
+            self.exception = e
+            self.okay = False
+
+    response = Response()
+
 
     def __init__(self, **intruders):
         self.docker = Docker()
@@ -1151,7 +1168,7 @@ class Dokcer(object):
         """Push custom classes to docker"""
         self.docker.push(**kwargs)
 
-    def eval(self, suppress=False):
+    def send(self, suppress=False):
         """Evaluate commands"""
         try:
             if self.original:
@@ -1159,61 +1176,76 @@ class Dokcer(object):
             if self.debug:
                 import json
                 print json.dumps(self.args, indent=4)
-            try:
-                command_flag = self.args["command_flag"]
-                del self.args["console"]
-                del self.args["color"]
-                del self.args["debug"]
-                del self.args["dry"]
-                del self.args["verbosity"]
-                del self.args["original"]
-                if (command_flag == "run") and ("rm" in self.args):
-                    self.remove = self.args["rm"]
-                    del self.args["rm"]
-                else:
-                    self.remove = False
-            except KeyError:
-                self.docker.load(self.args)
-                return self.docker.recv()  # docker --version
+            command_flag = self.args["command_flag"]
+            del self.args["console"]
+            del self.args["color"]
+            del self.args["debug"]
+            del self.args["dry"]
+            del self.args["verbosity"]
+            del self.args["original"]
+            if (command_flag == "run") and ("rm" in self.args):
+                self.remove = self.args["rm"]
+                del self.args["rm"]
+            else:
+                self.remove = False
 
             self.docker.load(self.args, dry=self.dry)
             if not self.dry:
                 if self.remove:
                     self.docker.client.remove_container(
-                        self.docker.recv()["create"]["Id"], force=True)
+                        self.docker.buffer()["create"]["Id"], force=True)
                 if command_flag == "run":
-                    self.docker.set_recv(self.docker.recv()["run"])
+                    self.docker.set_buffer(self.docker.buffer()["run"])
             if suppress is not True:
-                if self.color:
-                    logger.Logger.logSuccess("{}", self.docker.recv())
-                else:
-                    logger.Logger.log("{}", self.docker.recv())
-        except (KeyboardInterrupt, SystemExit):
-            pass
+                self.buf = self.docker.buffer()
+        except (KeyboardInterrupt, SystemExit) as e:
+            self.response.set_exception(e)
         except ConnectionError as e:
-            if self.color:
-                logger.Logger.logError(
-                    "Error response from dokcer: {}\n", e.message[0])
-            else:
-                logger.Logger.log(
-                    "Error response from dokcer: {}\n", e.message[0])
+            self.response.set_exception(e)
+            self.response.message = e.message[0]
         except (AttributeError, ValueError) as e:
-            if self.color:
-                logger.Logger.logError(
-                    "Error response from dokcer: {}", str(e))
-            else:
-                logger.Logger.log("Error response from dokcer: {}", str(e))
+            self.response.set_exception(e)
+            self.response.message = str(e)
         except APIError as e:
+            self.response.set_exception(e)
             try:
-                msg = e.response.json()["message"]
+                self.response.message = e.response.json()["message"]
             except ValueError:
-                msg = str(e.response.text[:-1])
-            if self.color:
-                logger.Logger.logError("Error response from daemon: {}", msg)
-            else:
-                logger.Logger.log("Error response from daemon: {}", msg)
+                self.response.message = str(e.response.text[:-1])
         except RuntimeError:
-            raise RuntimeError
+            self.response.set_exception(e)
+
+    def recv(self):
+        """Return the buffer of dokcer"""
+        return self.buf
+
+    def final(self):
+        """Finalize the result"""
+        if self.response.exception:
+            for case in switch.switch(self.response.exception):
+                if case(ConnectionError) or case(AttributeError) or case(ValueError):
+                    if self.color:
+                        logger.Logger.logError(
+                            "Error response from dokcer: {}\n", self.response.message)
+                    else:
+                        logger.Logger.log(
+                            "Error response from dokcer: {}\n", self.response.message)
+                    break
+                if case(APIError):
+                    if self.color:
+                        logger.Logger.logError(
+                            "Error response from daemon: {}\n", self.response.message)
+                    else:
+                        logger.Logger.log(
+                            "Error response from daemon: {}\n", self.response.message)
+                    break
+                if case(SystemExit) or case(KeyboardInterrupt) or case(RuntimeError):
+                    pass
+        else:
+            if self.color:
+                logger.Logger.logSuccess("{}", self.recv())
+            else:
+                logger.Logger.log("{}", self.recv())
 
 
 def cli(argv=None, **intruders):
@@ -1221,6 +1253,7 @@ def cli(argv=None, **intruders):
     try:
         dokcer = Dokcer(**intruders)
         dokcer.parse(argv)
-        dokcer.eval()
+        dokcer.send()
+        dokcer.final()
     except RuntimeError:
         pass

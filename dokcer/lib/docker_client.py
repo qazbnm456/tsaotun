@@ -37,7 +37,7 @@ class Docker(object):
     client = None
     ctr = None
     current_ctr = None
-    buf = dict()
+    buf = None
 
     category = None
     command_flag = None
@@ -95,11 +95,11 @@ class Docker(object):
 
             self.buf = mod_instance.command(args, self.client)
 
-    def recv(self):
+    def buffer(self):
         """Receive outcome"""
         return self.buf
 
-    def set_recv(self, buf):
+    def set_buffer(self, buf):
         """Set received outcome"""
         self.buf = buf
 
