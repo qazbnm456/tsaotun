@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-from os import listdir, path
+from os import makedirs, listdir, path
 import argparse
 import textwrap
 import argcomplete
@@ -12,6 +12,7 @@ from requests import ConnectionError
 
 from .lib.docker_client import Docker
 from .lib.Utils import logger, switch
+
 
 class ArgumentParser(argparse.ArgumentParser):
     """Custom ArgumentParser"""
@@ -34,6 +35,7 @@ class Dokcer(object):
     parser = None
     args = None
     buf = None
+
     class Response(object):
         """Response of dokcer processing"""
         okay = False
@@ -50,7 +52,6 @@ class Dokcer(object):
             self.okay = False
 
     response = Response()
-
 
     def __init__(self, **intruders):
         self.docker = Docker()
@@ -178,11 +179,11 @@ class Dokcer(object):
                            metavar="PATH",
                            help="The path containing Dockerfile")
         build.add_argument('--build-arg',
-                         type=lambda kv: kv.split("=", 1),
-                         action="append",
-                         dest="buildargs",
-                         metavar="list",
-                         help="Set build-time variables (default [])")
+                           type=lambda kv: kv.split("=", 1),
+                           action="append",
+                           dest="buildargs",
+                           metavar="list",
+                           help="Set build-time variables (default [])")
         build.add_argument('--tag', '-t',
                            type=str,
                            dest="tag",
@@ -1115,6 +1116,8 @@ class Dokcer(object):
         import pkgutil
         import imp
         plugins_dir = "{}/.dokcer/plugins".format(path.expanduser("~"))
+        if path.exists(plugins_dir) is False:
+            makedirs(plugins_dir, 0660)
         dirs = listdir(plugins_dir)
         for module in dirs:
             class_names = [n for _, n, _ in pkgutil.iter_modules(
