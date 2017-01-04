@@ -11,7 +11,7 @@
 
 ---------------------------------------
 
-[![asciicast](https://asciinema.org/a/97089.png)](https://asciinema.org/a/97089?autoplay=1)
+[![asciicast](https://asciinema.org/a/98062.png)](https://asciinema.org/a/98062?autoplay=1)
 
 <a name="releases"></a>
 ## Releases
@@ -71,13 +71,15 @@ class Rm(Command):
                 d = Dokcer()
                 d.parse('ps -a --format {{Id}}')
                 d.send()
-                ress = d.recv().split('\n')
-                ress = [res[0:4] for res in ress]
-                for Id in ress:
-                    Ids.append(Id)
-                    args['container'] = Id
-                    self.client.remove_container(**args)
-                    del args['container']
+                ress = d.recv()
+                if ress:
+                    ress = ress.split('\n')
+                    ress = [res[0:4] for res in ress]
+                    for Id in ress:
+                        Ids.append(Id)
+                        args['container'] = Id
+                        self.client.remove_container(**args)
+                        del args['container']
             else:
                 for Id in containers:
                     Ids.append(Id)
