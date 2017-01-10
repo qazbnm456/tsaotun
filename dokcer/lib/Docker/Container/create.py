@@ -1,7 +1,5 @@
-"""This module contains `docker create` class"""
+"""This module contains `docker container create` class"""
 
-import time
-from hashlib import sha1
 from docker.errors import APIError
 
 from .command import Command
@@ -10,9 +8,9 @@ SECOND = 1000000000
 
 
 class Create(Command):
-    """This class implements `docker create` command"""
+    """This class implements `docker container create` command"""
 
-    name = "create"
+    name = "container create"
     require = []
 
     def __init__(self):
@@ -20,7 +18,7 @@ class Create(Command):
         self.settings[self.name] = None
 
     def preprocess(self, args):
-        """Preprocess arguments provided for `docker create`"""
+        """Preprocess arguments provided for `docker container create`"""
         # port_bindings
         ports = []
         if args.get("port_bindings"):
@@ -83,7 +81,7 @@ class Create(Command):
         if args["no_healthcheck"]:
             healthcheck = None
         elif have_health_settings:
-            from ..Utils.duration_conversion import from_str
+            from ...Utils.duration_conversion import from_str
             healthcheck = dict(
                 test=args["health_cmd"] if args["health_cmd"] else None,
                 interval=from_str(

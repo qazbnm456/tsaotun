@@ -1,12 +1,12 @@
-"""This module contains `docker logs` class"""
+"""This module contains `docker container logs` class"""
 
 from .command import Command
 
 
 class Logs(Command):
-    """This class implements `docker logs` command"""
+    """This class implements `docker container logs` command"""
 
-    name = "logs"
+    name = "container logs"
     require = []
 
     def __init__(self):

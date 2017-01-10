@@ -1,12 +1,12 @@
-"""This module contains `docker exec` class"""
+"""This module contains `docker container exec` class"""
 
 from .command import Command
 
 
 class Exec(Command):
-    """This class implements `docker exec` command"""
+    """This class implements `docker container exec` command"""
 
-    name = "exec"
+    name = "container exec"
     require = ["exec_create", "exec_start"]
 
     def __init__(self):

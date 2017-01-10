@@ -1,4 +1,4 @@
-"""This module contains `docker cp` class"""
+"""This module contains `docker container cp` class"""
 
 import os
 import sys
@@ -6,7 +6,7 @@ import tempfile
 import tarfile
 from enum import Enum
 from docker.errors import APIError
-from ..Utils import switch
+from ...Utils.switch import switch
 
 from .command import Command
 
@@ -16,9 +16,9 @@ Direction = Enum(
 
 
 class Cp(Command):
-    """This class implements `docker cp` command"""
+    """This class implements `docker container cp` command"""
 
-    name = "cp"
+    name = "container cp"
     require = []
 
     def __init__(self):
@@ -89,7 +89,7 @@ class Cp(Command):
             if dst_container != '':
                 direction |= Direction.toContainer.value
 
-            for case in switch.switch(direction):
+            for case in switch(direction):
                 if case(Direction.fromContainer.value):
                     self.copy_from_container(
                         args, src_container, src_path, dst_path)

@@ -1,4 +1,4 @@
-"""This module contains `docker images` class"""
+"""This module contains `docker image ls` class"""
 
 import arrow
 import humanize
@@ -8,10 +8,10 @@ from pytabwriter import TabWriter
 from .command import Command
 
 
-class Images(Command):
-    """This class implements `docker images` command"""
+class Ls(Command):
+    """This class implements `docker image ls` command"""
 
-    name = "images"
+    name = "image ls"
     require = []
 
     defaultTemplate = '{{{Repository}}}\t{{{Tag}}}\t{{Id}}\t{{Created}}\t{{Size}}'

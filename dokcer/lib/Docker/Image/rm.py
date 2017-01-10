@@ -1,14 +1,14 @@
-"""This module contains `docker rmi` class"""
+"""This module contains `docker image rm` class"""
 
 from docker.errors import APIError
 
 from .command import Command
 
 
-class Rmi(Command):
-    """This class implements `docker rmi` command"""
+class Rm(Command):
+    """This class implements `docker image rm` command"""
 
-    name = "rmi"
+    name = "image rm"
     require = []
 
     def __init__(self):

@@ -1,9 +1,9 @@
 """This module contains `docker version` class"""
 
-from platform import python_version, system, processor
+from platform import python_version, system, machine
 import pystache
 import arrow
-from ... import __version__
+from .... import __version__
 
 from .command import Command
 
@@ -23,7 +23,7 @@ class Version(Command):
         versions["ClientVersion"] = __version__
         versions["PythonVersion"] = python_version()
         versions["ClientOs"] = system()
-        versions["ClientArch"] = processor()
+        versions["ClientArch"] = machine()
         versions["BuildTime"] = arrow.get(versions["BuildTime"]).humanize()
 
         self.settings[self.name] = pystache.render("""\
@@ -41,7 +41,7 @@ Server:
     OS/Arch:         {{Os}}/{{Arch}}
     Kernel version:  {{KernelVersion}}
     Experimental:    {{Experimental}}
-        """, versions)
+""", versions)
 
     def final(self):
         return self.settings[self.name]

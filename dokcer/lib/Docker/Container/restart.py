@@ -1,14 +1,14 @@
-"""This module contains `docker rm` class"""
+"""This module contains `docker container restart` class"""
 
 from docker.errors import APIError
 
 from .command import Command
 
 
-class Rm(Command):
-    """This class implements `docker rm` command"""
+class Restart(Command):
+    """This class implements `docker container restart` command"""
 
-    name = "rm"
+    name = "container restart"
     require = []
 
     def __init__(self):
@@ -23,7 +23,7 @@ class Rm(Command):
             for Id in containers:
                 Ids.append(Id)
                 args['container'] = Id
-                self.client.remove_container(**args)
+                self.client.restart(**args)
                 del args['container']
             self.settings[self.name] = '\n'.join(Ids)
         except APIError as e:

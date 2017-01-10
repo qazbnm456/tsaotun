@@ -22,12 +22,15 @@
 - 0.4 -- Commands and options are almost done, except for swarm, node, service categories
 - 0.5 -- Now it's usable :tada:
 - 0.6 -- Fix format problems within lots of commands
+- 0.7 -- Code cleanup and move root commands into their command groups (such as container, image, network, and etc)
 
 <a name="status"></a>
 ## Status quo
 
 - Currently support following commands:
     - dokcer `version, info, inspect, images, pull, build, run, save, logs, stats, rename, restart, exec, rmi, rm, ps, top, history, cp`
+    - dokcer container `run, logs, stats, rename, restart, exec ,rm, ls, top, cp`
+    - dokcer image `ls, pull, build, save, rm, history`
     - dokcer network `ls, create, rm, remove, inspect, connect, disconnect`
     - dokcer volume `ls, create, rm, remove, inspect`
 
@@ -41,6 +44,8 @@ $HOME
         ├── plugin_B - __init__.py, ...
         └───__init__.py
 ```
+
+### Following sample plugin is not available in the latest release currently. ###
 
 - Sample plugin to remove "ALL" containers at once:
 
@@ -110,7 +115,7 @@ class Rm(Command):
 ### Normal Way
 
 1. `pip install dokcer`, or
-2. Clone the repo, and `sudo python ./setup.py install`
+2. Clone the repo, and `python ./setup.py install`
 
 ### Docker Way
 

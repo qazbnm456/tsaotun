@@ -6,12 +6,15 @@ from __future__ import absolute_import
 from os import makedirs, listdir, path
 import argparse
 import textwrap
+import sys
 import argcomplete
 from docker.errors import APIError, NotFound
 from requests import ConnectionError
 
 from .lib.docker_client import Docker
-from .lib.Utils import logger, switch
+from .lib.Utils.logger import Logger
+from .lib.Utils.switch import switch
+from .lib.Utils.shortcut import shortcut
 
 
 class ArgumentParser(argparse.ArgumentParser):
@@ -85,9 +88,9 @@ class Dokcer(object):
         # ------------------------------------------------------------
 
         sp = self.parser.add_subparsers(
-            title="Commands", dest="command_flag", help='type [COMMAND] --help to get additional help')
+            title="Groups", dest="group_flag", help='type [COMMAND] --help to get additional help')
 
-        # --------------------------VERSION--------------------------
+        # -------------------------VERSION----------------------------
 
         version = sp.add_parser('version',
                                 formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -99,7 +102,7 @@ class Dokcer(object):
                              type=str,
                              help="Pretty-print containers using a Python template")
 
-        # ----------------------------INFO----------------------------
+        # ---------------------------INFO-----------------------------
 
         sp.add_parser('info',
                       formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -124,401 +127,363 @@ class Dokcer(object):
                              dest="format",
                              help="Pretty-print containers using a Python template")
 
-        # --------------------------IMAGES----------------------------
+        # ------------------------CONTAINER---------------------------
 
-        images = sp.add_parser('images',
-                               formatter_class=argparse.RawDescriptionHelpFormatter,
-                               usage="%(prog)s [OPTIONS] [REPOSITORY[:TAG]]",
-                               description=textwrap.dedent('''\
-        List images
+        container_p = sp.add_parser('container')
+        container = container_p.add_subparsers(
+            title="Containers", dest="container_flag", help='type [COMMAND] --help to get additional help')
+
+        # -----------------------CONTAINER-LS-------------------------
+
+        container_ls = container.add_parser('ls',
+                                  formatter_class=argparse.RawDescriptionHelpFormatter,
+                                  usage="%(prog)s [OPTIONS]",
+                                  description=textwrap.dedent('''\
+        List containers
          '''))
-        images.add_argument('--all', '-a',
-                            action="store_true",
-                            dest="all",
-                            help="Show all images (default hides intermediate images)")
-        images.add_argument('--digests',
-                            action="store_true",
-                            dest="digests",
-                            help="Show digests")
-        images.add_argument('--filter', '-f',
-                            type=lambda kv: kv.split("=", 1),
-                            action="append",
-                            dest="filters",
-                            help="Filter output based on conditions provided")
-        images.add_argument('--format',
-                            type=str,
-                            help="Pretty-print containers using a Python template")
-        images.add_argument('--quiet', '-q',
-                            action="store_true",
-                            help="Only show numeric IDs")
+        container_ls.add_argument('--all', '-a',
+                        action="store_true",
+                        dest="all",
+                        help="Show all containers (default shows just running)")
+        container_ls.add_argument('--filter', '-f',
+                        type=dict,
+                        dest="filters",
+                        metavar="filter",
+                        help="Filter output based on conditions provided (default [])")
+        container_ls.add_argument('--format',
+                        type=str,
+                        metavar="string",
+                        help="Pretty-print containers using a Python template")
+        container_ls.add_argument('--quiet', '-q',
+                        action="store_true",
+                        help="Only display numeric IDs")
 
-        # ---------------------------PULL------------------------------
+        # ------------------------CONTAINER-RUN------------------------
 
-        pull = sp.add_parser('pull',
-                             formatter_class=argparse.RawDescriptionHelpFormatter,
-                             usage="%(prog)s [OPTIONS] NAME[:TAG|@DIGEST]",
-                             description=textwrap.dedent('''\
-        Pull an image or a repository from a registry
-         '''))
-        pull.add_argument('image',
-                          type=str,
-                          metavar="IMAGE",
-                          nargs=1,
-                          help="Image to pull")
-
-        # ---------------------------BUILD-----------------------------
-
-        build = sp.add_parser('build',
-                              formatter_class=argparse.RawDescriptionHelpFormatter,
-                              usage="%(prog)s [OPTIONS] PATH | URL | -",
-                              description=textwrap.dedent('''\
-        Build an image from a Dockerfile
-         '''))
-        build.add_argument('path',
-                           type=str,
-                           metavar="PATH",
-                           help="The path containing Dockerfile")
-        build.add_argument('--build-arg',
-                           type=lambda kv: kv.split("=", 1),
-                           action="append",
-                           dest="buildargs",
-                           metavar="list",
-                           help="Set build-time variables (default [])")
-        build.add_argument('--tag', '-t',
-                           type=str,
-                           dest="tag",
-                           help="Name and optionally a tag in the 'name:tag' format")
-        build.add_argument('--rm',
-                           action="store_true",
-                           default=True,
-                           help="Remove intermediate containers after a successful build (default true)")
-
-        # ---------------------------RUN------------------------------
-
-        run = sp.add_parser('run',
-                            add_help=False,
-                            formatter_class=argparse.RawDescriptionHelpFormatter,
-                            usage="%(prog)s [OPTIONS] IMAGE [COMMAND] [ARG...]",
-                            description=textwrap.dedent('''\
+        container_run = container.add_parser('run',
+                                   add_help=False,
+                                   formatter_class=argparse.RawDescriptionHelpFormatter,
+                                   usage="%(prog)s [OPTIONS] IMAGE [COMMAND] [ARG...]",
+                                   description=textwrap.dedent('''\
         Run a command in a new container
          '''))
-        run.add_argument('image',
+        container_run.add_argument('image',
                          type=str,
                          metavar="IMAGE",
                          help="Image to run")
-        run.add_argument('command',
+        container_run.add_argument('command',
                          type=str,
                          metavar="COMMAND",
                          nargs="*",
                          help="Command to run")
-        run.add_argument('--add-host',
+        container_run.add_argument('--add-host',
                          type=lambda kv: kv.split(":", 1),
                          action="append",
                          dest="extra_hosts",
                          metavar="list",
                          help="Add a custom host-to-IP mapping (host:ip) (default [])")
-        run.add_argument('--blkio-weight',
+        container_run.add_argument('--blkio-weight',
                          type=int,
                          dest="blkio_weight",
                          metavar="uint16",
                          default=0,
                          help="Block IO (relative weight), between 10 and 1000, or 0 to disable (default 0)")
-        run.add_argument('--cap-add',
+        container_run.add_argument('--cap-add',
                          action="append",
                          type=str,
                          dest="cap_add",
                          metavar="list",
                          help="Add Linux capabilities (default [])")
-        run.add_argument('--cap-drop',
+        container_run.add_argument('--cap-drop',
                          action="append",
                          type=str,
                          dest="cap_drop",
                          metavar="list",
                          help="Drop Linux capabilities (default [])")
-        run.add_argument('--cgroup-parent',
+        container_run.add_argument('--cgroup-parent',
                          type=str,
                          dest="cgroup_parent",
                          metavar="string",
                          help="Optional parent cgroup for the container")
-        run.add_argument('--cidfile',
+        container_run.add_argument('--cidfile',
                          type=str,
                          dest="cidfile",
                          metavar="string",
                          help="Write the container ID to the file")
-        run.add_argument('--cpu-period',
+        container_run.add_argument('--cpu-period',
                          type=int,
                          dest="cpu_period",
                          metavar="int",
                          help="Limit CPU CFS (Completely Fair Scheduler) period")
-        run.add_argument('--cpu-quota',
+        container_run.add_argument('--cpu-quota',
                          type=int,
                          dest="cpu_quota",
                          metavar="int",
                          help="Limit CPU CFS (Completely Fair Scheduler) quota")
-        run.add_argument('--cpu-shares', '-c',
+        container_run.add_argument('--cpu-shares', '-c',
                          type=int,
                          dest="cpu_shares",
                          metavar="int",
                          help="CPU shares (relative weight)")
-        run.add_argument('--cpuset-cpus',
+        container_run.add_argument('--cpuset-cpus',
                          type=str,
                          dest="cpuset_cpus",
                          metavar="string",
                          help="CPUs in which to allow execution (0-3, 0,1)")
-        run.add_argument('--cpuset-mems',
+        container_run.add_argument('--cpuset-mems',
                          type=str,
                          dest="cpuset_mems",
                          metavar="string",
                          help="MEMs in which to allow execution (0-3, 0,1)")
-        run.add_argument('--detach', '-d',
+        container_run.add_argument('--detach', '-d',
                          action="store_true",
                          dest="detach",
                          help="Run container in background and print container ID")
-        run.add_argument('--device',
+        container_run.add_argument('--device',
                          action="append",
                          type=str,
                          dest="devices",
                          metavar="list",
                          help="Add a host device to the container (default [])")
-        run.add_argument('--dns',
+        container_run.add_argument('--dns',
                          action="append",
                          type=str,
                          dest="dns",
                          metavar="list",
                          help="Set custom DNS servers (default [])")
-        run.add_argument('--dns-option',
+        container_run.add_argument('--dns-option',
                          action="append",
                          type=str,
                          dest="dns_opt",
                          metavar="list",
                          help="Set DNS options (default [])")
-        run.add_argument('--dns-search',
+        container_run.add_argument('--dns-search',
                          action="append",
                          type=str,
                          dest="dns_search",
                          metavar="list",
                          help="Set custom DNS search domains (default [])")
-        run.add_argument('--entrypoint',
+        container_run.add_argument('--entrypoint',
                          type=str,
                          dest="entrypoint",
                          metavar="string",
                          help="Overwrite the default ENTRYPOINT of the image")
-        run.add_argument('--env', '-e',
+        container_run.add_argument('--env', '-e',
                          action="append",
                          type=str,
                          dest="environment",
                          metavar="list",
                          help="Set environment variables (default [])")
-        run.add_argument('--group-add',
+        container_run.add_argument('--group-add',
                          action="append",
                          type=str,
                          dest="group_add",
                          metavar="list",
                          help="Add additional groups to join (default [])")
-        run.add_argument('--health-cmd',
+        container_run.add_argument('--health-cmd',
                          type=str,
                          dest="health_cmd",
                          metavar="string",
                          help="Command to run to check health")
-        run.add_argument('--health-interval',
+        container_run.add_argument('--health-interval',
                          type=str,
                          dest="health_interval",
                          metavar="duration",
                          help="Time between running the check (ns|us|ms|s|m|h) (default 0s)")
-        run.add_argument('--health-retries',
+        container_run.add_argument('--health-retries',
                          type=int,
                          dest="health_retries",
                          metavar="int",
                          help="Consecutive failures needed to report unhealthy")
-        run.add_argument('--health-timeout',
+        container_run.add_argument('--health-timeout',
                          type=str,
                          dest="health_timeout",
                          metavar="duration",
                          help="Maximum time to allow one check to run (ns|us|ms|s|m|h) (default 0s)")
-        run.add_argument('--hostname', '-h',
+        container_run.add_argument('--hostname', '-h',
                          type=str,
                          dest="hostname",
                          metavar="string",
                          help="Container host name")
-        run.add_argument('--interactive', '-i',
+        container_run.add_argument('--interactive', '-i',
                          action="store_true",
                          dest="stdin_open",
                          help="Keep STDIN open even if not attached")
-        run.add_argument('--ip',
+        container_run.add_argument('--ip',
                          type=str,
                          dest="ipv4_address",
                          metavar="string",
                          help="Container IPv4 address (e.g. 172.30.100.104)")
-        run.add_argument('--ip6',
+        container_run.add_argument('--ip6',
                          type=str,
                          dest="ipv6_address",
                          metavar="string",
                          help="Container IPv6 address (e.g. 2001:db8::33)")
-        run.add_argument('--ipc',
+        container_run.add_argument('--ipc',
                          type=str,
                          dest="ipc_mode",
                          metavar="string",
                          help="IPC namespace to use")
-        run.add_argument('--isolation',
+        container_run.add_argument('--isolation',
                          type=str,
                          metavar="string",
                          help="Container isolation technology")
-        run.add_argument('--kernel-memory',
+        container_run.add_argument('--kernel-memory',
                          type=str,
                          dest="kernel_memory",
                          metavar="string",
                          help="Kernel memory limit")
-        run.add_argument('--label', '-l',
+        container_run.add_argument('--label', '-l',
                          type=lambda kv: kv.split("=", 1),
                          action="append",
                          dest="labels",
                          metavar="list",
                          help="Set meta data on a container (default [])")
-        run.add_argument('--link',
+        container_run.add_argument('--link',
                          type=lambda kv: kv.split(":", 1),
                          action="append",
                          dest="links",
                          metavar="list",
                          help="Add link to another container (default [])")
-        run.add_argument('--link-local-ip',
+        container_run.add_argument('--link-local-ip',
                          type=str,
                          action="append",
                          dest="link_local_ips",
                          metavar="list",
                          help="Container IPv4/IPv6 link-local addresses (default [])")
-        run.add_argument('--mac-address',
+        container_run.add_argument('--mac-address',
                          type=str,
                          dest="mac_address",
                          metavar="string",
                          help="Container MAC address (e.g. 92:d0:c6:0a:29:33)")
-        run.add_argument('--memory', '-m',
+        container_run.add_argument('--memory', '-m',
                          type=str,
                          dest="mem_limit",
                          metavar="string",
                          help="Memory limit")
-        run.add_argument('--memory-reservation',
+        container_run.add_argument('--memory-reservation',
                          type=str,
                          dest="mem_reservation",
                          metavar="string",
                          help="Memory soft limit")
-        run.add_argument('--memory-swap',
+        container_run.add_argument('--memory-swap',
                          type=str,
                          dest="memswap_limit",
                          metavar="string",
                          help="Swap limit equal to memory plus swap: '-1' to enable unlimited swap")
-        run.add_argument('--memory-swappiness',
+        container_run.add_argument('--memory-swappiness',
                          type=int,
                          dest="mem_swappiness",
                          default=-1,
                          metavar="int",
                          help="Tune container memory swappiness (0 to 100) (default -1)")
-        run.add_argument('--name',
+        container_run.add_argument('--name',
                          type=str,
                          metavar="string",
                          help="Assign a name to the container")
-        run.add_argument('--network',
+        container_run.add_argument('--network',
                          type=str,
                          dest="network",
                          default="default",
                          metavar="string",
                          help="Connect a container to a network (default \"default\")")
-        run.add_argument('--network-alias',
+        container_run.add_argument('--network-alias',
                          type=str,
                          action="append",
                          dest="aliases",
                          metavar="list",
                          help="Add network-scoped alias for the container (default [])")
-        run.add_argument('--no-healthcheck',
+        container_run.add_argument('--no-healthcheck',
                          action="store_true",
                          dest="no_healthcheck",
                          help="Disable any container-specified HEALTHCHECK")
-        run.add_argument('--oom-kill-disable',
+        container_run.add_argument('--oom-kill-disable',
                          action="store_true",
                          dest="oom_kill_disable",
                          help="Disable OOM Killer")
-        run.add_argument('--oom-score-adj',
+        container_run.add_argument('--oom-score-adj',
                          type=int,
                          dest="oom_score_adj",
                          metavar="int",
                          help="Tune host's OOM preferences (-1000 to 1000)")
-        run.add_argument('--pid',
+        container_run.add_argument('--pid',
                          type=str,
                          dest="pid_mode",
                          metavar="string",
                          help="PID namespace to use")
-        run.add_argument('--pids-limit',
+        container_run.add_argument('--pids-limit',
                          type=int,
                          dest="pids_limit",
                          metavar="int",
                          help="Tune container pids limit (set -1 for unlimited)")
-        run.add_argument('--privileged',
+        container_run.add_argument('--privileged',
                          action="store_true",
                          help="Give extended privileges to this container")
-        run.add_argument('--publish', '-p',
+        container_run.add_argument('--publish', '-p',
                          action="append",
                          type=str,
                          metavar="list",
                          dest="port_bindings",
                          help="Publish a container's port(s) to the host (default [])")
-        run.add_argument('--publish-all', '-P',
+        container_run.add_argument('--publish-all', '-P',
                          action="store_true",
                          dest="publish_all_ports",
                          help="Publish all exposed ports to random ports")
-        run.add_argument('--read-only',
+        container_run.add_argument('--read-only',
                          action="store_true",
                          dest="read_only",
                          help="Mount the container's root filesystem as read only")
-        run.add_argument('--restart',
+        container_run.add_argument('--restart',
                          dest="restart_policy",
                          default="no",
                          metavar="string",
                          help="Restart policy to apply when a container exits (default \"no\")")
-        run.add_argument('--rm',
+        container_run.add_argument('--rm',
                          action="store_true",
                          help="Automatically remove the container when it exits")
-        run.add_argument('--security-opt',
+        container_run.add_argument('--security-opt',
                          action="append",
                          dest="security_opt",
                          metavar="list",
                          help="Security Options (default [])")
-        run.add_argument('--shm-size',
+        container_run.add_argument('--shm-size',
                          dest="shm_size",
                          default="64MB",
                          metavar="string",
                          help="Size of /dev/shm, default value is 64MB")
-        run.add_argument('--stop-signal',
+        container_run.add_argument('--stop-signal',
                          type=str,
                          dest="stop_signal",
                          default="SIGTERM",
                          metavar="string",
                          help="Signal to stop a container, SIGTERM by default (default \"SIGTERM\")")
-        run.add_argument('--sysctl',
+        container_run.add_argument('--sysctl',
                          type=lambda kv: kv.split("=", 1),
                          action="append",
                          dest="sysctls",
                          metavar="map",
                          help="Sysctl options (default map[])")
-        run.add_argument('--tmpfs',
+        container_run.add_argument('--tmpfs',
                          type=lambda kv: kv.split(":", 1),
                          action="append",
                          metavar="list",
                          help="Mount a tmpfs directory (default [])")
-        run.add_argument('--tty', '-t',
+        container_run.add_argument('--tty', '-t',
                          action="store_true",
                          dest="tty",
                          help="Allocate a pseudo-TTY")
-        run.add_argument('--ulimit',
+        container_run.add_argument('--ulimit',
                          type=lambda kv: kv.split("=", 1),
                          action="append",
                          dest="ulimits",
                          metavar="ulimit",
                          help="Ulimit options (default [])")
-        run.add_argument('--userns',
+        container_run.add_argument('--userns',
                          type=str,
                          dest="userns_mode",
                          metavar="string",
                          help="User namespace to use")
-        run.add_argument('--volume', '-v',
+        container_run.add_argument('--volume', '-v',
                          action="append",
                          type=str,
                          dest="binds",
@@ -530,242 +495,148 @@ class Dokcer(object):
         [nocopy]. The 'host-src' is an absolute path
         or a name value.
         '''))
-        run.add_argument('--volumes-driver',
+        container_run.add_argument('--volumes-driver',
                          type=str,
                          dest="volume_driver",
                          metavar="string",
                          help="Optional volume driver for the container")
-        run.add_argument('--volumes-from',
+        container_run.add_argument('--volumes-from',
                          type=lambda kv: kv.split(":", 1),
                          action="append",
                          dest="volumes_from",
                          metavar="list",
                          help="Mount volumes from the specified container(s) (default [])")
-        run.add_argument('--help', action='help',
+        container_run.add_argument('--help', action='help',
                          help='show this help message and exit')
 
-        # --------------------------SAVE------------------------------
+        # --------------------CONTAINER-INSPECT-----------------------
 
-        save = sp.add_parser('save',
-                             formatter_class=argparse.RawDescriptionHelpFormatter,
-                             usage="%(prog)s [OPTIONS] IMAGE [IMAGE...]",
-                             description=textwrap.dedent('''\
-        Save one or more images to a tar archive (streamed to STDOUT by default)
-         '''))
-        save.add_argument('image',
-                          type=str,
-                          metavar="IMAGE",
-                          help="Image to be saved")
+        container_inspect = container.add_parser(
+            'inspect', formatter_class=argparse.RawDescriptionHelpFormatter,
+            usage="%(prog)s [OPTIONS] CONTAINER|IMAGE|TASK [CONTAINER|IMAGE|TASK...]",
+            description=textwrap.dedent('''\
+            Return low-level information on a container, image or task
+            '''))
+        container_inspect.add_argument('object',
+                             type=str,
+                             help="Return low-level information on a container, image or task")
+        container_inspect.add_argument('--format', '-f',
+                             type=str,
+                             dest="format",
+                             help="Pretty-print containers using a Python template")
 
-        save.add_argument('--output', '-o',
-                          type=str,
-                          dest="output",
-                          metavar="string",
-                          help="Write to a file, instead of STDOUT")
+        # ----------------------CONTAINER-LOGS------------------------
 
-        # --------------------------LOGS------------------------------
-
-        logs = sp.add_parser('logs',
-                             formatter_class=argparse.RawDescriptionHelpFormatter,
-                             usage="%(prog)s [OPTIONS] CONTAINER",
-                             description=textwrap.dedent('''\
+        container_logs = container.add_parser('logs',
+                                    formatter_class=argparse.RawDescriptionHelpFormatter,
+                                    usage="%(prog)s [OPTIONS] CONTAINER",
+                                    description=textwrap.dedent('''\
         Fetch the logs of a container
          '''))
-        logs.add_argument('container',
+        container_logs.add_argument('container',
                           type=str,
                           metavar="CONTAINER",
                           help="Fetch the logs of a container")
 
-        # --------------------------STATS-----------------------------
+        # ---------------------CONTAINER-STATS------------------------
 
-        stats = sp.add_parser('stats',
-                              formatter_class=argparse.RawDescriptionHelpFormatter,
-                              usage="%(prog)s [OPTIONS] [CONTAINER...]",
-                              description=textwrap.dedent('''\
+        container_stats = container.add_parser('stats',
+                                     formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     usage="%(prog)s [OPTIONS] [CONTAINER...]",
+                                     description=textwrap.dedent('''\
         Display a live stream of container(s) resource usage statistics
          '''))
-        stats.add_argument('containers',
+        container_stats.add_argument('containers',
                            type=str,
                            metavar="CONTAINER",
                            nargs="+",
                            help="Display a live stream of container(s) resource usage statistics")
         """
-        stats.add_argument('--all', '-a',
+        container_stats.add_argument('--all', '-a',
                            action="store_true",
                            default=False,
                            help="Show all containers (default shows just running)")
         """
-        stats.add_argument('--no-stream',
+        container_stats.add_argument('--no-stream',
                            action="store_true",
                            dest="stream",
                            default=True,
                            help="Disable streaming stats and only pull the first result")
 
-        # -------------------------RENAME-----------------------------
+        # --------------------CONTAINER-RENAME------------------------
 
-        rename = sp.add_parser('rename',
-                               formatter_class=argparse.RawDescriptionHelpFormatter,
-                               usage="%(prog)s CONTAINER NEW_NAME",
-                               description=textwrap.dedent('''\
+        container_rename = container.add_parser('rename',
+                                      formatter_class=argparse.RawDescriptionHelpFormatter,
+                                      usage="%(prog)s CONTAINER NEW_NAME",
+                                      description=textwrap.dedent('''\
         Rename a container
          '''))
-        rename.add_argument('container',
+        container_rename.add_argument('container',
                             type=str,
                             metavar="CONTAINER",
                             help="Container to be renamed")
-        rename.add_argument('name',
+        container_rename.add_argument('name',
                             type=str,
                             metavar="NAME",
                             help="New container name")
 
-        # -------------------------RESTART----------------------------
+        # --------------------CONTAINER-RESTART-------------------------
 
-        restart = sp.add_parser('restart',
-                                formatter_class=argparse.RawDescriptionHelpFormatter,
-                                usage="%(prog)s [OPTIONS] CONTAINER [CONTAINER...]",
-                                description=textwrap.dedent('''\
+        container_restart = container.add_parser('restart',
+                                       formatter_class=argparse.RawDescriptionHelpFormatter,
+                                       usage="%(prog)s [OPTIONS] CONTAINER [CONTAINER...]",
+                                       description=textwrap.dedent('''\
         Restart one or more containers
          '''))
-        restart.add_argument('containers',
+        container_restart.add_argument('containers',
                              type=str,
                              metavar="CONTAINER",
                              nargs="+",
                              help="Containers to be restarted")
-        restart.add_argument('--time', '-t',
+        container_restart.add_argument('--time', '-t',
                              type=int,
                              metavar='int',
                              dest="timeout",
                              default=10,
                              help="Seconds to wait for stop before killing the container (default 10)")
 
-        # --------------------------EXEC------------------------------
+        # ---------------------CONTAINER-EXEC-------------------------
 
-        exec_d = sp.add_parser('exec',
-                               formatter_class=argparse.RawDescriptionHelpFormatter,
-                               usage="%(prog)s [OPTIONS] CONTAINER COMMAND [ARG...]",
-                               description=textwrap.dedent('''\
+        container_exec = container.add_parser('exec',
+                                      formatter_class=argparse.RawDescriptionHelpFormatter,
+                                      usage="%(prog)s [OPTIONS] CONTAINER COMMAND [ARG...]",
+                                      description=textwrap.dedent('''\
         Run a command in a running container
          '''))
-        exec_d.add_argument('container',
+        container_exec.add_argument('container',
                             type=str,
                             metavar="CONTAINER",
                             help="Target container where exec instance will be created")
-        exec_d.add_argument('cmd',
+        container_exec.add_argument('cmd',
                             type=str,
                             metavar="COMMAND",
                             nargs="+",
                             help="Command to be executed")
-        exec_d.add_argument('--detach', '-d',
+        container_exec.add_argument('--detach', '-d',
                             action="store_true",
                             dest="detach",
                             help="Detached mode: run command in the background")
-        exec_d.add_argument('--interactive', '-i',
+        container_exec.add_argument('--interactive', '-i',
                             action="store_true",
                             dest="interactive",
                             default=True,
                             help="Keep STDIN open even if not attached")
-        exec_d.add_argument('--tty', '-t',
+        container_exec.add_argument('--tty', '-t',
                             action="store_true",
                             dest="tty",
                             help="Allocate a pseudo-TTY")
 
-        # ---------------------------RMI------------------------------
+        # -----------------------CONTAINER-CP-------------------------
 
-        rmi = sp.add_parser('rmi',
-                            formatter_class=argparse.RawDescriptionHelpFormatter,
-                            usage="%(prog)s [OPTIONS] IMAGE [IMAGE...]",
-                            description=textwrap.dedent('''\
-        Remove one or more images
-         '''))
-        rmi.add_argument('images',
-                         type=str,
-                         metavar="IMAGE",
-                         nargs="+",
-                         help="Images to be removed")
-        rmi.add_argument('--force', '-f',
-                         action="store_true",
-                         dest="force",
-                         help="Force removal of the image")
-
-        # ---------------------------RM-------------------------------
-
-        rm = sp.add_parser('rm',
-                           formatter_class=argparse.RawDescriptionHelpFormatter,
-                           usage="%(prog)s [OPTIONS] CONTAINER [CONTAINER...]",
-                           description=textwrap.dedent('''\
-        Remove one or more containers
-         '''))
-        rm.add_argument('containers',
-                        type=str,
-                        metavar="CONTAINER",
-                        nargs="+",
-                        help="Containers to be removed")
-        rm.add_argument('--force', '-f',
-                        action="store_true",
-                        dest="force",
-                        help="Force the removal of a running container (uses SIGKILL)")
-
-        # ---------------------------PS-------------------------------
-
-        ps = sp.add_parser('ps',
-                           formatter_class=argparse.RawDescriptionHelpFormatter,
-                           usage="%(prog)s [OPTIONS]",
-                           description=textwrap.dedent('''\
-        List containers
-         '''))
-        ps.add_argument('--all', '-a',
-                        action="store_true",
-                        dest="all",
-                        help="Show all containers (default shows just running)")
-        ps.add_argument('--filter', '-f',
-                        type=dict,
-                        dest="filters",
-                        metavar="filter",
-                        help="Filter output based on conditions provided (default [])")
-        ps.add_argument('--format',
-                        type=str,
-                        metavar="string",
-                        help="Pretty-print containers using a Python template")
-        ps.add_argument('--quiet', '-q',
-                        action="store_true",
-                        help="Only display numeric IDs")
-
-        # -------------------------TOP--------------------------------
-
-        top = sp.add_parser('top',
-                            formatter_class=argparse.RawDescriptionHelpFormatter,
-                            usage="%(prog)s CONTAINER [ps OPTIONS]",
-                            description=textwrap.dedent('''\
-        Display the running processes of a container
-         '''))
-        top.add_argument('container',
-                         type=str,
-                         metavar="CONTAINER",
-                         help="Display the running processes of a container")
-        top.add_argument('ps_args',
-                         type=str,
-                         nargs="?",
-                         help="Ps options")
-
-        # ------------------------HISTORY-----------------------------
-
-        history = sp.add_parser('history',
-                                formatter_class=argparse.RawDescriptionHelpFormatter,
-                                usage="%(prog)s [OPTIONS] IMAGE",
-                                description=textwrap.dedent('''\
-        Show the history of an image
-         '''))
-        history.add_argument('image',
-                             type=str,
-                             metavar="IMAGE",
-                             help="Image to show history")
-
-        # --------------------------CP--------------------------------
-
-        cp = sp.add_parser('cp',
-                           formatter_class=argparse.RawDescriptionHelpFormatter,
-                           usage="%(prog)s [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-\ndocker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH",
-                           description=textwrap.dedent('''\
+        container_cp = container.add_parser('cp',
+                                  formatter_class=argparse.RawDescriptionHelpFormatter,
+                                  usage="%(prog)s [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-\ndocker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH",
+                                  description=textwrap.dedent('''\
         Copy files/folders between a container and the local filesystem
 
         Use '-' as the source to read a tar archive from stdin
@@ -773,12 +644,172 @@ class Dokcer(object):
         Use '-' as the destination to stream a tar archive of a
         container source to stdout.
          '''))
-        cp.add_argument('src',
+        container_cp.add_argument('src',
                         type=str,
                         metavar="CONTAINER:SRC_PATH")
-        cp.add_argument('dest',
+        container_cp.add_argument('dest',
                         type=str,
                         metavar="DEST_PATH")
+
+        # ----------------------CONTAINER-RM--------------------------
+
+        container_rm = container.add_parser('rm',
+                                  formatter_class=argparse.RawDescriptionHelpFormatter,
+                                  usage="%(prog)s [OPTIONS] CONTAINER [CONTAINER...]",
+                                  description=textwrap.dedent('''\
+        Remove one or more containers
+         '''))
+        container_rm.add_argument('containers',
+                        type=str,
+                        metavar="CONTAINER",
+                        nargs="+",
+                        help="Containers to be removed")
+        container_rm.add_argument('--force', '-f',
+                        action="store_true",
+                        dest="force",
+                        help="Force the removal of a running container (uses SIGKILL)")
+
+        # -----------------------CONTAINER-TOP------------------------
+
+        container_top = container.add_parser('top',
+                                   formatter_class=argparse.RawDescriptionHelpFormatter,
+                                   usage="%(prog)s CONTAINER [ps OPTIONS]",
+                                   description=textwrap.dedent('''\
+        Display the running processes of a container
+         '''))
+        container_top.add_argument('container',
+                         type=str,
+                         metavar="CONTAINER",
+                         help="Display the running processes of a container")
+        container_top.add_argument('ps_args',
+                         type=str,
+                         nargs="?",
+                         help="Ps options")
+
+        # --------------------------IMAGE-----------------------------
+
+        image_p = sp.add_parser('image')
+        image = image_p.add_subparsers(
+            title="Images", dest="image_flag", help='type [COMMAND] --help to get additional help')
+
+        # -------------------------IMAGE-LS---------------------------
+
+        image_ls = image.add_parser('ls',
+                                  formatter_class=argparse.RawDescriptionHelpFormatter,
+                                  usage="%(prog)s [OPTIONS] [REPOSITORY[:TAG]]",
+                                  description=textwrap.dedent('''\
+        List images
+         '''))
+        image_ls.add_argument('--all', '-a',
+                            action="store_true",
+                            dest="all",
+                            help="Show all images (default hides intermediate images)")
+        image_ls.add_argument('--digests',
+                            action="store_true",
+                            dest="digests",
+                            help="Show digests")
+        image_ls.add_argument('--filter', '-f',
+                            type=lambda kv: kv.split("=", 1),
+                            action="append",
+                            dest="filters",
+                            help="Filter output based on conditions provided")
+        image_ls.add_argument('--format',
+                            type=str,
+                            help="Pretty-print containers using a Python template")
+        image_ls.add_argument('--quiet', '-q',
+                            action="store_true",
+                            help="Only show numeric IDs")
+
+        # ------------------------IMAGE-PULL--------------------------
+
+        image_pull = image.add_parser('pull',
+                                formatter_class=argparse.RawDescriptionHelpFormatter,
+                                usage="%(prog)s [OPTIONS] NAME[:TAG|@DIGEST]",
+                                description=textwrap.dedent('''\
+        Pull an image or a repository from a registry
+         '''))
+        image_pull.add_argument('image',
+                          type=str,
+                          metavar="IMAGE",
+                          nargs=1,
+                          help="Image to pull")
+
+        # ------------------------IMAGE-BUILD-------------------------
+
+        image_pull = image.add_parser('build',
+                                 formatter_class=argparse.RawDescriptionHelpFormatter,
+                                 usage="%(prog)s [OPTIONS] PATH | URL | -",
+                                 description=textwrap.dedent('''\
+        Build an image from a Dockerfile
+         '''))
+        image_pull.add_argument('path',
+                           type=str,
+                           metavar="PATH",
+                           help="The path containing Dockerfile")
+        image_pull.add_argument('--build-arg',
+                           type=lambda kv: kv.split("=", 1),
+                           action="append",
+                           dest="buildargs",
+                           metavar="list",
+                           help="Set build-time variables (default [])")
+        image_pull.add_argument('--tag', '-t',
+                           type=str,
+                           dest="tag",
+                           help="Name and optionally a tag in the 'name:tag' format")
+        image_pull.add_argument('--rm',
+                           action="store_true",
+                           default=True,
+                           help="Remove intermediate containers after a successful build (default true)")
+
+        # ------------------------IMAGE-SAVE--------------------------
+
+        image_save = image.add_parser('save',
+                                formatter_class=argparse.RawDescriptionHelpFormatter,
+                                usage="%(prog)s [OPTIONS] IMAGE [IMAGE...]",
+                                description=textwrap.dedent('''\
+        Save one or more images to a tar archive (streamed to STDOUT by default)
+         '''))
+        image_save.add_argument('image',
+                          type=str,
+                          metavar="IMAGE",
+                          help="Image to be saved")
+
+        image_save.add_argument('--output', '-o',
+                          type=str,
+                          dest="output",
+                          metavar="string",
+                          help="Write to a file, instead of STDOUT")
+
+        # -------------------------IMAGE-RM---------------------------
+
+        image_rm = image.add_parser('rm',
+                               formatter_class=argparse.RawDescriptionHelpFormatter,
+                               usage="%(prog)s [OPTIONS] IMAGE [IMAGE...]",
+                               description=textwrap.dedent('''\
+        Remove one or more images
+         '''))
+        image_rm.add_argument('images',
+                         type=str,
+                         metavar="IMAGE",
+                         nargs="+",
+                         help="Images to be removed")
+        image_rm.add_argument('--force', '-f',
+                         action="store_true",
+                         dest="force",
+                         help="Force removal of the image")
+
+        # -----------------------IMAGE-HISTORY------------------------
+
+        image_history = image.add_parser('history',
+                                   formatter_class=argparse.RawDescriptionHelpFormatter,
+                                   usage="%(prog)s [OPTIONS] IMAGE",
+                                   description=textwrap.dedent('''\
+        Show the history of an image
+         '''))
+        image_history.add_argument('image',
+                             type=str,
+                             metavar="IMAGE",
+                             help="Image to show history")
 
         # ------------------------NETWORK-----------------------------
 
@@ -1115,21 +1146,20 @@ class Dokcer(object):
 
         import pkgutil
         import imp
-        plugins_dir = "{}/.dokcer/plugins".format(path.expanduser("~"))
-        if path.exists(plugins_dir) is False:
-            makedirs(plugins_dir, 0660)
-        dirs = listdir(plugins_dir)
-        for module in dirs:
-            class_names = [n for _, n, _ in pkgutil.iter_modules(
-                ["{}/{}".format(plugins_dir, module)])]
-            for name in class_names:
-                cls = '{}/{}/{}.py'.format(plugins_dir, module, name)
-                try:
-                    mod = imp.load_source(name, cls)
-                    tmp = {name: getattr(mod, name.capitalize())}
-                    self.push(**tmp)
-                except ImportError as e:
-                    logger.Logger.logError(e)
+        plugins_dir = "{}/Dokcer/plugins".format(path.expanduser("~"))
+        if path.exists(plugins_dir):
+            dirs = listdir(plugins_dir)
+            for module in dirs:
+                class_names = [n for _, n, _ in pkgutil.iter_modules(
+                    ["{}/{}".format(plugins_dir, module)])]
+                for name in class_names:
+                    cls = '{}/{}/{}.py'.format(plugins_dir, module, name)
+                    try:
+                        mod = imp.load_source(name, cls)
+                        tmp = {name: getattr(mod, name.capitalize())}
+                        self.push(**tmp)
+                    except ImportError as e:
+                        Logger.logError(e)
 
         # ---------------------------END------------------------------
 
@@ -1137,10 +1167,8 @@ class Dokcer(object):
 
     def parse(self, argv):
         """parse argv into list of args"""
-        if argv:
-            self.args = self.parser.parse_args(argv.split())
-        else:
-            self.args = self.parser.parse_args()
+        argv = argv if argv else sys.argv[1:]
+        self.args = self.parser.parse_args(shortcut(argv))
         self.args = vars(self.args)
 
         self.set_verbose(self.args["verbosity"])
@@ -1185,15 +1213,17 @@ class Dokcer(object):
             if self.debug:
                 import json
                 print json.dumps(self.args, indent=4)
-            command_flag = self.args["command_flag"]
+            group_flag = self.args["group_flag"]
+            command_flag = self.args.get("container_flag")
             del self.args["console"]
             del self.args["color"]
             del self.args["debug"]
             del self.args["dry"]
             del self.args["verbosity"]
             del self.args["original"]
-            if (command_flag == "run") and ("rm" in self.args):
-                self.remove = self.args["rm"]
+            if (group_flag == "container") and ("rm" in self.args):
+                if (command_flag is not None) and (command_flag == "run"):
+                    self.remove = self.args["rm"]
                 del self.args["rm"]
             else:
                 self.remove = False
@@ -1202,9 +1232,9 @@ class Dokcer(object):
             if not self.dry:
                 if self.remove:
                     self.docker.client.remove_container(
-                        self.docker.buffer()["create"]["Id"], force=True)
-                if command_flag == "run":
-                    self.docker.set_buffer(self.docker.buffer()["run"])
+                        self.docker.buffer()["container create"]["Id"], force=True)
+                if (group_flag == "container") and (command_flag is not None) and (command_flag == "run"):
+                    self.docker.set_buffer(self.docker.buffer()["container run"])
             if suppress is not True:
                 self.buf = self.docker.buffer()
         except (KeyboardInterrupt, SystemExit) as e:
@@ -1231,30 +1261,30 @@ class Dokcer(object):
     def final(self):
         """Finalize the result"""
         if self.response.exception:
-            for case in switch.switch(self.response.exception):
+            for case in switch(self.response.exception):
                 if case(ConnectionError, AttributeError, ValueError):
                     if self.color:
-                        logger.Logger.logError(
+                        Logger.logError(
                             "Error response from dokcer: {}\n", self.response.message)
                     else:
-                        logger.Logger.log(
+                        Logger.log(
                             "Error response from dokcer: {}\n", self.response.message)
                     break
                 if case(APIError, NotFound):
                     if self.color:
-                        logger.Logger.logError(
+                        Logger.logError(
                             "Error response from daemon: {}\n", self.response.message)
                     else:
-                        logger.Logger.log(
+                        Logger.log(
                             "Error response from daemon: {}\n", self.response.message)
                     break
                 if case(SystemExit, KeyboardInterrupt, RuntimeError):
                     pass
         else:
             if self.color:
-                logger.Logger.logSuccess("{}", self.recv())
+                Logger.logSuccess("{}", self.recv())
             else:
-                logger.Logger.log("{}", self.recv())
+                Logger.log("{}", self.recv())
 
 
 def cli(argv=None, **intruders):

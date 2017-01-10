@@ -29,7 +29,7 @@ def find_version(*file_paths):
     raise RuntimeError('Unable to find version string')
 
 requirements = [
-    'docker >= 2.0.0',
+    'docker >= 2.0.1',
     'dockerpty >= 0.4.1',
     'arrow >= 0.10.0',
     'humanize >= 0.5.1',
@@ -44,8 +44,8 @@ setup(name='dokcer',
       author='Boik Su',
       author_email='boik@tdohacker.org',
       url='https://github.com/qazbnm456/dokcer',
-      download_url='https://codeload.github.com/qazbnm456/dokcer/tar.gz/0.6',
-      keywords=['0.6'],
+      download_url='https://codeload.github.com/qazbnm456/dokcer/tar.gz/0.7',
+      keywords=['0.7'],
       packages=find_packages(),
       install_requires=requirements,
       dependency_links=['https://github.com/qazbnm456/pytabwriter/tarball/master#egg=pytabwriter-0.1.1'],

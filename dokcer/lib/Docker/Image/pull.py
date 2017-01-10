@@ -1,9 +1,9 @@
-"""This module contains `docker pull` class"""
+"""This module contains `docker image pull` class"""
 
 import colorama
 
 from .command import Command
-from ..Utils import (json_iterparse)
+from ...Utils.json_iterparse import json_iterparse
 
 
 colorama.init()
@@ -24,9 +24,9 @@ def clear():
 
 
 class Pull(Command):
-    """This class implements `docker pull` command"""
+    """This class implements `docker image pull` command"""
 
-    name = "pull"
+    name = "image pull"
     require = []
 
     def __init__(self):
@@ -98,7 +98,7 @@ class Pull(Command):
         line_n = 0
         try:
             for line in self.client.pull(**args):
-                for iterElement in list(json_iterparse.json_iterparse(line)):
+                for iterElement in list(json_iterparse(line)):
                     line_n = self.output(iterElement, args)
         except KeyboardInterrupt:
             put_cursor(0, MINY + OFFSET + line_n)

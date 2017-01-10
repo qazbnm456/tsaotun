@@ -1,4 +1,4 @@
-"""This module contains `docker history` class"""
+"""This module contains `docker image history` class"""
 
 import arrow
 import humanize
@@ -9,9 +9,9 @@ from .command import Command
 
 
 class History(Command):
-    """This class implements `docker history` command"""
+    """This class implements `docker image history` command"""
 
-    name = "history"
+    name = "image history"
     require = []
 
     defaultTemplate = '{{{Id}}}@{{Created}}@{{{CreatedBy}}}@{{Size}}@{{Comment}}'

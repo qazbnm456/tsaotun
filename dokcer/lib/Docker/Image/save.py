@@ -1,12 +1,12 @@
-"""This module contains `docker save` class"""
+"""This module contains `docker image save` class"""
 
 from .command import Command
 
 
 class Save(Command):
-    """This class implements `docker save` command"""
+    """This class implements `docker image save` command"""
 
-    name = "save"
+    name = "image save"
     require = []
 
     def __init__(self):

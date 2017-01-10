@@ -1,4 +1,4 @@
-"""This module contains `docker top` class"""
+"""This module contains `docker container top` class"""
 
 import pystache
 from pytabwriter import TabWriter
@@ -7,9 +7,9 @@ from .command import Command
 
 
 class Top(Command):
-    """This class implements `docker top` command"""
+    """This class implements `docker container top` command"""
 
-    name = "top"
+    name = "container top"
     require = []
 
     defaultTemplate = '{{Pid}}\t{{User}}\t{{Time}}\t{{{Command}}}'

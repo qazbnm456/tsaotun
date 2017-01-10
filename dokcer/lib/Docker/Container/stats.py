@@ -1,4 +1,4 @@
-"""This module contains `docker stats` class"""
+"""This module contains `docker container stats` class"""
 
 import colorama
 import humanize
@@ -28,9 +28,9 @@ def clear():
 
 
 class Stats(Command):
-    """This class implements `docker stats` command"""
+    """This class implements `docker container stats` command"""
 
-    name = "stats"
+    name = "container stats"
     require = []
 
     defaultTemplate = '{{Id}}\t{{Cpu}}%\t{{MemUsage}} / {{Limit}}\t{{Mem}}%\t{{NetInput}} / {{NetOutput}}\t0 B / 0 B\t{{Pids}}'

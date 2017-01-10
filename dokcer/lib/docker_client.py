@@ -2,8 +2,6 @@
 
 import platform
 import os
-import re
-import json
 
 from docker import APIClient
 
@@ -11,21 +9,6 @@ try:
     import urlparse
 except ImportError:  # For Python 3
     import urllib.parse as urlparse
-
-nonspace = re.compile(r'\S')
-
-
-def jsoniterparse(j):
-    """This method implements iterative json parsing"""
-    decoder = json.JSONDecoder()
-    pos = 0
-    while True:
-        matched = nonspace.search(j, pos)
-        if not matched:
-            break
-        pos = matched.start()
-        decoded, pos = decoder.raw_decode(j, pos)
-        yield decoded
 
 
 class Docker(object):
@@ -73,19 +56,15 @@ class Docker(object):
         if dry:
             self.__dry()
         else:
-            if "network_flag" in args:
-                self.category = "{}.".format(args["command_flag"])
-                self.command_flag = args["network_flag"]
-                del args["network_flag"]
-            elif "volume_flag" in args:
-                self.category = "{}.".format(args["command_flag"])
-                self.command_flag = args["volume_flag"]
-                del args["volume_flag"]
+            self.category = args["group_flag"]
+            del args["group_flag"]
+            if args.get("{}_flag".format(self.category)):
+                self.command_flag = args["{}_flag".format(self.category)]
+                del args["{}_flag".format(self.category)]
             else:
-                self.category = ""
-                self.command_flag = args["command_flag"]
-            del args["command_flag"]
-            mod = __import__("Docker.{}{}".format(self.category.capitalize(), self.command_flag),
+                self.command_flag = self.category
+                self.category = 'system'
+            mod = __import__("Docker.{}.{}".format(self.category.capitalize(), self.command_flag),
                              globals(), locals(), ['dummy'], -1)
             self.__intrude(mod)
             mod_instance = getattr(mod, self.command_flag.capitalize())()
@@ -115,4 +94,5 @@ class Docker(object):
         """Intrude classes"""
         if self.__stack:
             for k, v in self.__stack.iteritems():
+                print mod
                 setattr(mod, k.capitalize(), v)

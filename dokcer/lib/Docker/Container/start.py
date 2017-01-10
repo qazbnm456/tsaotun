@@ -1,4 +1,4 @@
-"""This module contains `docker start` class"""
+"""This module contains `docker container start` class"""
 
 import dockerpty
 
@@ -6,9 +6,9 @@ from .command import Command
 
 
 class Start(Command):
-    """This class implements `docker start` command"""
+    """This class implements `docker container start` command"""
 
-    name = "start"
+    name = "container start"
     require = ["create"]
 
     def __init__(self):

@@ -1,14 +1,12 @@
-"""This module contains `docker rename` class"""
-
-import json
+"""This module contains `docker container rename` class"""
 
 from .command import Command
 
 
 class Rename(Command):
-    """This class implements `docker rename` command"""
+    """This class implements `docker container rename` command"""
 
-    name = "rename"
+    name = "container rename"
     require = []
 
     def __init__(self):

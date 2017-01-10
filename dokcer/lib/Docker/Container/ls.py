@@ -1,4 +1,4 @@
-"""This module contains `docker ps` class"""
+"""This module contains `docker container ls` class"""
 
 import pystache
 import arrow
@@ -7,10 +7,10 @@ from pytabwriter import TabWriter
 from .command import Command
 
 
-class Ps(Command):
-    """This class implements `docker ps` command"""
+class Ls(Command):
+    """This class implements `docker container ls` command"""
 
-    name = "ps"
+    name = "container ls"
     require = []
 
     defaultTemplate = '{{Id}}\t{{Image}}\t"{{Command}}"\t{{Created}}\t{{Status}}\t{{Ports}}\t{{Names}}'

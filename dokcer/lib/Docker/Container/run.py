@@ -1,12 +1,12 @@
-"""This module contains `docker run` class"""
+"""This module contains `docker container run` class"""
 
 from .command import Command
 
 
 class Run(Command):
-    """This class implements `docker run` command"""
+    """This class implements `docker container run` command"""
 
-    name = "run"
+    name = "container run"
     require = ["create", "start"]
 
     def __init__(self):
