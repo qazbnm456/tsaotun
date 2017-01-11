@@ -86,13 +86,10 @@ class Docker(object):
         """Push custom classes into Docker.__stack"""
         self.__stack = kwargs
 
-    def clear(self):
-        """Clear custom classes pushed into Docker.__stack"""
-        self.__stack = None
-
     def __intrude(self, mod):
         """Intrude classes"""
         if self.__stack:
             for k, v in self.__stack.iteritems():
-                print mod
-                setattr(mod, k.capitalize(), v)
+                override, value = k.split('|')
+                if "dokcer.lib.Docker." + override == mod.__name__:
+                    setattr(mod, value, v)

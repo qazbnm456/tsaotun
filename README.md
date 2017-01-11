@@ -29,10 +29,10 @@
 
 - Currently support following commands:
     - dokcer `version, info, inspect, images, pull, build, run, save, logs, stats, rename, restart, exec, rmi, rm, ps, top, history, cp`
-    - dokcer container `run, logs, stats, rename, restart, exec ,rm, ls, top, cp`
-    - dokcer image `ls, pull, build, save, rm, history`
-    - dokcer network `ls, create, rm, remove, inspect, connect, disconnect`
-    - dokcer volume `ls, create, rm, remove, inspect`
+    - dokcer container `inspect, run, logs, stats, rename, restart, exec ,rm, ls, top, cp`
+    - dokcer image `inspect, ls, pull, build, save, rm, history`
+    - dokcer network `inspect, ls, create, rm, remove, connect, disconnect`
+    - dokcer volume `inspect, ls, create, rm, remove`
 
 - Plugins feature is testing right now, and each plugin should has its own folder with `__init__.py` inside. Plugins folder struture shows like:
 
@@ -45,60 +45,64 @@ $HOME
         └───__init__.py
 ```
 
-### Following sample plugin is not available in the latest release currently. ###
-
 - Sample plugin to remove "ALL" containers at once:
+    - ### __init__.py: To specify how to override the original command
+        ```python
+        from Container import rm
+        __override__ = {'Container.rm': 'Rm'}
+        ```
 
-```python
-"""This module contains `docker rm` class"""
+    - ### Container/rm.py
+        ```python
+        """This module contains `docker container rm` class"""
 
-from docker.errors import APIError
-from dokcer.lib.Docker.command import Command
-from dokcer.cli import Dokcer
+        from docker.errors import APIError
+        from dokcer.lib.Docker.Container.command import Command
+        from dokcer.cli import Dokcer
 
 
-class Rm(Command):
-    """This class implements `docker rm` command"""
+        class Rm(Command):
+            """This class implements `docker container rm` command"""
 
-    name = "rm"
-    require = []
+            name = "container rm"
+            require = []
 
-    def __init__(self):
-        Command.__init__(self)
-        self.settings[self.name] = None
+            def __init__(self):
+                Command.__init__(self)
+                self.settings[self.name] = None
 
-    def eval_command(self, args):
-        try:
-            containers = args["containers"]
-            del args["containers"]
-            Ids = []
-            if "ALL" in containers: # dokcer rm ALL
-                d = Dokcer()
-                d.parse('ps -a --format {{Id}}')
-                d.send()
-                ress = d.recv()
-                if ress:
-                    ress = ress.split('\n')
-                    ress = [res[0:4] for res in ress]
-                    for Id in ress:
-                        Ids.append(Id)
-                        args['container'] = Id
-                        self.client.remove_container(**args)
-                        del args['container']
-            else:
-                for Id in containers:
-                    Ids.append(Id)
-                    args['container'] = Id
-                    self.client.remove_container(**args)
-                    del args['container']
-            self.settings[self.name] = '\n'.join(Ids)
+            def eval_command(self, args):
+                try:
+                    containers = args["containers"]
+                    del args["containers"]
+                    Ids = []
+                    if "ALL" in containers: # dokcer container rm ALL or dokcer rm ALL
+                        d = Dokcer()
+                        d.parse('ps -a --format {{Id}}')
+                        d.send()
+                        ress = d.recv()
+                        if ress:
+                            ress = ress.split('\n')
+                            ress = [res[0:4] for res in ress]
+                            for Id in ress:
+                                Ids.append(Id)
+                                args['container'] = Id
+                                self.client.remove_container(**args)
+                                del args['container']
+                    else:
+                        for Id in containers:
+                            Ids.append(Id)
+                            args['container'] = Id
+                            self.client.remove_container(**args)
+                            del args['container']
+                    self.settings[self.name] = '\n'.join(Ids)
 
-        except APIError as e:
-            raise e
+                except APIError as e:
+                    raise e
 
-    def final(self):
-        return self.settings[self.name]
-```
+            def final(self):
+                return self.settings[self.name]
+        ```
 
 - **If you want auto-complete feature, you could use [bash completion for dokcer](completion/dokcer), taken and modified from docker one, or configure [argcomplete](https://github.com/kislyuk/argcomplete).**
 
