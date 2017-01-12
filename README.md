@@ -78,8 +78,7 @@ $HOME
                     Ids = []
                     if "ALL" in containers: # dokcer container rm ALL or dokcer rm ALL
                         d = Dokcer()
-                        d.parse('ps -a --format {{Id}}')
-                        d.send()
+                        d.send('ps -a --format {{Id}}')
                         ress = d.recv()
                         if ress:
                             ress = ress.split('\n')
@@ -131,7 +130,7 @@ $HOME
     - [Dockerfile](Dockerfile) is provided, and you can build it with: `docker build -t dokcer .`. Once you finished, you'd like to run any command, such as:
         - `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock dokcer version`
 
-![dokcer_version](http://i.imgur.com/t8zcoK9.png "dokcer_version")
+<img src="http://i.imgur.com/2cnNvDl.png" width="540">
 
 <a name="contribute"></a>
 ## Contribute

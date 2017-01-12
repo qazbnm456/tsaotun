@@ -56,10 +56,12 @@ class Dokcer(object):
 
     response = Response()
 
-    def __init__(self, **intruders):
+    def __init__(self, original=False, **intruders):
         self.docker = Docker()
         self.push(**intruders)
         self.__register()
+        if original:
+            self.set_original()
 
     def __register(self):
         """Register arguments"""
@@ -1178,7 +1180,7 @@ class Dokcer(object):
 
         argcomplete.autocomplete(self.parser)
 
-    def parse(self, argv):
+    def __parse(self, argv):
         """Parse argv into list of args"""
         argv = argv.split() if argv else sys.argv[1:]
         self.args = self.parser.parse_args(shortcut(argv))
@@ -1243,9 +1245,10 @@ class Dokcer(object):
         """Push custom classes to docker"""
         self.docker.push(**kwargs)
 
-    def send(self, suppress=False):
+    def send(self, argv, suppress=False):
         """Evaluate commands"""
         try:
+            self.__parse(argv)
             if self.debug:
                 import json
                 print json.dumps(self.args, indent=4)
@@ -1328,8 +1331,7 @@ def cli(argv=None, **intruders):
     """Entry point of dokcer"""
     try:
         dokcer = Dokcer(**intruders)
-        dokcer.parse(argv)
-        dokcer.send()
+        dokcer.send(argv)
         dokcer.final()
     except RuntimeError:
         pass
