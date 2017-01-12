@@ -90,19 +90,16 @@ class Dokcer(object):
         # ------------------------------------------------------------
 
         sp = self.parser.add_subparsers(
-            title="Groups", dest="group_flag", help='type [COMMAND] --help to get additional help')
+            title="Management Commands", dest="manage_flag")
 
         # -------------------------VERSION----------------------------
 
-        version = sp.add_parser('version',
-                                formatter_class=argparse.RawDescriptionHelpFormatter,
-                                usage="%(prog)s [OPTIONS]",
-                                description=textwrap.dedent('''\
+        sp.add_parser('version',
+                      formatter_class=argparse.RawDescriptionHelpFormatter,
+                      usage="%(prog)s [OPTIONS]",
+                      description=textwrap.dedent('''\
         Show the Docker version information
          '''))
-        version.add_argument('--format',
-                             type=str,
-                             help="Pretty-print containers using a Python template")
 
         # ---------------------------INFO-----------------------------
 
@@ -158,6 +155,9 @@ class Dokcer(object):
                                             usage="%(prog)s [OPTIONS]",
                                             description=textwrap.dedent('''\
         List containers
+
+        Aliases:
+          ls, ps, list
          '''))
         container_ls.add_argument('--all', '-a',
                                   action="store_true",
@@ -175,6 +175,58 @@ class Dokcer(object):
         container_ls.add_argument('--quiet', '-q',
                                   action="store_true",
                                   help="Only display numeric IDs")
+
+        container_ps = container.add_parser('ps',
+                                            formatter_class=argparse.RawDescriptionHelpFormatter,
+                                            usage="%(prog)s [OPTIONS]",
+                                            description=textwrap.dedent('''\
+        List containers
+
+        Aliases:
+          ls, ps, list
+         '''))
+        container_ps.add_argument('--all', '-a',
+                                  action="store_true",
+                                  dest="all",
+                                  help="Show all containers (default shows just running)")
+        container_ps.add_argument('--filter', '-f',
+                                  type=dict,
+                                  dest="filters",
+                                  metavar="filter",
+                                  help="Filter output based on conditions provided (default [])")
+        container_ps.add_argument('--format',
+                                  type=str,
+                                  metavar="string",
+                                  help="Pretty-print containers using a Python template")
+        container_ps.add_argument('--quiet', '-q',
+                                  action="store_true",
+                                  help="Only display numeric IDs")
+
+        container_list = container.add_parser('list',
+                                              formatter_class=argparse.RawDescriptionHelpFormatter,
+                                              usage="%(prog)s [OPTIONS]",
+                                              description=textwrap.dedent('''\
+        List containers
+
+        Aliases:
+          ls, ps, list
+         '''))
+        container_list.add_argument('--all', '-a',
+                                    action="store_true",
+                                    dest="all",
+                                    help="Show all containers (default shows just running)")
+        container_list.add_argument('--filter', '-f',
+                                    type=dict,
+                                    dest="filters",
+                                    metavar="filter",
+                                    help="Filter output based on conditions provided (default [])")
+        container_list.add_argument('--format',
+                                    type=str,
+                                    metavar="string",
+                                    help="Pretty-print containers using a Python template")
+        container_list.add_argument('--quiet', '-q',
+                                    action="store_true",
+                                    help="Only display numeric IDs")
 
         # ------------------------CONTAINER-RUN------------------------
 
@@ -733,6 +785,9 @@ class Dokcer(object):
                                     usage="%(prog)s [OPTIONS] [REPOSITORY[:TAG]]",
                                     description=textwrap.dedent('''\
         List images
+
+        Aliases:
+          ls, images, list
          '''))
         image_ls.add_argument('--all', '-a',
                               action="store_true",
@@ -753,6 +808,64 @@ class Dokcer(object):
         image_ls.add_argument('--quiet', '-q',
                               action="store_true",
                               help="Only show numeric IDs")
+
+        image_images = image.add_parser('images',
+                                        formatter_class=argparse.RawDescriptionHelpFormatter,
+                                        usage="%(prog)s [OPTIONS] [REPOSITORY[:TAG]]",
+                                        description=textwrap.dedent('''\
+        List images
+
+        Aliases:
+          ls, images, list
+         '''))
+        image_images.add_argument('--all', '-a',
+                                  action="store_true",
+                                  dest="all",
+                                  help="Show all images (default hides intermediate images)")
+        image_images.add_argument('--digests',
+                                  action="store_true",
+                                  dest="digests",
+                                  help="Show digests")
+        image_images.add_argument('--filter', '-f',
+                                  type=lambda kv: kv.split("=", 1),
+                                  action="append",
+                                  dest="filters",
+                                  help="Filter output based on conditions provided")
+        image_images.add_argument('--format',
+                                  type=str,
+                                  help="Pretty-print containers using a Python template")
+        image_images.add_argument('--quiet', '-q',
+                                  action="store_true",
+                                  help="Only show numeric IDs")
+
+        image_list = image.add_parser('list',
+                                      formatter_class=argparse.RawDescriptionHelpFormatter,
+                                      usage="%(prog)s [OPTIONS] [REPOSITORY[:TAG]]",
+                                      description=textwrap.dedent('''\
+        List images
+
+        Aliases:
+          ls, images, list
+         '''))
+        image_list.add_argument('--all', '-a',
+                                action="store_true",
+                                dest="all",
+                                help="Show all images (default hides intermediate images)")
+        image_list.add_argument('--digests',
+                                action="store_true",
+                                dest="digests",
+                                help="Show digests")
+        image_list.add_argument('--filter', '-f',
+                                type=lambda kv: kv.split("=", 1),
+                                action="append",
+                                dest="filters",
+                                help="Filter output based on conditions provided")
+        image_list.add_argument('--format',
+                                type=str,
+                                help="Pretty-print containers using a Python template")
+        image_list.add_argument('--quiet', '-q',
+                                action="store_true",
+                                help="Only show numeric IDs")
 
         # ------------------------IMAGE-PULL--------------------------
 
@@ -821,6 +934,9 @@ class Dokcer(object):
                                     usage="%(prog)s [OPTIONS] IMAGE [IMAGE...]",
                                     description=textwrap.dedent('''\
         Remove one or more images
+
+        Aliases:
+          rm, rmi, remove
          '''))
         image_rm.add_argument('images',
                               type=str,
@@ -831,6 +947,44 @@ class Dokcer(object):
                               action="store_true",
                               dest="force",
                               help="Force removal of the image")
+
+        image_rmi = image.add_parser('rmi',
+                                     formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     usage="%(prog)s [OPTIONS] IMAGE [IMAGE...]",
+                                     description=textwrap.dedent('''\
+        Remove one or more images
+
+        Aliases:
+          rm, rmi, remove
+         '''))
+        image_rmi.add_argument('images',
+                               type=str,
+                               metavar="IMAGE",
+                               nargs="+",
+                               help="Images to be removed")
+        image_rmi.add_argument('--force', '-f',
+                               action="store_true",
+                               dest="force",
+                               help="Force removal of the image")
+
+        image_remove = image.add_parser('remove',
+                                        formatter_class=argparse.RawDescriptionHelpFormatter,
+                                        usage="%(prog)s [OPTIONS] IMAGE [IMAGE...]",
+                                        description=textwrap.dedent('''\
+        Remove one or more images
+
+        Aliases:
+          rm, rmi, remove
+         '''))
+        image_remove.add_argument('images',
+                                  type=str,
+                                  metavar="IMAGE",
+                                  nargs="+",
+                                  help="Images to be removed")
+        image_remove.add_argument('--force', '-f',
+                                  action="store_true",
+                                  dest="force",
+                                  help="Force removal of the image")
 
         # -----------------------IMAGE-HISTORY------------------------
 
@@ -938,7 +1092,7 @@ class Dokcer(object):
         Remove one or more networks
 
         Aliases:
-            rm, remove
+          rm, remove
         '''))
         network_rm.add_argument('networks',
                                 type=str,
@@ -1125,7 +1279,7 @@ class Dokcer(object):
         Remove one or more volumes
 
         Aliases:
-        rm, remove
+          rm, remove
 
         Examples:
 
@@ -1145,7 +1299,7 @@ class Dokcer(object):
         Remove one or more volumes
 
         Aliases:
-        rm, remove
+          rm, remove
 
         Examples:
 
@@ -1252,7 +1406,7 @@ class Dokcer(object):
             if self.debug:
                 import json
                 print json.dumps(self.args, indent=4)
-            group_flag = self.args["group_flag"]
+            manage_flag = self.args["manage_flag"]
             command_flag = self.args.get("container_flag")
             del self.args["console"]
             del self.args["color"]
@@ -1260,7 +1414,7 @@ class Dokcer(object):
             del self.args["dry"]
             del self.args["verbosity"]
             del self.args["original"]
-            if (group_flag == "container") and ("rm" in self.args):
+            if (manage_flag == "container") and ("rm" in self.args):
                 if (command_flag is not None) and (command_flag == "run"):
                     self.remove = self.args["rm"]
                 del self.args["rm"]
@@ -1272,7 +1426,7 @@ class Dokcer(object):
                 if self.remove:
                     self.docker.client.remove_container(
                         self.docker.buffer()["container create"]["Id"], force=True)
-                if (group_flag == "container") and (command_flag is not None) and (command_flag == "run"):
+                if (manage_flag == "container") and (command_flag is not None) and (command_flag == "run"):
                     self.docker.set_buffer(
                         self.docker.buffer()["container run"])
             if suppress is not True:

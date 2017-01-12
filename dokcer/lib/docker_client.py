@@ -56,8 +56,8 @@ class Docker(object):
         if dry:
             self.__dry()
         else:
-            self.category = args["group_flag"]
-            del args["group_flag"]
+            self.category = args["manage_flag"]
+            del args["manage_flag"]
             if args.get("{}_flag".format(self.category)):
                 self.command_flag = args["{}_flag".format(self.category)]
                 del args["{}_flag".format(self.category)]

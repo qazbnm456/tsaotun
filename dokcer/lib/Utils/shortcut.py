@@ -1,8 +1,8 @@
 """This module provides shortcut functionality (mapping command to another command)"""
 
 mapping = {
-    "ps": "container ls",
-    "images": "image ls",
+    "ps": "container ps",
+    "images": "image images",
     "pull": "image pull",
     "build": "image build",
     "save": "image save",
@@ -21,8 +21,13 @@ mapping = {
 
 def shortcut(argv):
     """Return mapping command if there exists one"""
+    c = 0
     for i, val in enumerate(argv):
-        if mapping.get(val):
+        if val.startswith("-"):
+            continue
+        else:
+            c = c + 1
+        if (c == 1) and mapping.get(val):
             argv[i] = mapping.get(val)
             break
     return ' '.join(argv).split()
