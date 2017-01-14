@@ -24,6 +24,8 @@ def shortcut(argv):
     c = 0
     for i, val in enumerate(argv):
         if val.startswith("-"):
+            if val == '-H' or val == '--host':
+                c = c - 1
             continue
         else:
             c = c + 1

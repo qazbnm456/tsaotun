@@ -56,9 +56,7 @@ class Dokcer(object):
 
     response = Response()
 
-    def __init__(self, original=False, **intruders):
-        self.docker = Docker()
-        self.push(**intruders)
+    def __init__(self, original=False):
         self.__register()
         if original:
             self.set_original()
@@ -80,6 +78,10 @@ class Dokcer(object):
         self.parser.add_argument('--dry',
                                  action="store_true",
                                  help="dry-run on/off")
+        self.parser.add_argument('--host', '-H',
+                                 dest="host",
+                                 metavar="list",
+                                 help="Daemon socket(s) to connect to (default [])")
         self.parser.add_argument('--verbose', '-v',
                                  action="count", dest="verbosity", default=0,
                                  help="set verbosity level")
@@ -1341,6 +1343,8 @@ class Dokcer(object):
         self.args = vars(self.args)
 
         self.set_verbose(self.args["verbosity"])
+        self.set_docker(self.args["host"])
+        del self.args["host"]
         if self.args["color"]:
             self.set_color()
         if self.args["debug"]:
@@ -1374,6 +1378,10 @@ class Dokcer(object):
                 except ImportError as e:
                     Logger.logError(e)
             self.push(**tmp)
+
+    def set_docker(self, host):
+        """Set docker host"""
+        self.docker = Docker(host)
 
     def set_color(self):
         """Set terminal color"""
