@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# bash completion file for core dokcer commands
+# bash completion file for core tsaotun commands
 #
 # This script provides completion of:
 #  - commands and their options
@@ -11,9 +11,9 @@
 # To enable the completions either:
 #  - place this file in /etc/bash_completion.d
 #  or
-#  - copy this file to e.g. ~/.dokcer-completion.sh and add the line
+#  - copy this file to e.g. ~/.tsaotun-completion.sh and add the line
 #    below to your .bashrc after bash completion features are loaded
-#    . ~/.dokcer-completion.sh
+#    . ~/.tsaotun-completion.sh
 #
 # Configuration:
 #
@@ -43,9 +43,9 @@
 
 #
 # Note:
-# Currently, the completions will not work if the dokcer daemon is not
+# Currently, the completions will not work if the tsaotun daemon is not
 # bound to the default communication port/socket
-# If the dokcer daemon is using a unix socket for communication your user
+# If the tsaotun daemon is using a unix socket for communication your user
 # must have access to the socket for the completions to function correctly
 #
 # Note for developers:
@@ -53,22 +53,22 @@
 # options immediately following their corresponding long form.
 # This order should be applied to lists, alternatives and code blocks.
 
-__dokcer_previous_extglob_setting=$(shopt -p extglob)
+__tsaotun_previous_extglob_setting=$(shopt -p extglob)
 shopt -s extglob
 
-__dokcer_q() {
-	dokcer ${host:+-H "$host"} ${config:+--config "$config"} 2>/dev/null "$@"
+__tsaotun_q() {
+	tsaotun ${host:+-H "$host"} ${config:+--config "$config"} 2>/dev/null "$@"
 }
 
-# __dokcer_containers returns a list of containers. Additional options to
-# `dokcer ps` may be specified in order to filter the list, e.g.
-# `__dokcer_containers --filter status=running`
+# __tsaotun_containers returns a list of containers. Additional options to
+# `tsaotun ps` may be specified in order to filter the list, e.g.
+# `__tsaotun_containers --filter status=running`
 # By default, only names are returned.
 # Set DOCKER_COMPLETION_SHOW_CONTAINER_IDS=yes to also complete IDs.
 # An optional first option `--id|--name` may be used to limit the
 # output to the IDs or names of matching items. This setting takes
 # precedence over the environment setting.
-__dokcer_containers() {
+__tsaotun_containers() {
 	local format
 	if [ "$1" = "--id" ] ; then
 		format='{{.ID}}'
@@ -81,50 +81,50 @@ __dokcer_containers() {
 	else
 		format='{{.Names}}'
 	fi
-	__dokcer_q ps --format "$format" "$@"
+	__tsaotun_q ps --format "$format" "$@"
 }
 
-# __dokcer_complete_containers applies completion of containers based on the current
+# __tsaotun_complete_containers applies completion of containers based on the current
 # value of `$cur` or the value of the optional first option `--cur`, if given.
-# Additional filters may be appended, see `__dokcer_containers`.
-__dokcer_complete_containers() {
+# Additional filters may be appended, see `__tsaotun_containers`.
+__tsaotun_complete_containers() {
 	local current="$cur"
 	if [ "$1" = "--cur" ] ; then
 		current="$2"
 		shift 2
 	fi
-	COMPREPLY=( $(compgen -W "$(__dokcer_containers "$@")" -- "$current") )
+	COMPREPLY=( $(compgen -W "$(__tsaotun_containers "$@")" -- "$current") )
 }
 
-__dokcer_complete_containers_all() {
-	__dokcer_complete_containers "$@" --all
+__tsaotun_complete_containers_all() {
+	__tsaotun_complete_containers "$@" --all
 }
 
-__dokcer_complete_containers_running() {
-	__dokcer_complete_containers "$@" --filter status=running
+__tsaotun_complete_containers_running() {
+	__tsaotun_complete_containers "$@" --filter status=running
 }
 
-__dokcer_complete_containers_stopped() {
-	__dokcer_complete_containers "$@" --filter status=exited
+__tsaotun_complete_containers_stopped() {
+	__tsaotun_complete_containers "$@" --filter status=exited
 }
 
-__dokcer_complete_containers_unpauseable() {
-	__dokcer_complete_containers "$@" --filter status=paused
+__tsaotun_complete_containers_unpauseable() {
+	__tsaotun_complete_containers "$@" --filter status=paused
 }
 
-__dokcer_complete_container_names() {
-	local containers=( $(__dokcer_q ps -aq --no-trunc) )
-	local names=( $(__dokcer_q inspect --format '{{.Name}}' "${containers[@]}") )
+__tsaotun_complete_container_names() {
+	local containers=( $(__tsaotun_q ps -aq --no-trunc) )
+	local names=( $(__tsaotun_q inspect --format '{{.Name}}' "${containers[@]}") )
 	names=( "${names[@]#/}" ) # trim off the leading "/" from the container names
 	COMPREPLY=( $(compgen -W "${names[*]}" -- "$cur") )
 }
 
-__dokcer_complete_container_ids() {
-	local containers=( $(__dokcer_q ps -aq) )
+__tsaotun_complete_container_ids() {
+	local containers=( $(__tsaotun_q ps -aq) )
 	COMPREPLY=( $(compgen -W "${containers[*]}" -- "$cur") )
 }
 
-__dokcer_images() {
+__tsaotun_images() {
 	local images_args=""
 
 	case "$DOCKER_COMPLETION_SHOW_IMAGE_IDS" in
@@ -153,34 +153,34 @@ __dokcer_images() {
 			;;
 	esac
 
-	__dokcer_q images $images_args | awk "$awk_script" | grep -v '<none>$'
+	__tsaotun_q images $images_args | awk "$awk_script" | grep -v '<none>$'
 }
 
-__dokcer_complete_images() {
-	COMPREPLY=( $(compgen -W "$(__dokcer_images)" -- "$cur") )
+__tsaotun_complete_images() {
+	COMPREPLY=( $(compgen -W "$(__tsaotun_images)" -- "$cur") )
 	__ltrim_colon_completions "$cur"
 }
 
-__dokcer_complete_image_repos() {
-	local repos="$(__dokcer_q images | awk 'NR>1 && $1 != "<none>" { print $1 }')"
+__tsaotun_complete_image_repos() {
+	local repos="$(__tsaotun_q images | awk 'NR>1 && $1 != "<none>" { print $1 }')"
 	COMPREPLY=( $(compgen -W "$repos" -- "$cur") )
 }
 
-__dokcer_complete_image_repos_and_tags() {
-	local reposAndTags="$(__dokcer_q images | awk 'NR>1 && $1 != "<none>" { print $1; print $1":"$2 }')"
+__tsaotun_complete_image_repos_and_tags() {
+	local reposAndTags="$(__tsaotun_q images | awk 'NR>1 && $1 != "<none>" { print $1; print $1":"$2 }')"
 	COMPREPLY=( $(compgen -W "$reposAndTags" -- "$cur") )
 	__ltrim_colon_completions "$cur"
 }
 
-# __dokcer_networks returns a list of all networks. Additional options to
-# `dokcer network ls` may be specified in order to filter the list, e.g.
-# `__dokcer_networks --filter type=custom`
+# __tsaotun_networks returns a list of all networks. Additional options to
+# `tsaotun network ls` may be specified in order to filter the list, e.g.
+# `__tsaotun_networks --filter type=custom`
 # By default, only names are returned.
 # Set DOCKER_COMPLETION_SHOW_NETWORK_IDS=yes to also complete IDs.
 # An optional first option `--id|--name` may be used to limit the
 # output to the IDs or names of matching items. This setting takes
 # precedence over the environment setting.
-__dokcer_networks() {
+__tsaotun_networks() {
 	local format
 	if [ "$1" = "--id" ] ; then
 		format='{{.ID}}'
@@ -193,54 +193,54 @@ __dokcer_networks() {
 	else
 		format='{{.Name}}'
 	fi
-	__dokcer_q network ls --format "$format" "$@"
+	__tsaotun_q network ls --format "$format" "$@"
 }
 
-# __dokcer_complete_networks applies completion of networks based on the current
+# __tsaotun_complete_networks applies completion of networks based on the current
 # value of `$cur` or the value of the optional first option `--cur`, if given.
-# Additional filters may be appended, see `__dokcer_networks`.
-__dokcer_complete_networks() {
+# Additional filters may be appended, see `__tsaotun_networks`.
+__tsaotun_complete_networks() {
 	local current="$cur"
 	if [ "$1" = "--cur" ] ; then
 		current="$2"
 		shift 2
 	fi
-	COMPREPLY=( $(compgen -W "$(__dokcer_networks "$@")" -- "$current") )
+	COMPREPLY=( $(compgen -W "$(__tsaotun_networks "$@")" -- "$current") )
 }
 
-__dokcer_complete_containers_in_network() {
-	local containers=$(__dokcer_q network inspect -f '{{range $i, $c := .Containers}}{{$i}} {{$c.Name}} {{end}}' "$1")
+__tsaotun_complete_containers_in_network() {
+	local containers=$(__tsaotun_q network inspect -f '{{range $i, $c := .Containers}}{{$i}} {{$c.Name}} {{end}}' "$1")
 	COMPREPLY=( $(compgen -W "$containers" -- "$cur") )
 }
 
-# __dokcer_volumes returns a list of all volumes. Additional options to
-# `dokcer volume ls` may be specified in order to filter the list, e.g.
-# `__dokcer_volumes --filter dangling=true`
+# __tsaotun_volumes returns a list of all volumes. Additional options to
+# `tsaotun volume ls` may be specified in order to filter the list, e.g.
+# `__tsaotun_volumes --filter dangling=true`
 # Because volumes do not have IDs, this function does not distinguish between
 # IDs and names.
-__dokcer_volumes() {
-	__dokcer_q volume ls -q "$@"
+__tsaotun_volumes() {
+	__tsaotun_q volume ls -q "$@"
 }
 
-# __dokcer_complete_volumes applies completion of volumes based on the current
+# __tsaotun_complete_volumes applies completion of volumes based on the current
 # value of `$cur` or the value of the optional first option `--cur`, if given.
-# Additional filters may be appended, see `__dokcer_volumes`.
-__dokcer_complete_volumes() {
+# Additional filters may be appended, see `__tsaotun_volumes`.
+__tsaotun_complete_volumes() {
 	local current="$cur"
 	if [ "$1" = "--cur" ] ; then
 		current="$2"
 		shift 2
 	fi
-	COMPREPLY=( $(compgen -W "$(__dokcer_volumes "$@")" -- "$current") )
+	COMPREPLY=( $(compgen -W "$(__tsaotun_volumes "$@")" -- "$current") )
 }
 
-# __dokcer_plugins_bundled returns a list of all plugins of a given type.
+# __tsaotun_plugins_bundled returns a list of all plugins of a given type.
 # The type has to be specified with the mandatory option `--type`.
 # Valid types are: Network, Volume, Authorization.
 # Completions may be added or removed with `--add` and `--remove`
 # This function only deals with plugins that come bundled with Docker.
-# For plugins managed by `dokcer plugin`, see `__dokcer_plugins_installed`.
-__dokcer_plugins_bundled() {
+# For plugins managed by `tsaotun plugin`, see `__tsaotun_plugins_installed`.
+__tsaotun_plugins_bundled() {
 	local type add=() remove=()
 	while true ; do
 		case "$1" in
@@ -262,97 +262,97 @@ __dokcer_plugins_bundled() {
 		esac
 	done
 
-	local plugins=($(__dokcer_q info | sed -n "/^Plugins/,/^[^ ]/s/ $type: //p"))
+	local plugins=($(__tsaotun_q info | sed -n "/^Plugins/,/^[^ ]/s/ $type: //p"))
 	for del in "${remove[@]}" ; do
 		plugins=(${plugins[@]/$del/})
 	done
 	echo "${plugins[@]} ${add[@]}"
 }
 
-# __dokcer_complete_plugins_bundled applies completion of plugins based on the current
+# __tsaotun_complete_plugins_bundled applies completion of plugins based on the current
 # value of `$cur` or the value of the optional first option `--cur`, if given.
 # The plugin type has to be specified with the next option `--type`.
 # This function only deals with plugins that come bundled with Docker.
-# For completion of plugins managed by `dokcer plugin`, see
-# `__dokcer_complete_plugins_installed`.
-__dokcer_complete_plugins_bundled() {
+# For completion of plugins managed by `tsaotun plugin`, see
+# `__tsaotun_complete_plugins_installed`.
+__tsaotun_complete_plugins_bundled() {
 	local current="$cur"
 	if [ "$1" = "--cur" ] ; then
 		current="$2"
 		shift 2
 	fi
-	COMPREPLY=( $(compgen -W "$(__dokcer_plugins_bundled "$@")" -- "$current") )
+	COMPREPLY=( $(compgen -W "$(__tsaotun_plugins_bundled "$@")" -- "$current") )
 }
 
-# __dokcer_plugins_installed returns a list of all plugins that were installed with
+# __tsaotun_plugins_installed returns a list of all plugins that were installed with
 # the Docker plugin API.
-# For built-in pugins, see `__dokcer_plugins_bundled`.
-__dokcer_plugins_installed() {
-	__dokcer_q plugin ls | awk 'NR>1 {print $1}'
+# For built-in pugins, see `__tsaotun_plugins_bundled`.
+__tsaotun_plugins_installed() {
+	__tsaotun_q plugin ls | awk 'NR>1 {print $1}'
 }
 
-# __dokcer_complete_plugins_installed applies completion of plugins that were installed
+# __tsaotun_complete_plugins_installed applies completion of plugins that were installed
 # with the Docker plugin API, based on the current value of `$cur` or the value of
 # the optional first option `--cur`, if given.
-# For completion of built-in pugins, see `__dokcer_complete_plugins_bundled`.
-__dokcer_complete_plugins_installed() {
+# For completion of built-in pugins, see `__tsaotun_complete_plugins_bundled`.
+__tsaotun_complete_plugins_installed() {
 	local current="$cur"
 	if [ "$1" = "--cur" ] ; then
 		current="$2"
 		shift 2
 	fi
-	COMPREPLY=( $(compgen -W "$(__dokcer_plugins_installed "$@")" -- "$current") )
+	COMPREPLY=( $(compgen -W "$(__tsaotun_plugins_installed "$@")" -- "$current") )
 }
 
-__dokcer_runtimes() {
-	__dokcer_q info | sed -n 's/^Runtimes: \(.*\)/\1/p'
+__tsaotun_runtimes() {
+	__tsaotun_q info | sed -n 's/^Runtimes: \(.*\)/\1/p'
 }
 
-__dokcer_complete_runtimes() {
-	COMPREPLY=( $(compgen -W "$(__dokcer_runtimes)" -- "$cur") )
+__tsaotun_complete_runtimes() {
+	COMPREPLY=( $(compgen -W "$(__tsaotun_runtimes)" -- "$cur") )
 }
 
-# __dokcer_secrets returns a list of all secrets.
+# __tsaotun_secrets returns a list of all secrets.
 # By default, only names of secrets are returned.
 # Set DOCKER_COMPLETION_SHOW_SECRET_IDS=yes to also complete IDs of secrets.
-__dokcer_secrets() {
+__tsaotun_secrets() {
 	local fields='$2'  # default: name only
 	[ "${DOCKER_COMPLETION_SHOW_SECRET_IDS}" = yes ] && fields='$1,$2' # ID and name
 
-	__dokcer_q secret ls | awk "NR>1 {print $fields}"
+	__tsaotun_q secret ls | awk "NR>1 {print $fields}"
 }
 
-# __dokcer_complete_secrets applies completion of secrets based on the current value
+# __tsaotun_complete_secrets applies completion of secrets based on the current value
 # of `$cur`.
-__dokcer_complete_secrets() {
-	COMPREPLY=( $(compgen -W "$(__dokcer_secrets)" -- "$cur") )
+__tsaotun_complete_secrets() {
+	COMPREPLY=( $(compgen -W "$(__tsaotun_secrets)" -- "$cur") )
 }
 
-# __dokcer_stacks returns a list of all stacks.
-__dokcer_stacks() {
-	__dokcer_q stack ls | awk 'NR>1 {print $1}'
+# __tsaotun_stacks returns a list of all stacks.
+__tsaotun_stacks() {
+	__tsaotun_q stack ls | awk 'NR>1 {print $1}'
 }
 
-# __dokcer_complete_stacks applies completion of stacks based on the current value
+# __tsaotun_complete_stacks applies completion of stacks based on the current value
 # of `$cur` or the value of the optional first option `--cur`, if given.
-__dokcer_complete_stacks() {
+__tsaotun_complete_stacks() {
 	local current="$cur"
 	if [ "$1" = "--cur" ] ; then
 		current="$2"
 		shift 2
 	fi
-	COMPREPLY=( $(compgen -W "$(__dokcer_stacks "$@")" -- "$current") )
+	COMPREPLY=( $(compgen -W "$(__tsaotun_stacks "$@")" -- "$current") )
 }
 
-# __dokcer_nodes returns a list of all nodes. Additional options to
-# `dokcer node ls` may be specified in order to filter the list, e.g.
-# `__dokcer_nodes --filter role=manager`
+# __tsaotun_nodes returns a list of all nodes. Additional options to
+# `tsaotun node ls` may be specified in order to filter the list, e.g.
+# `__tsaotun_nodes --filter role=manager`
 # By default, only node names are returned.
 # Set DOCKER_COMPLETION_SHOW_NODE_IDS=yes to also complete node IDs.
 # An optional first option `--id|--name` may be used to limit the
 # output to the IDs or names of matching items. This setting takes
 # precedence over the environment setting.
-__dokcer_nodes() {
+__tsaotun_nodes() {
 	local fields='$2'  # default: node name only
 	[ "${DOCKER_COMPLETION_SHOW_NODE_IDS}" = yes ] && fields='$1,$2' # ID and name
 
@@ -363,35 +363,35 @@ __dokcer_nodes() {
 		fields='$2' # names only
 		shift
 	fi
-	__dokcer_q node ls "$@" | tr -d '*' | awk "NR>1 {print $fields}"
+	__tsaotun_q node ls "$@" | tr -d '*' | awk "NR>1 {print $fields}"
 }
 
-# __dokcer_complete_nodes applies completion of nodes based on the current
+# __tsaotun_complete_nodes applies completion of nodes based on the current
 # value of `$cur` or the value of the optional first option `--cur`, if given.
-# Additional filters may be appended, see `__dokcer_nodes`.
-__dokcer_complete_nodes() {
+# Additional filters may be appended, see `__tsaotun_nodes`.
+__tsaotun_complete_nodes() {
 	local current="$cur"
 	if [ "$1" = "--cur" ] ; then
 		current="$2"
 		shift 2
 	fi
-	COMPREPLY=( $(compgen -W "$(__dokcer_nodes "$@")" -- "$current") )
+	COMPREPLY=( $(compgen -W "$(__tsaotun_nodes "$@")" -- "$current") )
 }
 
-__dokcer_complete_nodes_plus_self() {
-	__dokcer_complete_nodes "$@"
+__tsaotun_complete_nodes_plus_self() {
+	__tsaotun_complete_nodes "$@"
 	COMPREPLY+=( self )
 }
 
-# __dokcer_services returns a list of all services. Additional options to
-# `dokcer service ls` may be specified in order to filter the list, e.g.
-# `__dokcer_services --filter name=xxx`
+# __tsaotun_services returns a list of all services. Additional options to
+# `tsaotun service ls` may be specified in order to filter the list, e.g.
+# `__tsaotun_services --filter name=xxx`
 # By default, only node names are returned.
 # Set DOCKER_COMPLETION_SHOW_SERVICE_IDS=yes to also complete IDs.
 # An optional first option `--id|--name` may be used to limit the
 # output to the IDs or names of matching items. This setting takes
 # precedence over the environment setting.
-__dokcer_services() {
+__tsaotun_services() {
 	local fields='$2'  # default: service name only
 	[ "${DOCKER_COMPLETION_SHOW_SERVICE_IDS}" = yes ] && fields='$1,$2' # ID & name
 
@@ -402,42 +402,42 @@ __dokcer_services() {
 		fields='$2' # names only
 		shift
 	fi
-        __dokcer_q service ls "$@" | awk "NR>1 {print $fields}"
+        __tsaotun_q service ls "$@" | awk "NR>1 {print $fields}"
 }
 
-# __dokcer_complete_services applies completion of services based on the current
+# __tsaotun_complete_services applies completion of services based on the current
 # value of `$cur` or the value of the optional first option `--cur`, if given.
-# Additional filters may be appended, see `__dokcer_services`.
-__dokcer_complete_services() {
+# Additional filters may be appended, see `__tsaotun_services`.
+__tsaotun_complete_services() {
 	local current="$cur"
 	if [ "$1" = "--cur" ] ; then
 		current="$2"
 		shift 2
 	fi
-	COMPREPLY=( $(compgen -W "$(__dokcer_services "$@")" -- "$current") )
+	COMPREPLY=( $(compgen -W "$(__tsaotun_services "$@")" -- "$current") )
 }
 
-# __dokcer_append_to_completions appends the word passed as an argument to every
+# __tsaotun_append_to_completions appends the word passed as an argument to every
 # word in `$COMPREPLY`.
 # Normally you do this with `compgen -S` while generating the completions.
 # This function allows you to append a suffix later. It allows you to use
-# the __dokcer_complete_XXX functions in cases where you need a suffix.
-__dokcer_append_to_completions() {
+# the __tsaotun_complete_XXX functions in cases where you need a suffix.
+__tsaotun_append_to_completions() {
 	COMPREPLY=( ${COMPREPLY[@]/%/"$1"} )
 }
 
-# __dokcer_is_experimental tests whether the currently configured Docker daemon
+# __tsaotun_is_experimental tests whether the currently configured Docker daemon
 # runs in experimental mode. If so, the function exits with 0 (true).
 # Otherwise, or if the result cannot be determined, the exit value is 1 (false).
-__dokcer_is_experimental() {
-	[ "$(__dokcer_q version -f '{{.Server.Experimental}}')" = "true" ]
+__tsaotun_is_experimental() {
+	[ "$(__tsaotun_q version -f '{{.Server.Experimental}}')" = "true" ]
 }
 
-# __dokcer_pos_first_nonflag finds the position of the first word that is neither
+# __tsaotun_pos_first_nonflag finds the position of the first word that is neither
 # option nor an option's argument. If there are options that require arguments,
 # you should pass a glob describing those options, e.g. "--option1|-o|--option2"
 # Use this function to restrict completions to exact positions after the argument list.
-__dokcer_pos_first_nonflag() {
+__tsaotun_pos_first_nonflag() {
 	local argument_flags=$1
 
 	local counter=$((${subcommand_pos:-${command_pos}} + 1))
@@ -468,10 +468,10 @@ __dokcer_pos_first_nonflag() {
 	echo $counter
 }
 
-# __dokcer_map_key_of_current_option returns `key` if we are currently completing the
+# __tsaotun_map_key_of_current_option returns `key` if we are currently completing the
 # value of a map option (`key=value`) which matches the extglob given as an argument.
 # This function is needed for key-specific completions.
-__dokcer_map_key_of_current_option() {
+__tsaotun_map_key_of_current_option() {
 	local glob="$1"
 
 	local key glob_pos
@@ -493,12 +493,12 @@ __dokcer_map_key_of_current_option() {
 	[[ ${words[$glob_pos]} == @($glob) ]] && echo "$key"
 }
 
-# __dokcer_value_of_option returns the value of the first option matching `option_glob`.
+# __tsaotun_value_of_option returns the value of the first option matching `option_glob`.
 # Valid values for `option_glob` are option names like `--log-level` and globs like
 # `--log-level|-l`
 # Only positions between the command and the current word are considered.
-__dokcer_value_of_option() {
-	local option_extglob=$(__dokcer_to_extglob "$1")
+__tsaotun_value_of_option() {
+	local option_extglob=$(__tsaotun_to_extglob "$1")
 
 	local counter=$((command_pos + 1))
 	while [ $counter -lt $cword ]; do
@@ -512,23 +512,23 @@ __dokcer_value_of_option() {
 	done
 }
 
-# __dokcer_to_alternatives transforms a multiline list of strings into a single line
+# __tsaotun_to_alternatives transforms a multiline list of strings into a single line
 # string with the words separated by `|`.
-# This is used to prepare arguments to __dokcer_pos_first_nonflag().
-__dokcer_to_alternatives() {
+# This is used to prepare arguments to __tsaotun_pos_first_nonflag().
+__tsaotun_to_alternatives() {
 	local parts=( $1 )
 	local IFS='|'
 	echo "${parts[*]}"
 }
 
-# __dokcer_to_extglob transforms a multiline list of options into an extglob pattern
+# __tsaotun_to_extglob transforms a multiline list of options into an extglob pattern
 # suitable for use in case statements.
-__dokcer_to_extglob() {
-	local extglob=$( __dokcer_to_alternatives "$1" )
+__tsaotun_to_extglob() {
+	local extglob=$( __tsaotun_to_alternatives "$1" )
 	echo "@($extglob)"
 }
 
-# __dokcer_subcommands processes subcommands
+# __tsaotun_subcommands processes subcommands
 # Locates the first occurrence of any of the subcommands contained in the
 # first argument. In case of a match, calls the corresponding completion
 # function and returns 0.
@@ -538,16 +538,16 @@ __dokcer_to_extglob() {
 # TODO if the preceding command has options that accept arguments and an
 # argument is equal ot one of the subcommands, this is falsely detected as
 # a match.
-__dokcer_subcommands() {
+__tsaotun_subcommands() {
 	local subcommands="$1"
 
 	local counter=$(($command_pos + 1))
 	while [ $counter -lt $cword ]; do
 		case "${words[$counter]}" in
-			$(__dokcer_to_extglob "$subcommands") )
+			$(__tsaotun_to_extglob "$subcommands") )
 				subcommand_pos=$counter
 				local subcommand=${words[$counter]}
-				local completions_func=_dokcer_${command}_${subcommand}
+				local completions_func=_tsaotun_${command}_${subcommand}
 				declare -F $completions_func >/dev/null && $completions_func
 				return 0
 				;;
@@ -557,32 +557,32 @@ __dokcer_subcommands() {
 	return 1
 }
 
-# __dokcer_nospace suppresses trailing whitespace
-__dokcer_nospace() {
+# __tsaotun_nospace suppresses trailing whitespace
+__tsaotun_nospace() {
 	# compopt is not available in ancient bash versions
 	type compopt &>/dev/null && compopt -o nospace
 }
 
-__dokcer_complete_resolved_hostname() {
+__tsaotun_complete_resolved_hostname() {
 	command -v host >/dev/null 2>&1 || return
 	COMPREPLY=( $(host 2>/dev/null "${cur%:}" | awk '/has address/ {print $4}') )
 }
 
-__dokcer_local_interfaces() {
+__tsaotun_local_interfaces() {
 	command -v ip >/dev/null 2>&1 || return
 	ip addr show scope global 2>/dev/null | sed -n 's| \+inet \([0-9.]\+\).* \([^ ]\+\)|\1 \2|p'
 }
 
-__dokcer_complete_local_interfaces() {
+__tsaotun_complete_local_interfaces() {
 	local additional_interface
 	if [ "$1" = "--add" ] ; then
 		additional_interface="$2"
 	fi
 
-	COMPREPLY=( $( compgen -W "$(__dokcer_local_interfaces) $additional_interface" -- "$cur" ) )
+	COMPREPLY=( $( compgen -W "$(__tsaotun_local_interfaces) $additional_interface" -- "$cur" ) )
 }
 
-__dokcer_complete_capabilities() {
+__tsaotun_complete_capabilities() {
 	# The list of capabilities is defined in types.go, ALL was added manually.
 	COMPREPLY=( $( compgen -W "
 		ALL
@@ -627,7 +627,7 @@ __dokcer_complete_capabilities() {
 	" -- "$cur" ) )
 }
 
-__dokcer_complete_detach-keys() {
+__tsaotun_complete_detach-keys() {
 	case "$prev" in
 		--detach-keys)
 			case "$cur" in
@@ -639,18 +639,18 @@ __dokcer_complete_detach-keys() {
 					;;
 			esac
 
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 	esac
 	return 1
 }
 
-__dokcer_complete_isolation() {
+__tsaotun_complete_isolation() {
 	COMPREPLY=( $( compgen -W "default hyperv process" -- "$cur" ) )
 }
 
-__dokcer_complete_log_drivers() {
+__tsaotun_complete_log_drivers() {
 	COMPREPLY=( $( compgen -W "
 		awslogs
 		etwlogs
@@ -666,7 +666,7 @@ __dokcer_complete_log_drivers() {
 	" -- "$cur" ) )
 }
 
-__dokcer_complete_log_options() {
+__tsaotun_complete_log_options() {
 	# see docs/reference/logging/index.md
 	local awslogs_options="awslogs-region awslogs-group awslogs-stream"
 	local fluentd_options="env fluentd-address fluentd-async-connect fluentd-buffer-limit fluentd-retry-wait fluentd-max-retries labels tag"
@@ -680,7 +680,7 @@ __dokcer_complete_log_options() {
 
 	local all_options="$fluentd_options $gcplogs_options $gelf_options $journald_options $logentries_options $json_file_options $syslog_options $splunk_options"
 
-	case $(__dokcer_value_of_option --log-driver) in
+	case $(__tsaotun_value_of_option --log-driver) in
 		'')
 			COMPREPLY=( $( compgen -W "$all_options" -S = -- "$cur" ) )
 			;;
@@ -716,11 +716,11 @@ __dokcer_complete_log_options() {
 			;;
 	esac
 
-	__dokcer_nospace
+	__tsaotun_nospace
 }
 
-__dokcer_complete_log_driver_options() {
-	local key=$(__dokcer_map_key_of_current_option '--log-opt')
+__tsaotun_complete_log_driver_options() {
+	local key=$(__tsaotun_map_key_of_current_option '--log-opt')
 	case "$key" in
 		fluentd-async-connect)
 			COMPREPLY=( $( compgen -W "false true" -- "${cur##*=}" ) )
@@ -728,7 +728,7 @@ __dokcer_complete_log_driver_options() {
 			;;
 		gelf-address)
 			COMPREPLY=( $( compgen -W "udp" -S "://" -- "${cur##*=}" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 		gelf-compression-level)
@@ -741,7 +741,7 @@ __dokcer_complete_log_driver_options() {
 			;;
 		syslog-address)
 			COMPREPLY=( $( compgen -W "tcp:// tcp+tls:// udp:// unix://" -- "${cur##*=}" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			__ltrim_colon_completions "${cur}"
 			return
 			;;
@@ -784,7 +784,7 @@ __dokcer_complete_log_driver_options() {
 			;;
 		splunk-url)
 			COMPREPLY=( $( compgen -W "http:// https://" -- "${cur##*=}" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			__ltrim_colon_completions "${cur}"
 			return
 			;;
@@ -800,11 +800,11 @@ __dokcer_complete_log_driver_options() {
 	return 1
 }
 
-__dokcer_complete_log_levels() {
+__tsaotun_complete_log_levels() {
 	COMPREPLY=( $( compgen -W "debug info warn error fatal" -- "$cur" ) )
 }
 
-__dokcer_complete_restart() {
+__tsaotun_complete_restart() {
 	case "$prev" in
 		--restart)
 			case "$cur" in
@@ -820,9 +820,9 @@ __dokcer_complete_restart() {
 	return 1
 }
 
-# __dokcer_complete_signals returns a subset of the available signals that is most likely
-# relevant in the context of dokcer containers
-__dokcer_complete_signals() {
+# __tsaotun_complete_signals returns a subset of the available signals that is most likely
+# relevant in the context of tsaotun containers
+__tsaotun_complete_signals() {
 	local signals=(
 		SIGCONT
 		SIGHUP
@@ -837,17 +837,17 @@ __dokcer_complete_signals() {
 	COMPREPLY=( $( compgen -W "${signals[*]} ${signals[*]#SIG}" -- "$( echo $cur | tr '[:lower:]' '[:upper:]')" ) )
 }
 
-__dokcer_complete_user_group() {
+__tsaotun_complete_user_group() {
 	if [[ $cur == *:* ]] ; then
 		COMPREPLY=( $(compgen -g -- "${cur#*:}") )
 	else
 		COMPREPLY=( $(compgen -u -S : -- "$cur") )
-		__dokcer_nospace
+		__tsaotun_nospace
 	fi
 }
 
-_dokcer_dokcer() {
-	# global options that may appear after the dokcer command
+_tsaotun_tsaotun() {
+	# global options that may appear after the tsaotun command
 	local boolean_options="
 		$global_boolean_options
 		--help
@@ -860,10 +860,10 @@ _dokcer_dokcer() {
 			return
 			;;
 		--log-level|-l)
-			__dokcer_complete_log_levels
+			__tsaotun_complete_log_levels
 			return
 			;;
-		$(__dokcer_to_extglob "$global_options_with_args") )
+		$(__tsaotun_to_extglob "$global_options_with_args") )
 			return
 			;;
 	esac
@@ -873,25 +873,25 @@ _dokcer_dokcer() {
 			COMPREPLY=( $( compgen -W "$boolean_options $global_options_with_args" -- "$cur" ) )
 			;;
 		*)
-			local counter=$( __dokcer_pos_first_nonflag "$(__dokcer_to_extglob "$global_options_with_args")" )
+			local counter=$( __tsaotun_pos_first_nonflag "$(__tsaotun_to_extglob "$global_options_with_args")" )
 			if [ $cword -eq $counter ]; then
-				__dokcer_is_experimental && commands+=(${experimental_commands[*]})
+				__tsaotun_is_experimental && commands+=(${experimental_commands[*]})
 				COMPREPLY=( $( compgen -W "${commands[*]} help" -- "$cur" ) )
 			fi
 			;;
 	esac
 }
 
-_dokcer_attach() {
-	_dokcer_container_attach
+_tsaotun_attach() {
+	_tsaotun_container_attach
 }
 
-_dokcer_build() {
-	_dokcer_image_build
+_tsaotun_build() {
+	_tsaotun_image_build
 }
 
 
-_dokcer_container() {
+_tsaotun_container() {
 	local subcommands="
 		attach
 		commit
@@ -923,7 +923,7 @@ _dokcer_container() {
 		list
 		ps
 	"
-	__dokcer_subcommands "$subcommands $aliases" && return
+	__tsaotun_subcommands "$subcommands $aliases" && return
 
 	case "$cur" in
 		-*)
@@ -935,23 +935,23 @@ _dokcer_container() {
 	esac
 }
 
-_dokcer_container_attach() {
-	__dokcer_complete_detach-keys && return
+_tsaotun_container_attach() {
+	__tsaotun_complete_detach-keys && return
 
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--detach-keys --help --no-stdin --sig-proxy=false" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag '--detach-keys')
+			local counter=$(__tsaotun_pos_first_nonflag '--detach-keys')
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_containers_running
+				__tsaotun_complete_containers_running
 			fi
 			;;
 	esac
 }
 
-_dokcer_container_commit() {
+_tsaotun_container_commit() {
 	case "$prev" in
 		--author|-a|--change|-c|--message|-m)
 			return
@@ -963,29 +963,29 @@ _dokcer_container_commit() {
 			COMPREPLY=( $( compgen -W "--author -a --change -c --help --message -m --pause=false -p=false" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag '--author|-a|--change|-c|--message|-m')
+			local counter=$(__tsaotun_pos_first_nonflag '--author|-a|--change|-c|--message|-m')
 
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_containers_all
+				__tsaotun_complete_containers_all
 				return
 			fi
 			(( counter++ ))
 
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_image_repos_and_tags
+				__tsaotun_complete_image_repos_and_tags
 				return
 			fi
 			;;
 	esac
 }
 
-_dokcer_container_cp() {
+_tsaotun_container_cp() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--follow-link -L --help" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag)
+			local counter=$(__tsaotun_pos_first_nonflag)
 			if [ $cword -eq $counter ]; then
 				case "$cur" in
 					*:)
@@ -996,13 +996,13 @@ _dokcer_container_cp() {
 						_filedir
 						local files=( ${COMPREPLY[@]} )
 
-						__dokcer_complete_containers_all
+						__tsaotun_complete_containers_all
 						COMPREPLY=( $( compgen -W "${COMPREPLY[*]}" -S ':' ) )
 						local containers=( ${COMPREPLY[@]} )
 
 						COMPREPLY=( $( compgen -W "${files[*]} ${containers[*]}" -- "$cur" ) )
 						if [[ "$COMPREPLY" == *: ]]; then
-							__dokcer_nospace
+							__tsaotun_nospace
 						fi
 						return
 						;;
@@ -1012,9 +1012,9 @@ _dokcer_container_cp() {
 
 			if [ $cword -eq $counter ]; then
 				if [ -e "$prev" ]; then
-					__dokcer_complete_containers_all
+					__tsaotun_complete_containers_all
 					COMPREPLY=( $( compgen -W "${COMPREPLY[*]}" -S ':' ) )
-					__dokcer_nospace
+					__tsaotun_nospace
 				else
 					_filedir
 				fi
@@ -1024,36 +1024,36 @@ _dokcer_container_cp() {
 	esac
 }
 
-_dokcer_container_create() {
-	_dokcer_container_run
+_tsaotun_container_create() {
+	_tsaotun_container_run
 }
 
-_dokcer_container_diff() {
+_tsaotun_container_diff() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag)
+			local counter=$(__tsaotun_pos_first_nonflag)
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_containers_all
+				__tsaotun_complete_containers_all
 			fi
 			;;
 	esac
 }
 
-_dokcer_container_exec() {
-	__dokcer_complete_detach-keys && return
+_tsaotun_container_exec() {
+	__tsaotun_complete_detach-keys && return
 
 	case "$prev" in
 		--env|-e)
 			# we do not append a "=" here because "-e VARNAME" is legal systax, too
 			COMPREPLY=( $( compgen -e -- "$cur" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 		--user|-u)
-			__dokcer_complete_user_group
+			__tsaotun_complete_user_group
 			return
 			;;
 	esac
@@ -1063,12 +1063,12 @@ _dokcer_container_exec() {
 			COMPREPLY=( $( compgen -W "--detach -d --detach-keys --env -e --help --interactive -i --privileged -t --tty -u --user" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_containers_running
+			__tsaotun_complete_containers_running
 			;;
 	esac
 }
 
-_dokcer_container_export() {
+_tsaotun_container_export() {
 	case "$prev" in
 		--output|-o)
 			_filedir
@@ -1081,22 +1081,22 @@ _dokcer_container_export() {
 			COMPREPLY=( $( compgen -W "--help --output -o" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag)
+			local counter=$(__tsaotun_pos_first_nonflag)
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_containers_all
+				__tsaotun_complete_containers_all
 			fi
 			;;
 	esac
 }
 
-_dokcer_container_inspect() {
-	_dokcer_inspect --type container
+_tsaotun_container_inspect() {
+	_tsaotun_inspect --type container
 }
 
-_dokcer_container_kill() {
+_tsaotun_container_kill() {
 	case "$prev" in
 		--signal|-s)
-			__dokcer_complete_signals
+			__tsaotun_complete_signals
 			return
 			;;
 	esac
@@ -1106,12 +1106,12 @@ _dokcer_container_kill() {
 			COMPREPLY=( $( compgen -W "--help --signal -s" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_containers_running
+			__tsaotun_complete_containers_running
 			;;
 	esac
 }
 
-_dokcer_container_logs() {
+_tsaotun_container_logs() {
 	case "$prev" in
 		--since|--tail)
 			return
@@ -1123,32 +1123,32 @@ _dokcer_container_logs() {
 			COMPREPLY=( $( compgen -W "--details --follow -f --help --since --tail --timestamps -t" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag '--since|--tail')
+			local counter=$(__tsaotun_pos_first_nonflag '--since|--tail')
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_containers_all
+				__tsaotun_complete_containers_all
 			fi
 			;;
 	esac
 }
 
-_dokcer_container_list() {
-	_dokcer_container_ls
+_tsaotun_container_list() {
+	_tsaotun_container_ls
 }
 
-_dokcer_container_ls() {
-	local key=$(__dokcer_map_key_of_current_option '--filter|-f')
+_tsaotun_container_ls() {
+	local key=$(__tsaotun_map_key_of_current_option '--filter|-f')
 	case "$key" in
 		ancestor)
 			cur="${cur##*=}"
-			__dokcer_complete_images
+			__tsaotun_complete_images
 			return
 			;;
 		before)
-			__dokcer_complete_containers_all --cur "${cur##*=}"
+			__tsaotun_complete_containers_all --cur "${cur##*=}"
 			return
 			;;
 		id)
-			__dokcer_complete_containers_all --cur "${cur##*=}" --id
+			__tsaotun_complete_containers_all --cur "${cur##*=}" --id
 			return
 			;;
 		health)
@@ -1160,15 +1160,15 @@ _dokcer_container_ls() {
 			return
 			;;
 		name)
-			__dokcer_complete_containers_all --cur "${cur##*=}" --name
+			__tsaotun_complete_containers_all --cur "${cur##*=}" --name
 			return
 			;;
 		network)
-			__dokcer_complete_networks --cur "${cur##*=}"
+			__tsaotun_complete_networks --cur "${cur##*=}"
 			return
 			;;
 		since)
-			__dokcer_complete_containers_all --cur "${cur##*=}"
+			__tsaotun_complete_containers_all --cur "${cur##*=}"
 			return
 			;;
 		status)
@@ -1176,7 +1176,7 @@ _dokcer_container_ls() {
 			return
 			;;
 		volume)
-			__dokcer_complete_volumes --cur "${cur##*=}"
+			__tsaotun_complete_volumes --cur "${cur##*=}"
 			return
 			;;
 	esac
@@ -1184,7 +1184,7 @@ _dokcer_container_ls() {
 	case "$prev" in
 		--filter|-f)
 			COMPREPLY=( $( compgen -S = -W "ancestor before exited health id is-task label name network since status volume" -- "$cur" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 		--format|--last|-n)
@@ -1199,32 +1199,32 @@ _dokcer_container_ls() {
 	esac
 }
 
-_dokcer_container_pause() {
+_tsaotun_container_pause() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_containers_running
+			__tsaotun_complete_containers_running
 			;;
 	esac
 }
 
-_dokcer_container_port() {
+_tsaotun_container_port() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag)
+			local counter=$(__tsaotun_pos_first_nonflag)
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_containers_all
+				__tsaotun_complete_containers_all
 			fi
 			;;
 	esac
 }
 
-_dokcer_container_prune() {
+_tsaotun_container_prune() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--force -f --help" -- "$cur" ) )
@@ -1232,25 +1232,25 @@ _dokcer_container_prune() {
 	esac
 }
 
-_dokcer_container_ps() {
-	_dokcer_container_ls
+_tsaotun_container_ps() {
+	_tsaotun_container_ls
 }
 
-_dokcer_container_rename() {
+_tsaotun_container_rename() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag)
+			local counter=$(__tsaotun_pos_first_nonflag)
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_containers_all
+				__tsaotun_complete_containers_all
 			fi
 			;;
 	esac
 }
 
-_dokcer_container_restart() {
+_tsaotun_container_restart() {
 	case "$prev" in
 		--time|-t)
 			return
@@ -1262,12 +1262,12 @@ _dokcer_container_restart() {
 			COMPREPLY=( $( compgen -W "--help --time -t" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_containers_all
+			__tsaotun_complete_containers_all
 			;;
 	esac
 }
 
-_dokcer_container_rm() {
+_tsaotun_container_rm() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--force -f --help --link -l --volumes -v" -- "$cur" ) )
@@ -1276,17 +1276,17 @@ _dokcer_container_rm() {
 			for arg in "${COMP_WORDS[@]}"; do
 				case "$arg" in
 					--force|-f)
-						__dokcer_complete_containers_all
+						__tsaotun_complete_containers_all
 						return
 						;;
 				esac
 			done
-			__dokcer_complete_containers_stopped
+			__tsaotun_complete_containers_stopped
 			;;
 	esac
 }
 
-_dokcer_container_run() {
+_tsaotun_container_run() {
 	local options_with_args="
 		--add-host
 		--attach -a
@@ -1385,22 +1385,22 @@ _dokcer_container_run() {
 			--rm
 			--sig-proxy=false
 		"
-		__dokcer_complete_detach-keys && return
+		__tsaotun_complete_detach-keys && return
 	fi
 
 	local all_options="$options_with_args $boolean_options"
 
 
-	__dokcer_complete_log_driver_options && return
-	__dokcer_complete_restart && return
+	__tsaotun_complete_log_driver_options && return
+	__tsaotun_complete_restart && return
 
-	local key=$(__dokcer_map_key_of_current_option '--security-opt')
+	local key=$(__tsaotun_map_key_of_current_option '--security-opt')
 	case "$key" in
 		label)
 			[[ $cur == *: ]] && return
 			COMPREPLY=( $( compgen -W "user: role: type: level: disable" -- "${cur##*=}") )
 			if [ "${COMPREPLY[*]}" != "disable" ] ; then
-				__dokcer_nospace
+				__tsaotun_nospace
 			fi
 			return
 			;;
@@ -1416,7 +1416,7 @@ _dokcer_container_run() {
 		--add-host)
 			case "$cur" in
 				*:)
-					__dokcer_complete_resolved_hostname
+					__tsaotun_complete_resolved_hostname
 					return
 					;;
 			esac
@@ -1426,7 +1426,7 @@ _dokcer_container_run() {
 			return
 			;;
 		--cap-add|--cap-drop)
-			__dokcer_complete_capabilities
+			__tsaotun_complete_capabilities
 			return
 			;;
 		--cidfile|--env-file|--label-file)
@@ -1440,11 +1440,11 @@ _dokcer_container_run() {
 					;;
 				'')
 					COMPREPLY=( $( compgen -W '/' -- "$cur" ) )
-					__dokcer_nospace
+					__tsaotun_nospace
 					;;
 				/*)
 					_filedir
-					__dokcer_nospace
+					__tsaotun_nospace
 					;;
 			esac
 			return
@@ -1452,26 +1452,26 @@ _dokcer_container_run() {
 		--env|-e)
 			# we do not append a "=" here because "-e VARNAME" is legal systax, too
 			COMPREPLY=( $( compgen -e -- "$cur" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 		--ipc)
 			case "$cur" in
 				*:*)
 					cur="${cur#*:}"
-					__dokcer_complete_containers_running
+					__tsaotun_complete_containers_running
 					;;
 				*)
 					COMPREPLY=( $( compgen -W 'host container:' -- "$cur" ) )
 					if [ "$COMPREPLY" = "container:" ]; then
-						__dokcer_nospace
+						__tsaotun_nospace
 					fi
 					;;
 			esac
 			return
 			;;
 		--isolation)
-			__dokcer_complete_isolation
+			__tsaotun_complete_isolation
 			return
 			;;
 		--link)
@@ -1479,30 +1479,30 @@ _dokcer_container_run() {
 				*:*)
 					;;
 				*)
-					__dokcer_complete_containers_running
+					__tsaotun_complete_containers_running
 					COMPREPLY=( $( compgen -W "${COMPREPLY[*]}" -S ':' ) )
-					__dokcer_nospace
+					__tsaotun_nospace
 					;;
 			esac
 			return
 			;;
 		--log-driver)
-			__dokcer_complete_log_drivers
+			__tsaotun_complete_log_drivers
 			return
 			;;
 		--log-opt)
-			__dokcer_complete_log_options
+			__tsaotun_complete_log_options
 			return
 			;;
 		--network)
 			case "$cur" in
 				container:*)
-					__dokcer_complete_containers_all --cur "${cur#*:}"
+					__tsaotun_complete_containers_all --cur "${cur#*:}"
 					;;
 				*)
-					COMPREPLY=( $( compgen -W "$(__dokcer_plugins_bundled --type Network) $(__dokcer_networks) container:" -- "$cur") )
+					COMPREPLY=( $( compgen -W "$(__tsaotun_plugins_bundled --type Network) $(__tsaotun_networks) container:" -- "$cur") )
 					if [ "${COMPREPLY[*]}" = "container:" ] ; then
-						__dokcer_nospace
+						__tsaotun_nospace
 					fi
 					;;
 			esac
@@ -1511,35 +1511,35 @@ _dokcer_container_run() {
 		--pid)
 			case "$cur" in
 				*:*)
-					__dokcer_complete_containers_running --cur "${cur#*:}"
+					__tsaotun_complete_containers_running --cur "${cur#*:}"
 					;;
 				*)
 					COMPREPLY=( $( compgen -W 'host container:' -- "$cur" ) )
 					if [ "$COMPREPLY" = "container:" ]; then
-						__dokcer_nospace
+						__tsaotun_nospace
 					fi
 					;;
 			esac
 			return
 			;;
 		--runtime)
-			__dokcer_complete_runtimes
+			__tsaotun_complete_runtimes
 			return
 			;;
 		--security-opt)
 			COMPREPLY=( $( compgen -W "apparmor= label= no-new-privileges seccomp=" -- "$cur") )
 			if [ "${COMPREPLY[*]}" != "no-new-privileges" ] ; then
-				__dokcer_nospace
+				__tsaotun_nospace
 			fi
 			return
 			;;
 		--storage-opt)
 			COMPREPLY=( $( compgen -W "size" -S = -- "$cur") )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 		--user|-u)
-			__dokcer_complete_user_group
+			__tsaotun_complete_user_group
 			return
 			;;
 		--userns)
@@ -1547,14 +1547,14 @@ _dokcer_container_run() {
 			return
 			;;
 		--volume-driver)
-			__dokcer_complete_plugins_bundled --type Volume
+			__tsaotun_complete_plugins_bundled --type Volume
 			return
 			;;
 		--volumes-from)
-			__dokcer_complete_containers_all
+			__tsaotun_complete_containers_all
 			return
 			;;
-		$(__dokcer_to_extglob "$options_with_args") )
+		$(__tsaotun_to_extglob "$options_with_args") )
 			return
 			;;
 	esac
@@ -1564,28 +1564,28 @@ _dokcer_container_run() {
 			COMPREPLY=( $( compgen -W "$all_options" -- "$cur" ) )
 			;;
 		*)
-			local counter=$( __dokcer_pos_first_nonflag $( __dokcer_to_alternatives "$options_with_args" ) )
+			local counter=$( __tsaotun_pos_first_nonflag $( __tsaotun_to_alternatives "$options_with_args" ) )
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_images
+				__tsaotun_complete_images
 			fi
 			;;
 	esac
 }
 
-_dokcer_container_start() {
-	__dokcer_complete_detach-keys && return
+_tsaotun_container_start() {
+	__tsaotun_complete_detach-keys && return
 
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--attach -a --detach-keys --help --interactive -i" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_containers_stopped
+			__tsaotun_complete_containers_stopped
 			;;
 	esac
 }
 
-_dokcer_container_stats() {
+_tsaotun_container_stats() {
 	case "$prev" in
 		--format)
 			return
@@ -1597,12 +1597,12 @@ _dokcer_container_stats() {
 			COMPREPLY=( $( compgen -W "--all -a --format --help --no-stream" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_containers_running
+			__tsaotun_complete_containers_running
 			;;
 	esac
 }
 
-_dokcer_container_stop() {
+_tsaotun_container_stop() {
 	case "$prev" in
 		--time|-t)
 			return
@@ -1614,40 +1614,40 @@ _dokcer_container_stop() {
 			COMPREPLY=( $( compgen -W "--help --time -t" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_containers_running
+			__tsaotun_complete_containers_running
 			;;
 	esac
 }
 
-_dokcer_container_top() {
+_tsaotun_container_top() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag)
+			local counter=$(__tsaotun_pos_first_nonflag)
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_containers_running
+				__tsaotun_complete_containers_running
 			fi
 			;;
 	esac
 }
 
-_dokcer_container_unpause() {
+_tsaotun_container_unpause() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag)
+			local counter=$(__tsaotun_pos_first_nonflag)
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_containers_unpauseable
+				__tsaotun_complete_containers_unpauseable
 			fi
 			;;
 	esac
 }
 
-_dokcer_container_update() {
+_tsaotun_container_update() {
 	local options_with_args="
 		--blkio-weight
 		--cpu-period
@@ -1670,10 +1670,10 @@ _dokcer_container_update() {
 
 	local all_options="$options_with_args $boolean_options"
 
-	__dokcer_complete_restart && return
+	__tsaotun_complete_restart && return
 
 	case "$prev" in
-		$(__dokcer_to_extglob "$options_with_args") )
+		$(__tsaotun_to_extglob "$options_with_args") )
 			return
 			;;
 	esac
@@ -1683,36 +1683,36 @@ _dokcer_container_update() {
 			COMPREPLY=( $( compgen -W "$all_options" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_containers_all
+			__tsaotun_complete_containers_all
 			;;
 	esac
 }
 
-_dokcer_container_wait() {
+_tsaotun_container_wait() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_containers_all
+			__tsaotun_complete_containers_all
 			;;
 	esac
 }
 
 
-_dokcer_commit() {
-	_dokcer_container_commit
+_tsaotun_commit() {
+	_tsaotun_container_commit
 }
 
-_dokcer_cp() {
-	_dokcer_container_cp
+_tsaotun_cp() {
+	_tsaotun_container_cp
 }
 
-_dokcer_create() {
-	_dokcer_container_run
+_tsaotun_create() {
+	_tsaotun_container_run
 }
 
-_dokcer_daemon() {
+_tsaotun_daemon() {
 	local boolean_options="
 		$global_boolean_options
 		--disable-legacy-registry
@@ -1773,9 +1773,9 @@ _dokcer_daemon() {
 		--userns-remap
 	"
 
-	__dokcer_complete_log_driver_options && return
+	__tsaotun_complete_log_driver_options && return
 
- 	key=$(__dokcer_map_key_of_current_option '--cluster-store-opt')
+ 	key=$(__tsaotun_map_key_of_current_option '--cluster-store-opt')
  	case "$key" in
  		kv.*file)
 			cur=${cur##*=}
@@ -1784,7 +1784,7 @@ _dokcer_daemon() {
  			;;
  	esac
 
- 	local key=$(__dokcer_map_key_of_current_option '--storage-opt')
+ 	local key=$(__tsaotun_map_key_of_current_option '--storage-opt')
  	case "$key" in
  		dm.blkdiscard|dm.override_udev_sync_check|dm.use_deferred_removal|dm.use_deferred_deletion)
  			COMPREPLY=( $( compgen -W "false true" -- "${cur##*=}" ) )
@@ -1803,17 +1803,17 @@ _dokcer_daemon() {
 
 	case "$prev" in
 		--authorization-plugin)
-			__dokcer_complete_plugins_bundled --type Authorization
+			__tsaotun_complete_plugins_bundled --type Authorization
 			return
 			;;
 		--cluster-store)
 			COMPREPLY=( $( compgen -W "consul etcd zk" -S "://" -- "$cur" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 		--cluster-store-opt)
 			COMPREPLY=( $( compgen -W "discovery.heartbeat discovery.ttl kv.cacertfile kv.certfile kv.keyfile kv.path" -S = -- "$cur" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 		--config-file|--containerd|--init-path|--pidfile|-p|--tlscacert|--tlscert|--tlskey|--userland-proxy-path)
@@ -1825,7 +1825,7 @@ _dokcer_daemon() {
 			return
 			;;
 		--log-driver)
-			__dokcer_complete_log_drivers
+			__tsaotun_complete_log_drivers
 			return
 			;;
 		--storage-driver|-s)
@@ -1851,7 +1851,7 @@ _dokcer_daemon() {
 			"
 			local zfs_options="zfs.fsname"
 
-			case $(__dokcer_value_of_option '--storage-driver|-s') in
+			case $(__tsaotun_value_of_option '--storage-driver|-s') in
 				'')
 					COMPREPLY=( $( compgen -W "$btrfs_options $devicemapper_options $zfs_options" -S = -- "$cur" ) )
 					;;
@@ -1868,15 +1868,15 @@ _dokcer_daemon() {
 					return
 					;;
 			esac
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 		--log-level|-l)
-			__dokcer_complete_log_levels
+			__tsaotun_complete_log_levels
 			return
 			;;
 		--log-opt)
-			__dokcer_complete_log_options
+			__tsaotun_complete_log_options
 			return
 			;;
 		--seccomp-profile)
@@ -1884,10 +1884,10 @@ _dokcer_daemon() {
 			return
 			;;
 		--userns-remap)
-			__dokcer_complete_user_group
+			__tsaotun_complete_user_group
 			return
 			;;
-		$(__dokcer_to_extglob "$options_with_args") )
+		$(__tsaotun_to_extglob "$options_with_args") )
 			return
 			;;
 	esac
@@ -1899,39 +1899,39 @@ _dokcer_daemon() {
 	esac
 }
 
-_dokcer_deploy() {
-	__dokcer_is_experimental && _dokcer_stack_deploy
+_tsaotun_deploy() {
+	__tsaotun_is_experimental && _tsaotun_stack_deploy
 }
 
-_dokcer_diff() {
-	_dokcer_container_diff
+_tsaotun_diff() {
+	_tsaotun_container_diff
 }
 
-_dokcer_events() {
-	_dokcer_system_events
+_tsaotun_events() {
+	_tsaotun_system_events
 }
 
-_dokcer_exec() {
-	_dokcer_container_exec
+_tsaotun_exec() {
+	_tsaotun_container_exec
 }
 
-_dokcer_export() {
-	_dokcer_container_export
+_tsaotun_export() {
+	_tsaotun_container_export
 }
 
-_dokcer_help() {
-	local counter=$(__dokcer_pos_first_nonflag)
+_tsaotun_help() {
+	local counter=$(__tsaotun_pos_first_nonflag)
 	if [ $cword -eq $counter ]; then
 		COMPREPLY=( $( compgen -W "${commands[*]}" -- "$cur" ) )
 	fi
 }
 
-_dokcer_history() {
-	_dokcer_image_history
+_tsaotun_history() {
+	_tsaotun_image_history
 }
 
 
-_dokcer_image() {
+_tsaotun_image() {
 	local subcommands="
 		build
 		history
@@ -1952,7 +1952,7 @@ _dokcer_image() {
 		remove
 		rmi
 	"
-	__dokcer_subcommands "$subcommands $aliases" && return
+	__tsaotun_subcommands "$subcommands $aliases" && return
 
 	case "$cur" in
 		-*)
@@ -1964,7 +1964,7 @@ _dokcer_image() {
 	esac
 }
 
-_dokcer_image_build() {
+_tsaotun_image_build() {
 	local options_with_args="
 		--build-arg
 		--cache-from
@@ -2001,11 +2001,11 @@ _dokcer_image_build() {
 	case "$prev" in
 		--build-arg)
 			COMPREPLY=( $( compgen -e -- "$cur" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 		--cache-from)
-			__dokcer_complete_image_repos_and_tags
+			__tsaotun_complete_image_repos_and_tags
 			return
 			;;
 		--file|-f)
@@ -2013,28 +2013,28 @@ _dokcer_image_build() {
 			return
 			;;
 		--isolation)
-			__dokcer_complete_isolation
+			__tsaotun_complete_isolation
 			return
 			;;
 		--network)
 			case "$cur" in
 				container:*)
-					__dokcer_complete_containers_all --cur "${cur#*:}"
+					__tsaotun_complete_containers_all --cur "${cur#*:}"
 					;;
 				*)
-					COMPREPLY=( $( compgen -W "$(__dokcer_plugins --type Network) $(__dokcer_networks) container:" -- "$cur") )
+					COMPREPLY=( $( compgen -W "$(__tsaotun_plugins --type Network) $(__tsaotun_networks) container:" -- "$cur") )
 					if [ "${COMPREPLY[*]}" = "container:" ] ; then
-						__dokcer_nospace
+						__tsaotun_nospace
 					fi
 					;;
 			esac
 			return
 			;;
 		--tag|-t)
-			__dokcer_complete_image_repos_and_tags
+			__tsaotun_complete_image_repos_and_tags
 			return
 			;;
-		$(__dokcer_to_extglob "$options_with_args") )
+		$(__tsaotun_to_extglob "$options_with_args") )
 			return
 			;;
 	esac
@@ -2044,7 +2044,7 @@ _dokcer_image_build() {
 			COMPREPLY=( $( compgen -W "$all_options" -- "$cur" ) )
 			;;
 		*)
-			local counter=$( __dokcer_pos_first_nonflag $( __dokcer_to_alternatives "$options_with_args" ) )
+			local counter=$( __tsaotun_pos_first_nonflag $( __tsaotun_to_alternatives "$options_with_args" ) )
 			if [ $cword -eq $counter ]; then
 				_filedir -d
 			fi
@@ -2052,25 +2052,25 @@ _dokcer_image_build() {
 	esac
 }
 
-_dokcer_image_history() {
+_tsaotun_image_history() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help --human=false -H=false --no-trunc --quiet -q" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag)
+			local counter=$(__tsaotun_pos_first_nonflag)
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_images
+				__tsaotun_complete_images
 			fi
 			;;
 	esac
 }
 
-_dokcer_image_images() {
-	_dokcer_image_ls
+_tsaotun_image_images() {
+	_tsaotun_image_ls
 }
 
-_dokcer_image_import() {
+_tsaotun_image_import() {
 	case "$prev" in
 		--change|-c|--message|-m)
 			return
@@ -2082,25 +2082,25 @@ _dokcer_image_import() {
 			COMPREPLY=( $( compgen -W "--change -c --help --message -m" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag '--change|-c|--message|-m')
+			local counter=$(__tsaotun_pos_first_nonflag '--change|-c|--message|-m')
 			if [ $cword -eq $counter ]; then
 				return
 			fi
 			(( counter++ ))
 
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_image_repos_and_tags
+				__tsaotun_complete_image_repos_and_tags
 				return
 			fi
 			;;
 	esac
 }
 
-_dokcer_image_inspect() {
-	_dokcer_inspect --type image
+_tsaotun_image_inspect() {
+	_tsaotun_inspect --type image
 }
 
-_dokcer_image_load() {
+_tsaotun_image_load() {
 	case "$prev" in
 		--input|-i)
 			_filedir
@@ -2115,16 +2115,16 @@ _dokcer_image_load() {
 	esac
 }
 
-_dokcer_image_list() {
-	_dokcer_image_ls
+_tsaotun_image_list() {
+	_tsaotun_image_ls
 }
 
-_dokcer_image_ls() {
-	local key=$(__dokcer_map_key_of_current_option '--filter|-f')
+_tsaotun_image_ls() {
+	local key=$(__tsaotun_map_key_of_current_option '--filter|-f')
 	case "$key" in
 		before|since|reference)
 			cur="${cur##*=}"
-			__dokcer_complete_images
+			__tsaotun_complete_images
 			return
 			;;
 		dangling)
@@ -2139,7 +2139,7 @@ _dokcer_image_ls() {
 	case "$prev" in
 		--filter|-f)
 			COMPREPLY=( $( compgen -S = -W "before dangling label reference since" -- "$cur" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
                 --format)
@@ -2155,12 +2155,12 @@ _dokcer_image_ls() {
 			return
 			;;
 		*)
-			__dokcer_complete_image_repos
+			__tsaotun_complete_image_repos
 			;;
 	esac
 }
 
-_dokcer_image_prune() {
+_tsaotun_image_prune() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--all -a --force -f --help" -- "$cur" ) )
@@ -2168,62 +2168,62 @@ _dokcer_image_prune() {
 	esac
 }
 
-_dokcer_image_pull() {
+_tsaotun_image_pull() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--all-tags -a --disable-content-trust=false --help" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag)
+			local counter=$(__tsaotun_pos_first_nonflag)
 			if [ $cword -eq $counter ]; then
 				for arg in "${COMP_WORDS[@]}"; do
 					case "$arg" in
 						--all-tags|-a)
-							__dokcer_complete_image_repos
+							__tsaotun_complete_image_repos
 							return
 							;;
 					esac
 				done
-				__dokcer_complete_image_repos_and_tags
+				__tsaotun_complete_image_repos_and_tags
 			fi
 			;;
 	esac
 }
 
-_dokcer_image_push() {
+_tsaotun_image_push() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--disable-content-trust=false --help" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag)
+			local counter=$(__tsaotun_pos_first_nonflag)
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_image_repos_and_tags
+				__tsaotun_complete_image_repos_and_tags
 			fi
 			;;
 	esac
 }
 
-_dokcer_image_remove() {
-	_dokcer_image_rm
+_tsaotun_image_remove() {
+	_tsaotun_image_rm
 }
 
-_dokcer_image_rm() {
+_tsaotun_image_rm() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--force -f --help --no-prune" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_images
+			__tsaotun_complete_images
 			;;
 	esac
 }
 
-_dokcer_image_rmi() {
-	_dokcer_image_rm
+_tsaotun_image_rmi() {
+	_tsaotun_image_rm
 }
 
-_dokcer_image_save() {
+_tsaotun_image_save() {
 	case "$prev" in
 		--output|-o)
 			_filedir
@@ -2236,27 +2236,27 @@ _dokcer_image_save() {
 			COMPREPLY=( $( compgen -W "--help --output -o" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_images
+			__tsaotun_complete_images
 			;;
 	esac
 }
 
-_dokcer_image_tag() {
+_tsaotun_image_tag() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag)
+			local counter=$(__tsaotun_pos_first_nonflag)
 
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_image_repos_and_tags
+				__tsaotun_complete_image_repos_and_tags
 				return
 			fi
 			(( counter++ ))
 
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_image_repos_and_tags
+				__tsaotun_complete_image_repos_and_tags
 				return
 			fi
 			;;
@@ -2264,19 +2264,19 @@ _dokcer_image_tag() {
 }
 
 
-_dokcer_images() {
-	_dokcer_image_ls
+_tsaotun_images() {
+	_tsaotun_image_ls
 }
 
-_dokcer_import() {
-	_dokcer_image_import
+_tsaotun_import() {
+	_tsaotun_image_import
 }
 
-_dokcer_info() {
-	_dokcer_system_info
+_tsaotun_info() {
+	_tsaotun_system_info
 }
 
-_dokcer_inspect() {
+_tsaotun_inspect() {
 	local preselected_type
 	local type
 
@@ -2284,7 +2284,7 @@ _dokcer_inspect() {
 		preselected_type=yes
 		type="$2"
 	else
-		type=$(__dokcer_value_of_option --type)
+		type=$(__tsaotun_value_of_option --type)
 	fi
 
 	case "$prev" in
@@ -2311,49 +2311,49 @@ _dokcer_inspect() {
 			case "$type" in
 				'')
 					COMPREPLY=( $( compgen -W "
-						$(__dokcer_containers --all)
-						$(__dokcer_images)
-						$(__dokcer_networks)
-						$(__dokcer_nodes)
-						$(__dokcer_plugins_installed)
-						$(__dokcer_services)
-						$(__dokcer_volumes)
+						$(__tsaotun_containers --all)
+						$(__tsaotun_images)
+						$(__tsaotun_networks)
+						$(__tsaotun_nodes)
+						$(__tsaotun_plugins_installed)
+						$(__tsaotun_services)
+						$(__tsaotun_volumes)
 					" -- "$cur" ) )
 					;;
 				container)
-					__dokcer_complete_containers_all
+					__tsaotun_complete_containers_all
 					;;
 				image)
-					__dokcer_complete_images
+					__tsaotun_complete_images
 					;;
 				network)
-					__dokcer_complete_networks
+					__tsaotun_complete_networks
 					;;
 				node)
-					__dokcer_complete_nodes
+					__tsaotun_complete_nodes
 					;;
 				plugin)
-					__dokcer_complete_plugins_installed
+					__tsaotun_complete_plugins_installed
 					;;
 				service)
-					__dokcer_complete_services
+					__tsaotun_complete_services
 					;;
 				volume)
-					__dokcer_complete_volumes
+					__tsaotun_complete_volumes
 					;;
 			esac
 	esac
 }
 
-_dokcer_kill() {
-	_dokcer_container_kill
+_tsaotun_kill() {
+	_tsaotun_container_kill
 }
 
-_dokcer_load() {
-	_dokcer_image_load
+_tsaotun_load() {
+	_tsaotun_image_load
 }
 
-_dokcer_login() {
+_tsaotun_login() {
 	case "$prev" in
 		--password|-p|--username|-u)
 			return
@@ -2367,7 +2367,7 @@ _dokcer_login() {
 	esac
 }
 
-_dokcer_logout() {
+_tsaotun_logout() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
@@ -2375,11 +2375,11 @@ _dokcer_logout() {
 	esac
 }
 
-_dokcer_logs() {
-	_dokcer_container_logs
+_tsaotun_logs() {
+	_tsaotun_container_logs
 }
 
-_dokcer_network_connect() {
+_tsaotun_network_connect() {
 	local options_with_args="
 		--alias
 		--ip
@@ -2398,14 +2398,14 @@ _dokcer_network_connect() {
 				*:*)
 					;;
 				*)
-					__dokcer_complete_containers_running
+					__tsaotun_complete_containers_running
 					COMPREPLY=( $( compgen -W "${COMPREPLY[*]}" -S ':' ) )
-					__dokcer_nospace
+					__tsaotun_nospace
 					;;
 			esac
 			return
 			;;
-		$(__dokcer_to_extglob "$options_with_args") )
+		$(__tsaotun_to_extglob "$options_with_args") )
 			return
 			;;
 	esac
@@ -2415,17 +2415,17 @@ _dokcer_network_connect() {
 			COMPREPLY=( $( compgen -W "$boolean_options $options_with_args" -- "$cur" ) )
 			;;
 		*)
-			local counter=$( __dokcer_pos_first_nonflag $( __dokcer_to_alternatives "$options_with_args" ) )
+			local counter=$( __tsaotun_pos_first_nonflag $( __tsaotun_to_alternatives "$options_with_args" ) )
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_networks
+				__tsaotun_complete_networks
 			elif [ $cword -eq $(($counter + 1)) ]; then
-				__dokcer_complete_containers_all
+				__tsaotun_complete_containers_all
 			fi
 			;;
 	esac
 }
 
-_dokcer_network_create() {
+_tsaotun_network_create() {
 	case "$prev" in
 		--aux-address|--gateway|--internal|--ip-range|--ipam-opt|--ipv6|--opt|-o|--subnet)
 			return
@@ -2435,8 +2435,8 @@ _dokcer_network_create() {
 			return
 			;;
 		--driver|-d)
-			# remove drivers that allow one instance only, add drivers missing in `dokcer info`
-			__dokcer_complete_plugins_bundled --type Network --remove host --remove null --add macvlan
+			# remove drivers that allow one instance only, add drivers missing in `tsaotun info`
+			__tsaotun_complete_plugins_bundled --type Network --remove host --remove null --add macvlan
 			return
 			;;
 		--label)
@@ -2451,23 +2451,23 @@ _dokcer_network_create() {
 	esac
 }
 
-_dokcer_network_disconnect() {
+_tsaotun_network_disconnect() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag)
+			local counter=$(__tsaotun_pos_first_nonflag)
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_networks
+				__tsaotun_complete_networks
 			elif [ $cword -eq $(($counter + 1)) ]; then
-				__dokcer_complete_containers_in_network "$prev"
+				__tsaotun_complete_containers_in_network "$prev"
 			fi
 			;;
 	esac
 }
 
-_dokcer_network_inspect() {
+_tsaotun_network_inspect() {
 	case "$prev" in
 		--format|-f)
 			return
@@ -2479,23 +2479,23 @@ _dokcer_network_inspect() {
 			COMPREPLY=( $( compgen -W "--format -f --help" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_networks
+			__tsaotun_complete_networks
 	esac
 }
 
-_dokcer_network_ls() {
-	local key=$(__dokcer_map_key_of_current_option '--filter|-f')
+_tsaotun_network_ls() {
+	local key=$(__tsaotun_map_key_of_current_option '--filter|-f')
 	case "$key" in
 		driver)
-			__dokcer_complete_plugins_bundled --cur "${cur##*=}" --type Network --add macvlan
+			__tsaotun_complete_plugins_bundled --cur "${cur##*=}" --type Network --add macvlan
 			return
 			;;
 		id)
-			__dokcer_complete_networks --cur "${cur##*=}" --id
+			__tsaotun_complete_networks --cur "${cur##*=}" --id
 			return
 			;;
 		name)
-			__dokcer_complete_networks --cur "${cur##*=}" --name
+			__tsaotun_complete_networks --cur "${cur##*=}" --name
 			return
 			;;
 		type)
@@ -2507,7 +2507,7 @@ _dokcer_network_ls() {
 	case "$prev" in
 		--filter|-f)
 			COMPREPLY=( $( compgen -S = -W "driver id label name type" -- "$cur" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 		--format)
@@ -2522,7 +2522,7 @@ _dokcer_network_ls() {
 	esac
 }
 
-_dokcer_network_prune() {
+_tsaotun_network_prune() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--force -f --help" -- "$cur" ) )
@@ -2530,17 +2530,17 @@ _dokcer_network_prune() {
 	esac
 }
 
-_dokcer_network_rm() {
+_tsaotun_network_rm() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_networks --filter type=custom
+			__tsaotun_complete_networks --filter type=custom
 	esac
 }
 
-_dokcer_network() {
+_tsaotun_network() {
 	local subcommands="
 		connect
 		create
@@ -2550,7 +2550,7 @@ _dokcer_network() {
 		prune
 		rm
 	"
-	__dokcer_subcommands "$subcommands" && return
+	__tsaotun_subcommands "$subcommands" && return
 
 	case "$cur" in
 		-*)
@@ -2562,7 +2562,7 @@ _dokcer_network() {
 	esac
 }
 
-_dokcer_service() {
+_tsaotun_service() {
 	local subcommands="
 		create
 		inspect
@@ -2572,7 +2572,7 @@ _dokcer_service() {
 		ps
 		update
 	"
-	__dokcer_subcommands "$subcommands" && return
+	__tsaotun_subcommands "$subcommands" && return
 
 	case "$cur" in
 		-*)
@@ -2584,11 +2584,11 @@ _dokcer_service() {
 	esac
 }
 
-_dokcer_service_create() {
-	_dokcer_service_update
+_tsaotun_service_create() {
+	_tsaotun_service_update
 }
 
-_dokcer_service_inspect() {
+_tsaotun_service_inspect() {
 	case "$prev" in
 		--format|-f)
 			return
@@ -2600,23 +2600,23 @@ _dokcer_service_inspect() {
 			COMPREPLY=( $( compgen -W "--format -f --help --pretty" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_services
+			__tsaotun_complete_services
 	esac
 }
 
-_dokcer_service_list() {
-	_dokcer_service_ls
+_tsaotun_service_list() {
+	_tsaotun_service_ls
 }
 
-_dokcer_service_ls() {
-	local key=$(__dokcer_map_key_of_current_option '--filter|-f')
+_tsaotun_service_ls() {
+	local key=$(__tsaotun_map_key_of_current_option '--filter|-f')
 	case "$key" in
 		id)
-			__dokcer_complete_services --cur "${cur##*=}" --id
+			__tsaotun_complete_services --cur "${cur##*=}" --id
 			return
 			;;
 		name)
-			__dokcer_complete_services --cur "${cur##*=}" --name
+			__tsaotun_complete_services --cur "${cur##*=}" --name
 			return
 			;;
 	esac
@@ -2624,7 +2624,7 @@ _dokcer_service_ls() {
 	case "$prev" in
 		--filter|-f)
 			COMPREPLY=( $( compgen -W "id label name" -S = -- "$cur" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 	esac
@@ -2636,42 +2636,42 @@ _dokcer_service_ls() {
 	esac
 }
 
-_dokcer_service_remove() {
-	_dokcer_service_rm
+_tsaotun_service_remove() {
+	_tsaotun_service_rm
 }
 
-_dokcer_service_rm() {
+_tsaotun_service_rm() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_services
+			__tsaotun_complete_services
 	esac
 }
 
-_dokcer_service_scale() {
+_tsaotun_service_scale() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_services
-			__dokcer_append_to_completions "="
-			__dokcer_nospace
+			__tsaotun_complete_services
+			__tsaotun_append_to_completions "="
+			__tsaotun_nospace
 			;;
 	esac
 }
 
-_dokcer_service_ps() {
-	local key=$(__dokcer_map_key_of_current_option '--filter|-f')
+_tsaotun_service_ps() {
+	local key=$(__tsaotun_map_key_of_current_option '--filter|-f')
 	case "$key" in
 		desired-state)
 			COMPREPLY=( $( compgen -W "accepted running" -- "${cur##*=}" ) )
 			return
 			;;
 		name)
-			__dokcer_complete_services --cur "${cur##*=}" --name
+			__tsaotun_complete_services --cur "${cur##*=}" --name
 			return
 			;;
 	esac
@@ -2679,7 +2679,7 @@ _dokcer_service_ps() {
 	case "$prev" in
 		--filter|-f)
 			COMPREPLY=( $( compgen -W "desired-state id name" -S = -- "$cur" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 	esac
@@ -2689,15 +2689,15 @@ _dokcer_service_ps() {
 			COMPREPLY=( $( compgen -W "--filter -f --help --no-resolve --no-trunc --quiet -q" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag '--filter|-f')
+			local counter=$(__tsaotun_pos_first_nonflag '--filter|-f')
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_services
+				__tsaotun_complete_services
 			fi
 			;;
 	esac
 }
 
-_dokcer_service_update() {
+_tsaotun_service_update() {
 	local $subcommand="${words[$subcommand_pos]}"
 
 	local options_with_args="
@@ -2743,7 +2743,7 @@ _dokcer_service_update() {
 		--with-registry-auth
 	"
 
-	__dokcer_complete_log_driver_options && return
+	__tsaotun_complete_log_driver_options && return
 
 	if [ "$subcommand" = "create" ] ; then
 		options_with_args="$options_with_args
@@ -2768,7 +2768,7 @@ _dokcer_service_update() {
 			--host)
 				case "$cur" in
 					*:)
-						__dokcer_complete_resolved_hostname
+						__tsaotun_complete_resolved_hostname
 						return
 						;;
 				esac
@@ -2778,7 +2778,7 @@ _dokcer_service_update() {
 				return
 				;;
 			--secret)
-				__dokcer_complete_secrets
+				__tsaotun_complete_secrets
 				return
 				;;
 			--group)
@@ -2821,17 +2821,17 @@ _dokcer_service_update() {
 			--host-add|--host-rm)
 				case "$cur" in
 					*:)
-						__dokcer_complete_resolved_hostname
+						__tsaotun_complete_resolved_hostname
 						return
 						;;
 				esac
 				;;
 			--image)
-				__dokcer_complete_image_repos_and_tags
+				__tsaotun_complete_image_repos_and_tags
 				return
 				;;
 			--secret-add|--secret-rm)
-				__dokcer_complete_secrets
+				__tsaotun_complete_secrets
 				return
 				;;
 		esac
@@ -2845,19 +2845,19 @@ _dokcer_service_update() {
 		--env|-e)
 			# we do not append a "=" here because "-e VARNAME" is legal systax, too
 			COMPREPLY=( $( compgen -e -- "$cur" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 		--log-driver)
-			__dokcer_complete_log_drivers
+			__tsaotun_complete_log_drivers
 			return
 			;;
 		--log-opt)
-			__dokcer_complete_log_options
+			__tsaotun_complete_log_options
 			return
 			;;
 		--network)
-			__dokcer_complete_networks
+			__tsaotun_complete_networks
 			return
 			;;
 		--restart-condition)
@@ -2865,10 +2865,10 @@ _dokcer_service_update() {
 			return
 			;;
 		--user|-u)
-			__dokcer_complete_user_group
+			__tsaotun_complete_user_group
 			return
 			;;
-		$(__dokcer_to_extglob "$options_with_args") )
+		$(__tsaotun_to_extglob "$options_with_args") )
 			return
 			;;
 	esac
@@ -2878,21 +2878,21 @@ _dokcer_service_update() {
 			COMPREPLY=( $( compgen -W "$boolean_options $options_with_args" -- "$cur" ) )
 			;;
 		*)
-			local counter=$( __dokcer_pos_first_nonflag $( __dokcer_to_alternatives "$options_with_args" ) )
+			local counter=$( __tsaotun_pos_first_nonflag $( __tsaotun_to_alternatives "$options_with_args" ) )
 			if [ "$subcommand" = "update" ] ; then
 				if [ $cword -eq $counter ]; then
-					__dokcer_complete_services
+					__tsaotun_complete_services
 				fi
 			else
 				if [ $cword -eq $counter ]; then
-					__dokcer_complete_images
+					__tsaotun_complete_images
 				fi
 			fi
 			;;
 	esac
 }
 
-_dokcer_swarm() {
+_tsaotun_swarm() {
 	local subcommands="
 		init
 		join
@@ -2900,7 +2900,7 @@ _dokcer_swarm() {
 		leave
 		update
 	"
-	__dokcer_subcommands "$subcommands" && return
+	__tsaotun_subcommands "$subcommands" && return
 
 	case "$cur" in
 		-*)
@@ -2912,14 +2912,14 @@ _dokcer_swarm() {
 	esac
 }
 
-_dokcer_swarm_init() {
+_tsaotun_swarm_init() {
 	case "$prev" in
 		--advertise-addr)
 			if [[ $cur == *: ]] ; then
 				COMPREPLY=( $( compgen -W "2377" -- "${cur##*:}" ) )
 			else
-				__dokcer_complete_local_interfaces
-				__dokcer_nospace
+				__tsaotun_complete_local_interfaces
+				__tsaotun_nospace
 			fi
 			return
 			;;
@@ -2927,8 +2927,8 @@ _dokcer_swarm_init() {
 			if [[ $cur == *: ]] ; then
 				COMPREPLY=( $( compgen -W "2377" -- "${cur##*:}" ) )
 			else
-				__dokcer_complete_local_interfaces --add 0.0.0.0
-				__dokcer_nospace
+				__tsaotun_complete_local_interfaces --add 0.0.0.0
+				__tsaotun_nospace
 			fi
 			return
 			;;
@@ -2941,14 +2941,14 @@ _dokcer_swarm_init() {
 	esac
 }
 
-_dokcer_swarm_join() {
+_tsaotun_swarm_join() {
 	case "$prev" in
 		--advertise-addr)
 			if [[ $cur == *: ]] ; then
 				COMPREPLY=( $( compgen -W "2377" -- "${cur##*:}" ) )
 			else
-				__dokcer_complete_local_interfaces
-				__dokcer_nospace
+				__tsaotun_complete_local_interfaces
+				__tsaotun_nospace
 			fi
 			return
 			;;
@@ -2956,8 +2956,8 @@ _dokcer_swarm_join() {
 			if [[ $cur == *: ]] ; then
 				COMPREPLY=( $( compgen -W "2377" -- "${cur##*:}" ) )
 			else
-				__dokcer_complete_local_interfaces --add 0.0.0.0
-				__dokcer_nospace
+				__tsaotun_complete_local_interfaces --add 0.0.0.0
+				__tsaotun_nospace
 			fi
 			return
 			;;
@@ -2976,13 +2976,13 @@ _dokcer_swarm_join() {
 	esac
 }
 
-_dokcer_swarm_join-token() {
+_tsaotun_swarm_join-token() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help --quiet -q --rotate" -- "$cur" ) )
 			;;
 		*)
-			local counter=$( __dokcer_pos_first_nonflag )
+			local counter=$( __tsaotun_pos_first_nonflag )
 			if [ $cword -eq $counter ]; then
 				COMPREPLY=( $( compgen -W "manager worker" -- "$cur" ) )
 			fi
@@ -2990,7 +2990,7 @@ _dokcer_swarm_join-token() {
 	esac
 }
 
-_dokcer_swarm_leave() {
+_tsaotun_swarm_leave() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--force -f --help" -- "$cur" ) )
@@ -2998,7 +2998,7 @@ _dokcer_swarm_leave() {
 	esac
 }
 
-_dokcer_swarm_update() {
+_tsaotun_swarm_update() {
 	case "$prev" in
 		--cert-expiry|--dispatcher-heartbeat|--max-snapshots|--snapshot-interval|--task-history-limit)
 			return
@@ -3012,7 +3012,7 @@ _dokcer_swarm_update() {
 	esac
 }
 
-_dokcer_node() {
+_tsaotun_node() {
 	local subcommands="
 		demote
 		inspect
@@ -3022,7 +3022,7 @@ _dokcer_node() {
 		ps
 		update
 	"
-	__dokcer_subcommands "$subcommands" && return
+	__tsaotun_subcommands "$subcommands" && return
 
 	case "$cur" in
 		-*)
@@ -3034,17 +3034,17 @@ _dokcer_node() {
 	esac
 }
 
-_dokcer_node_demote() {
+_tsaotun_node_demote() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_nodes --filter role=manager
+			__tsaotun_complete_nodes --filter role=manager
 	esac
 }
 
-_dokcer_node_inspect() {
+_tsaotun_node_inspect() {
 	case "$prev" in
 		--format|-f)
 			return
@@ -3056,23 +3056,23 @@ _dokcer_node_inspect() {
 			COMPREPLY=( $( compgen -W "--format -f --help --pretty" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_nodes_plus_self
+			__tsaotun_complete_nodes_plus_self
 	esac
 }
 
-_dokcer_node_list() {
-	_dokcer_node_ls
+_tsaotun_node_list() {
+	_tsaotun_node_ls
 }
 
-_dokcer_node_ls() {
-	local key=$(__dokcer_map_key_of_current_option '--filter|-f')
+_tsaotun_node_ls() {
+	local key=$(__tsaotun_map_key_of_current_option '--filter|-f')
 	case "$key" in
 		id)
-			__dokcer_complete_nodes --cur "${cur##*=}" --id
+			__tsaotun_complete_nodes --cur "${cur##*=}" --id
 			return
 			;;
 		name)
-			__dokcer_complete_nodes --cur "${cur##*=}" --name
+			__tsaotun_complete_nodes --cur "${cur##*=}" --name
 			return
 			;;
 	esac
@@ -3080,7 +3080,7 @@ _dokcer_node_ls() {
 	case "$prev" in
 		--filter|-f)
 			COMPREPLY=( $( compgen -W "id label name" -S = -- "$cur" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 	esac
@@ -3092,39 +3092,39 @@ _dokcer_node_ls() {
 	esac
 }
 
-_dokcer_node_promote() {
+_tsaotun_node_promote() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_nodes --filter role=worker
+			__tsaotun_complete_nodes --filter role=worker
 	esac
 }
 
-_dokcer_node_remove() {
-	_dokcer_node_rm
+_tsaotun_node_remove() {
+	_tsaotun_node_rm
 }
 
-_dokcer_node_rm() {
+_tsaotun_node_rm() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--force -f --help" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_nodes
+			__tsaotun_complete_nodes
 	esac
 }
 
-_dokcer_node_ps() {
-	local key=$(__dokcer_map_key_of_current_option '--filter|-f')
+_tsaotun_node_ps() {
+	local key=$(__tsaotun_map_key_of_current_option '--filter|-f')
 	case "$key" in
 		desired-state)
 			COMPREPLY=( $( compgen -W "accepted running" -- "${cur##*=}" ) )
 			return
 			;;
 		name)
-			__dokcer_complete_services --cur "${cur##*=}" --name
+			__tsaotun_complete_services --cur "${cur##*=}" --name
 			return
 			;;
 	esac
@@ -3132,7 +3132,7 @@ _dokcer_node_ps() {
 	case "$prev" in
 		--filter|-f)
 			COMPREPLY=( $( compgen -W "desired-state id label name" -S = -- "$cur" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 	esac
@@ -3142,12 +3142,12 @@ _dokcer_node_ps() {
 			COMPREPLY=( $( compgen -W "--all -a --filter -f --help --no-resolve --no-trunc" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_nodes_plus_self
+			__tsaotun_complete_nodes_plus_self
 			;;
 	esac
 }
 
-_dokcer_node_update() {
+_tsaotun_node_update() {
 	case "$prev" in
 		--availability)
 			COMPREPLY=( $( compgen -W "active drain pause" -- "$cur" ) )
@@ -3167,15 +3167,15 @@ _dokcer_node_update() {
 			COMPREPLY=( $( compgen -W "--availability --help --label-add --label-rm --role" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_nodes
+			__tsaotun_complete_nodes
 	esac
 }
 
-_dokcer_pause() {
-	_dokcer_container_pause
+_tsaotun_pause() {
+	_tsaotun_container_pause
 }
 
-_dokcer_plugin() {
+_tsaotun_plugin() {
 	local subcommands="
 		create
 		disable
@@ -3191,7 +3191,7 @@ _dokcer_plugin() {
 		list
 		remove
 	"
-	__dokcer_subcommands "$subcommands $aliases" && return
+	__tsaotun_subcommands "$subcommands $aliases" && return
 
 	case "$cur" in
 		-*)
@@ -3203,13 +3203,13 @@ _dokcer_plugin() {
 	esac
 }
 
-_dokcer_plugin_create() {
+_tsaotun_plugin_create() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--compress --help" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag)
+			local counter=$(__tsaotun_pos_first_nonflag)
 			if [ $cword -eq $counter ]; then
 				# reponame
 				return
@@ -3220,18 +3220,18 @@ _dokcer_plugin_create() {
 	esac
 }
 
-_dokcer_plugin_disable() {
+_tsaotun_plugin_disable() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_plugins_installed
+			__tsaotun_complete_plugins_installed
 			;;
 	esac
 }
 
-_dokcer_plugin_enable() {
+_tsaotun_plugin_enable() {
 	case "$prev" in
 		--timeout)
 			return
@@ -3243,12 +3243,12 @@ _dokcer_plugin_enable() {
 			COMPREPLY=( $( compgen -W "--help --timeout" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_plugins_installed
+			__tsaotun_complete_plugins_installed
 			;;
 	esac
 }
 
-_dokcer_plugin_inspect() {
+_tsaotun_plugin_inspect() {
 	case "$prev" in
 		--format|f)
 			return
@@ -3260,12 +3260,12 @@ _dokcer_plugin_inspect() {
 			COMPREPLY=( $( compgen -W "--format -f --help" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_plugins_installed
+			__tsaotun_complete_plugins_installed
 			;;
 	esac
 }
 
-_dokcer_plugin_install() {
+_tsaotun_plugin_install() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--disable --grant-all-permissions--help" -- "$cur" ) )
@@ -3273,11 +3273,11 @@ _dokcer_plugin_install() {
 	esac
 }
 
-_dokcer_plugin_list() {
-	_dokcer_plugin_ls
+_tsaotun_plugin_list() {
+	_tsaotun_plugin_ls
 }
 
-_dokcer_plugin_ls() {
+_tsaotun_plugin_ls() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help --no-trunc" -- "$cur" ) )
@@ -3285,92 +3285,92 @@ _dokcer_plugin_ls() {
 	esac
 }
 
-_dokcer_plugin_push() {
+_tsaotun_plugin_push() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag)
+			local counter=$(__tsaotun_pos_first_nonflag)
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_plugins_installed
+				__tsaotun_complete_plugins_installed
 			fi
 			;;
 	esac
 }
 
-_dokcer_plugin_remove() {
-	_dokcer_plugin_rm
+_tsaotun_plugin_remove() {
+	_tsaotun_plugin_rm
 }
 
-_dokcer_plugin_rm() {
+_tsaotun_plugin_rm() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--force -f --help" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_plugins_installed
+			__tsaotun_complete_plugins_installed
 			;;
 	esac
 }
 
-_dokcer_plugin_set() {
+_tsaotun_plugin_set() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag)
+			local counter=$(__tsaotun_pos_first_nonflag)
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_plugins_installed
+				__tsaotun_complete_plugins_installed
 			fi
 			;;
 	esac
 }
 
 
-_dokcer_port() {
-	_dokcer_container_port
+_tsaotun_port() {
+	_tsaotun_container_port
 }
 
-_dokcer_ps() {
-	_dokcer_container_ls
+_tsaotun_ps() {
+	_tsaotun_container_ls
 }
 
-_dokcer_pull() {
-	_dokcer_image_pull
+_tsaotun_pull() {
+	_tsaotun_image_pull
 }
 
-_dokcer_push() {
-	_dokcer_image_push
+_tsaotun_push() {
+	_tsaotun_image_push
 }
 
-_dokcer_rename() {
-	_dokcer_container_rename
+_tsaotun_rename() {
+	_tsaotun_container_rename
 }
 
-_dokcer_restart() {
-	_dokcer_container_restart
+_tsaotun_restart() {
+	_tsaotun_container_restart
 }
 
-_dokcer_rm() {
-	_dokcer_container_rm
+_tsaotun_rm() {
+	_tsaotun_container_rm
 }
 
-_dokcer_rmi() {
-	_dokcer_image_rm
+_tsaotun_rmi() {
+	_tsaotun_image_rm
 }
 
-_dokcer_run() {
-	_dokcer_container_run
+_tsaotun_run() {
+	_tsaotun_container_run
 }
 
-_dokcer_save() {
-	_dokcer_image_save
+_tsaotun_save() {
+	_tsaotun_image_save
 }
 
 
-_dokcer_secret() {
+_tsaotun_secret() {
 	local subcommands="
 		create
 		inspect
@@ -3381,7 +3381,7 @@ _dokcer_secret() {
 		list
 		remove
 	"
-	__dokcer_subcommands "$subcommands $aliases" && return
+	__tsaotun_subcommands "$subcommands $aliases" && return
 
 	case "$cur" in
 		-*)
@@ -3393,7 +3393,7 @@ _dokcer_secret() {
 	esac
 }
 
-_dokcer_secret_create() {
+_tsaotun_secret_create() {
 	case "$prev" in
 		--label|-l)
 			return
@@ -3407,7 +3407,7 @@ _dokcer_secret_create() {
 	esac
 }
 
-_dokcer_secret_inspect() {
+_tsaotun_secret_inspect() {
 	case "$prev" in
 		--format|-f)
 			return
@@ -3419,16 +3419,16 @@ _dokcer_secret_inspect() {
 			COMPREPLY=( $( compgen -W "--format -f --help" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_secrets
+			__tsaotun_complete_secrets
 			;;
 	esac
 }
 
-_dokcer_secret_list() {
-	_dokcer_secret_ls
+_tsaotun_secret_list() {
+	_tsaotun_secret_ls
 }
 
-_dokcer_secret_ls() {
+_tsaotun_secret_ls() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help --quiet -q" -- "$cur" ) )
@@ -3436,25 +3436,25 @@ _dokcer_secret_ls() {
 	esac
 }
 
-_dokcer_secret_remove() {
+_tsaotun_secret_remove() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_secrets
+			__tsaotun_complete_secrets
 			;;
 	esac
 }
 
-_dokcer_secret_rm() {
-	_dokcer_secret_remove
+_tsaotun_secret_rm() {
+	_tsaotun_secret_remove
 }
 
 
 
-_dokcer_search() {
-	local key=$(__dokcer_map_key_of_current_option '--filter|-f')
+_tsaotun_search() {
+	local key=$(__tsaotun_map_key_of_current_option '--filter|-f')
 	case "$key" in
 		is-automated)
 			COMPREPLY=( $( compgen -W "false true" -- "${cur##*=}" ) )
@@ -3469,7 +3469,7 @@ _dokcer_search() {
 	case "$prev" in
 		--filter|-f)
 			COMPREPLY=( $( compgen -S = -W "is-automated is-official stars" -- "$cur" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 		--limit)
@@ -3485,7 +3485,7 @@ _dokcer_search() {
 }
 
 
-_dokcer_stack() {
+_tsaotun_stack() {
 	local subcommands="
 		deploy
 		ls
@@ -3499,7 +3499,7 @@ _dokcer_stack() {
 		remove
 		up
 	"
-	__dokcer_subcommands "$subcommands $aliases" && return
+	__tsaotun_subcommands "$subcommands $aliases" && return
 
 	case "$cur" in
 		-*)
@@ -3511,7 +3511,7 @@ _dokcer_stack() {
 	esac
 }
 
-_dokcer_stack_deploy() {
+_tsaotun_stack_deploy() {
 	case "$prev" in
 		--bundle-file)
 			_filedir dab
@@ -3530,15 +3530,15 @@ _dokcer_stack_deploy() {
 	esac
 }
 
-_dokcer_stack_down() {
-	_dokcer_stack_rm
+_tsaotun_stack_down() {
+	_tsaotun_stack_rm
 }
 
-_dokcer_stack_list() {
-	_dokcer_stack_ls
+_tsaotun_stack_list() {
+	_tsaotun_stack_ls
 }
 
-_dokcer_stack_ls() {
+_tsaotun_stack_ls() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
@@ -3546,19 +3546,19 @@ _dokcer_stack_ls() {
 	esac
 }
 
-_dokcer_stack_ps() {
-	local key=$(__dokcer_map_key_of_current_option '--filter|-f')
+_tsaotun_stack_ps() {
+	local key=$(__tsaotun_map_key_of_current_option '--filter|-f')
 	case "$key" in
 		desired-state)
 			COMPREPLY=( $( compgen -W "accepted running" -- "${cur##*=}" ) )
 			return
 			;;
 		id)
-			__dokcer_complete_stacks --cur "${cur##*=}" --id
+			__tsaotun_complete_stacks --cur "${cur##*=}" --id
 			return
 			;;
 		name)
-			__dokcer_complete_stacks --cur "${cur##*=}" --name
+			__tsaotun_complete_stacks --cur "${cur##*=}" --name
 			return
 			;;
 	esac
@@ -3566,7 +3566,7 @@ _dokcer_stack_ps() {
 	case "$prev" in
 		--filter|-f)
 			COMPREPLY=( $( compgen -S = -W "id name desired-state" -- "$cur" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 	esac
@@ -3576,44 +3576,44 @@ _dokcer_stack_ps() {
 			COMPREPLY=( $( compgen -W "--all -a --filter -f --help --no-resolve --no-trunc" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag '--filter|-f')
+			local counter=$(__tsaotun_pos_first_nonflag '--filter|-f')
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_stacks
+				__tsaotun_complete_stacks
 			fi
 			;;
 	esac
 }
 
-_dokcer_stack_remove() {
-	_dokcer_stack_rm
+_tsaotun_stack_remove() {
+	_tsaotun_stack_rm
 }
 
-_dokcer_stack_rm() {
+_tsaotun_stack_rm() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag)
+			local counter=$(__tsaotun_pos_first_nonflag)
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_stacks
+				__tsaotun_complete_stacks
 			fi
 			;;
 	esac
 }
 
-_dokcer_stack_services() {
-	local key=$(__dokcer_map_key_of_current_option '--filter|-f')
+_tsaotun_stack_services() {
+	local key=$(__tsaotun_map_key_of_current_option '--filter|-f')
 	case "$key" in
 		id)
-			__dokcer_complete_services --cur "${cur##*=}" --id
+			__tsaotun_complete_services --cur "${cur##*=}" --id
 			return
 			;;
 		label)
 			return
 			;;
 		name)
-			__dokcer_complete_services --cur "${cur##*=}" --name
+			__tsaotun_complete_services --cur "${cur##*=}" --name
 			return
 			;;
 	esac
@@ -3621,7 +3621,7 @@ _dokcer_stack_services() {
 	case "$prev" in
 		--filter|-f)
 			COMPREPLY=( $( compgen -S = -W "id label name" -- "$cur" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 	esac
@@ -3631,40 +3631,40 @@ _dokcer_stack_services() {
 			COMPREPLY=( $( compgen -W "--filter -f --help --quiet -q" -- "$cur" ) )
 			;;
 		*)
-			local counter=$(__dokcer_pos_first_nonflag '--filter|-f')
+			local counter=$(__tsaotun_pos_first_nonflag '--filter|-f')
 			if [ $cword -eq $counter ]; then
-				__dokcer_complete_stacks
+				__tsaotun_complete_stacks
 			fi
 			;;
 	esac
 }
 
-_dokcer_stack_up() {
-	_dokcer_stack_deploy
+_tsaotun_stack_up() {
+	_tsaotun_stack_deploy
 }
 
 
-_dokcer_start() {
-	_dokcer_container_start
+_tsaotun_start() {
+	_tsaotun_container_start
 }
 
-_dokcer_stats() {
-	_dokcer_container_stats
+_tsaotun_stats() {
+	_tsaotun_container_stats
 }
 
-_dokcer_stop() {
-	_dokcer_container_stop
+_tsaotun_stop() {
+	_tsaotun_container_stop
 }
 
 
-_dokcer_system() {
+_tsaotun_system() {
 	local subcommands="
 		df
 		events
 		info
 		prune
 	"
-	__dokcer_subcommands "$subcommands $aliases" && return
+	__tsaotun_subcommands "$subcommands $aliases" && return
 
 	case "$cur" in
 		-*)
@@ -3676,7 +3676,7 @@ _dokcer_system() {
 	esac
 }
 
-_dokcer_system_df() {
+_tsaotun_system_df() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help --verbose -v" -- "$cur" ) )
@@ -3684,15 +3684,15 @@ _dokcer_system_df() {
 	esac
 }
 
-_dokcer_system_events() {
-	local key=$(__dokcer_map_key_of_current_option '-f|--filter')
+_tsaotun_system_events() {
+	local key=$(__tsaotun_map_key_of_current_option '-f|--filter')
 	case "$key" in
 		container)
-			__dokcer_complete_containers_all --cur "${cur##*=}"
+			__tsaotun_complete_containers_all --cur "${cur##*=}"
 			return
 			;;
 		daemon)
-			local name=$(__dokcer_q info | sed -n 's/^\(ID\|Name\): //p')
+			local name=$(__tsaotun_q info | sed -n 's/^\(ID\|Name\): //p')
 			COMPREPLY=( $( compgen -W "$name" -- "${cur##*=}" ) )
 			return
 			;;
@@ -3739,11 +3739,11 @@ _dokcer_system_events() {
 			;;
 		image)
 			cur="${cur##*=}"
-			__dokcer_complete_images
+			__tsaotun_complete_images
 			return
 			;;
 		network)
-			__dokcer_complete_networks --cur "${cur##*=}"
+			__tsaotun_complete_networks --cur "${cur##*=}"
 			return
 			;;
 		type)
@@ -3751,7 +3751,7 @@ _dokcer_system_events() {
 			return
 			;;
 		volume)
-			__dokcer_complete_volumes --cur "${cur##*=}"
+			__tsaotun_complete_volumes --cur "${cur##*=}"
 			return
 			;;
 	esac
@@ -3759,7 +3759,7 @@ _dokcer_system_events() {
 	case "$prev" in
 		--filter|-f)
 			COMPREPLY=( $( compgen -S = -W "container daemon event image label network type volume" -- "$cur" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 		--since|--until)
@@ -3774,7 +3774,7 @@ _dokcer_system_events() {
 	esac
 }
 
-_dokcer_system_info() {
+_tsaotun_system_info() {
 	case "$prev" in
 		--format|-f)
 			return
@@ -3788,7 +3788,7 @@ _dokcer_system_info() {
 	esac
 }
 
-_dokcer_system_prune() {
+_tsaotun_system_prune() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--all -a --force -f --help" -- "$cur" ) )
@@ -3797,23 +3797,23 @@ _dokcer_system_prune() {
 }
 
 
-_dokcer_tag() {
-	_dokcer_image_tag
+_tsaotun_tag() {
+	_tsaotun_image_tag
 }
 
-_dokcer_unpause() {
-	_dokcer_container_unpause
+_tsaotun_unpause() {
+	_tsaotun_container_unpause
 }
 
-_dokcer_update() {
-	_dokcer_container_update
+_tsaotun_update() {
+	_tsaotun_container_update
 }
 
-_dokcer_top() {
-	_dokcer_container_top
+_tsaotun_top() {
+	_tsaotun_container_top
 }
 
-_dokcer_version() {
+_tsaotun_version() {
 	case "$prev" in
 		--format|-f)
 			return
@@ -3827,10 +3827,10 @@ _dokcer_version() {
 	esac
 }
 
-_dokcer_volume_create() {
+_tsaotun_volume_create() {
 	case "$prev" in
 		--driver|-d)
-			__dokcer_complete_plugins_bundled --type Volume
+			__tsaotun_complete_plugins_bundled --type Volume
 			return
 			;;
 		--label|--opt|-o)
@@ -3845,7 +3845,7 @@ _dokcer_volume_create() {
 	esac
 }
 
-_dokcer_volume_inspect() {
+_tsaotun_volume_inspect() {
 	case "$prev" in
 		--format|-f)
 			return
@@ -3857,24 +3857,24 @@ _dokcer_volume_inspect() {
 			COMPREPLY=( $( compgen -W "--format -f --help" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_volumes
+			__tsaotun_complete_volumes
 			;;
 	esac
 }
 
-_dokcer_volume_ls() {
-	local key=$(__dokcer_map_key_of_current_option '--filter|-f')
+_tsaotun_volume_ls() {
+	local key=$(__tsaotun_map_key_of_current_option '--filter|-f')
 	case "$key" in
 		dangling)
 			COMPREPLY=( $( compgen -W "true false" -- "${cur##*=}" ) )
 			return
 			;;
 		driver)
-			__dokcer_complete_plugins_bundled --cur "${cur##*=}" --type Volume
+			__tsaotun_complete_plugins_bundled --cur "${cur##*=}" --type Volume
 			return
 			;;
 		name)
-			__dokcer_complete_volumes --cur "${cur##*=}"
+			__tsaotun_complete_volumes --cur "${cur##*=}"
 			return
 			;;
 	esac
@@ -3882,7 +3882,7 @@ _dokcer_volume_ls() {
 	case "$prev" in
 		--filter|-f)
 			COMPREPLY=( $( compgen -S = -W "dangling driver label name" -- "$cur" ) )
-			__dokcer_nospace
+			__tsaotun_nospace
 			return
 			;;
 		--format)
@@ -3897,7 +3897,7 @@ _dokcer_volume_ls() {
 	esac
 }
 
-_dokcer_volume_prune() {
+_tsaotun_volume_prune() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--force -f --help" -- "$cur" ) )
@@ -3905,18 +3905,18 @@ _dokcer_volume_prune() {
 	esac
 }
 
-_dokcer_volume_rm() {
+_tsaotun_volume_rm() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--force -f --help" -- "$cur" ) )
 			;;
 		*)
-			__dokcer_complete_volumes
+			__tsaotun_complete_volumes
 			;;
 	esac
 }
 
-_dokcer_volume() {
+_tsaotun_volume() {
 	local subcommands="
 		create
 		inspect
@@ -3924,7 +3924,7 @@ _dokcer_volume() {
 		prune
 		rm
 	"
-	__dokcer_subcommands "$subcommands" && return
+	__tsaotun_subcommands "$subcommands" && return
 
 	case "$cur" in
 		-*)
@@ -3936,11 +3936,11 @@ _dokcer_volume() {
 	esac
 }
 
-_dokcer_wait() {
-	_dokcer_container_wait
+_tsaotun_wait() {
+	_tsaotun_container_wait
 }
 
-_dokcer() {
+_tsaotun() {
 	local previous_extglob_setting=$(shopt -p extglob)
 	shopt -s extglob
 
@@ -4004,7 +4004,7 @@ _dokcer() {
 	)
 
 	# These options are valid as global options for all client commands
-	# and valid as command options for `dokcer daemon`
+	# and valid as command options for `tsaotun daemon`
 	local global_boolean_options="
 		--debug -D
 		--tls
@@ -4025,7 +4025,7 @@ _dokcer() {
 	local cur prev words cword
 	_get_comp_words_by_ref -n : cur prev words cword
 
-	local command='dokcer' command_pos=0 subcommand_pos
+	local command='tsaotun' command_pos=0 subcommand_pos
 	local counter=1
 	while [ $counter -lt $cword ]; do
 		case "${words[$counter]}" in
@@ -4039,7 +4039,7 @@ _dokcer() {
 				(( counter++ ))
 				config="${words[$counter]}"
 				;;
-			$(__dokcer_to_extglob "$global_options_with_args") )
+			$(__tsaotun_to_extglob "$global_options_with_args") )
 				(( counter++ ))
 				;;
 			-*)
@@ -4057,21 +4057,21 @@ _dokcer() {
 	done
 
 	local binary="${words[0]}"
-	if [[ $binary == ?(*/)dokcerd ]] ; then
-		# for the dokcerd binary, we reuse completion of `dokcer daemon`.
-		# dokcerd does not have subcommands and global options.
+	if [[ $binary == ?(*/)tsaotund ]] ; then
+		# for the tsaotund binary, we reuse completion of `tsaotun daemon`.
+		# tsaotund does not have subcommands and global options.
 		command=daemon
 		command_pos=0
 	fi
 
-	local completions_func=_dokcer_${command}
+	local completions_func=_tsaotun_${command}
 	declare -F $completions_func >/dev/null && $completions_func
 
 	eval "$previous_extglob_setting"
 	return 0
 }
 
-eval "$__dokcer_previous_extglob_setting"
-unset __dokcer_previous_extglob_setting
+eval "$__tsaotun_previous_extglob_setting"
+unset __tsaotun_previous_extglob_setting
 
-complete -F _dokcer dokcer dokcerd
+complete -F _tsaotun tsaotun tsaotund

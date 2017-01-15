@@ -91,5 +91,5 @@ class Docker(object):
         if self.__stack:
             for k, v in self.__stack.iteritems():
                 override, value = k.split('|')
-                if "dokcer.lib.Docker." + override == mod.__name__:
+                if "tsaotun.lib.Docker." + override == mod.__name__:
                     setattr(mod, value, v)

@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-from os import listdir, path
+from os import path
 import argparse
 import textwrap
 import sys
@@ -21,13 +21,12 @@ class ArgumentParser(argparse.ArgumentParser):
     """Custom ArgumentParser"""
 
     def error(self, message):
-        import sys
         self.print_help(sys.stderr)
         raise RuntimeError
 
 
-class Dokcer(object):
-    """Entrypoint of Dokcer"""
+class Tsaotun(object):
+    """Entrypoint of Tsaotun"""
     color = 0
     debug = 0
     dry = 0
@@ -40,7 +39,7 @@ class Dokcer(object):
     buf = None
 
     class Response(object):
-        """Response of dokcer processing"""
+        """Response of tsaotun processing"""
         okay = False
         exception = None
         message = None
@@ -1360,7 +1359,7 @@ class Dokcer(object):
         """Setup plugins"""
         import pkgutil
         import imp
-        plugins_dir = "{}/Dokcer/plugins/".format(path.expanduser("~"))
+        plugins_dir = "{}/Tsaotun/plugins/".format(path.expanduser("~"))
         if path.exists(plugins_dir):
             from .lib.Utils.deepgetattr import deepgetattr
             module_names = [n for _, n, _ in pkgutil.iter_modules(
@@ -1457,7 +1456,7 @@ class Dokcer(object):
             self.response.set_exception(type(e))
 
     def recv(self):
-        """Return the buffer of dokcer"""
+        """Return the buffer of tsaotun"""
         return self.buf
 
     def final(self):
@@ -1467,10 +1466,10 @@ class Dokcer(object):
                 if case(ConnectionError, AttributeError, ValueError):
                     if self.color:
                         Logger.logError(
-                            "Error response from dokcer: {}\n", self.response.message)
+                            "Error response from tsaotun: {}\n", self.response.message)
                     else:
                         Logger.log(
-                            "Error response from dokcer: {}\n", self.response.message)
+                            "Error response from tsaotun: {}\n", self.response.message)
                     break
                 if case(APIError, NotFound):
                     if self.color:
@@ -1490,10 +1489,10 @@ class Dokcer(object):
 
 
 def cli(argv=None, **intruders):
-    """Entry point of dokcer"""
+    """Entry point of tsaotun"""
     try:
-        dokcer = Dokcer(**intruders)
-        dokcer.send(argv)
-        dokcer.final()
+        tsaotun = Tsaotun(**intruders)
+        tsaotun.send(argv)
+        tsaotun.final()
     except RuntimeError:
         pass

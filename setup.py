@@ -38,20 +38,26 @@ requirements = [
     'argcomplete >= 1.7.0'
 ]
 
-setup(name='dokcer',
-      version=find_version('dokcer', '__init__.py'),
+# Get the long description from the relevant file
+with codecs.open(os.path.join(ROOT_DIR, 'README.md'), 'r', 'latin1') as f:
+    long_description = f.read()
+
+setup(name='tsaotun',
+      version=find_version('tsaotun', '__init__.py'),
       description='Python based Assistance for Docker',
+      long_description=long_description,
       author='Boik Su',
       author_email='boik@tdohacker.org',
-      url='https://github.com/qazbnm456/dokcer',
-      download_url='https://codeload.github.com/qazbnm456/dokcer/tar.gz/0.7',
-      keywords=['0.8'],
+      url='https://github.com/qazbnm456/tsaotun',
+      download_url='https://codeload.github.com/qazbnm456/tsaotun/tar.gz/0.8.1',
+      keywords=['0.8.1'],
       packages=find_packages(),
       install_requires=requirements,
-      dependency_links=['https://github.com/qazbnm456/pytabwriter/tarball/master#egg=pytabwriter-0.1.1'],
+      dependency_links=[
+          'https://github.com/qazbnm456/pytabwriter/tarball/master#egg=pytabwriter-0.1.1'],
       entry_points="""
             [console_scripts]
-            dokcer=dokcer.cli:cli
+            tsaotun=tsaotun.cli:cli
       """,
       classifiers=[
           'Environment :: Console',
@@ -67,4 +73,4 @@ setup(name='dokcer',
           'Programming Language :: Python :: 2.6',
           'Programming Language :: Python :: 2.7'
       ]
-     )
+      )

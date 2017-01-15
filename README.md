@@ -1,4 +1,4 @@
-# dokcer - Python based Assistance for Docker
+# Tsaotun - Python based Assistance for Docker
 
 ## **Table of contents**
 
@@ -23,22 +23,24 @@
 - 0.5 -- Now it's usable :tada:
 - 0.6 -- Fix format problems within lots of commands
 - 0.7 -- Code cleanup and move root commands into their command groups (such as container, image, network, and etc)
+- 0.8 -- Plugin feature works, but is still under heavy development.
+- 0.8.1 -- Change name from 'Dokcer' to 'Tsaotun'.
 
 <a name="status"></a>
 ## Status quo
 
 - Currently support following commands:
-    - dokcer `version, info, inspect, images, pull, build, run, save, logs, stats, rename, restart, exec, rmi, rm, ps, top, history, cp`
-    - dokcer container `inspect, run, logs, stats, rename, restart, exec ,rm, ls, top, cp`
-    - dokcer image `inspect, ls, pull, build, save, rm, history`
-    - dokcer network `inspect, ls, create, rm, remove, connect, disconnect`
-    - dokcer volume `inspect, ls, create, rm, remove`
+    - tsaotun `version, info, inspect, images, pull, build, run, save, logs, stats, rename, restart, exec, rmi, rm, ps, top, history, cp`
+    - tsaotun container `inspect, run, logs, stats, rename, restart, exec ,rm, ls, top, cp`
+    - tsaotun image `inspect, ls, pull, build, save, rm, history`
+    - tsaotun network `inspect, ls, create, rm, remove, connect, disconnect`
+    - tsaotun volume `inspect, ls, create, rm, remove`
 
 - Plugins feature is testing right now, and each plugin should has its own folder with `__init__.py` inside. Plugins folder struture shows like:
 
 ```
 $HOME
-└───.dokcer
+└───Tsaotun
     └───plugins
         ├── plugin_A - __init__.py, ...
         ├── plugin_B - __init__.py, ...
@@ -57,8 +59,8 @@ $HOME
         """This module contains `docker container rm` class"""
 
         from docker.errors import APIError
-        from dokcer.lib.Docker.Container.command import Command
-        from dokcer.cli import Dokcer
+        from tsaotun.lib.Docker.Container.command import Command
+        from tsaotun.cli import Tsaotun
 
 
         class Rm(Command):
@@ -76,8 +78,8 @@ $HOME
                     containers = args["containers"]
                     del args["containers"]
                     Ids = []
-                    if "ALL" in containers: # dokcer container rm ALL or dokcer rm ALL
-                        d = Dokcer()
+                    if "ALL" in containers: # tsaotun container rm ALL or tsaotun rm ALL
+                        d = Tsaotun()
                         d.send('ps -a --format {{Id}}')
                         ress = d.recv()
                         if ress:
@@ -103,12 +105,12 @@ $HOME
                 return self.settings[self.name]
         ```
 
-- **If you want auto-complete feature, you could use [bash completion for dokcer](completion/dokcer), taken and modified from docker one, or configure [argcomplete](https://github.com/kislyuk/argcomplete).**
+- **If you want auto-complete feature, you could use [bash completion for tsaotun](completion/tsaotun), taken and modified from docker one, or configure [argcomplete](https://github.com/kislyuk/argcomplete).**
 
 <a name="feature"></a>
 ## Feature
 
-- You can run any command docker can run on dokcer.
+- You can run any command docker can run on tsaotun.
 - It's written in Python with love of docker API, so you can tune it by yourself!
 - It means you can have your own implementation of docker command line tool. :smirk:
 
@@ -117,18 +119,18 @@ $HOME
 
 ### Normal Way
 
-1. `pip install dokcer`, or
+1. `pip install tsaotun`, or
 2. Clone the repo, and `python ./setup.py install`
 
 ### Docker Way
 
 1. Pull from docker hub
-    - `docker pull qazbnm456/dokcer`
-        - `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock qazbnm456/dokcer version`
+    - `docker pull qazbnm456/tsaotun`
+        - `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock qazbnm456/tsaotun version`
 
 2. Build it yourself
-    - [Dockerfile](Dockerfile) is provided, and you can build it with: `docker build -t dokcer .`. Once you finished, you'd like to run any command, such as:
-        - `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock dokcer version`
+    - [Dockerfile](Dockerfile) is provided, and you can build it with: `docker build -t tsaotun .`. Once you finished, you'd like to run any command, such as:
+        - `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock tsaotun version`
 
 <img src="http://i.imgur.com/2cnNvDl.png" width="540">
 
@@ -137,9 +139,9 @@ $HOME
 
 | Linux | Windows | MacOSX |
 |------------------|---------|---------|
-| ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-1.12.3-blue.svg) | ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-1.12.3-blue.svg) | ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-1.12.3-blue.svg) |
+| ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-1.12.6-blue.svg) | ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-1.12.6-blue.svg) | ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-1.12.6-blue.svg) |
 
-Wanna enrich the possibilities that dokcer can inspire? Send pull requests or issues immediately!
+Wanna enrich the possibilities that tsaotun can inspire? Send pull requests or issues immediately!
 
 <a name="license"></a>
 ## LICENSE
