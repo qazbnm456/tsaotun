@@ -11,7 +11,7 @@
 
 ---------------------------------------
 
-[![asciicast](https://asciinema.org/a/98062.png)](https://asciinema.org/a/98062?autoplay=1)
+[![asciicast](https://asciinema.org/a/99422.png)](https://asciinema.org/a/99422?autoplay=1)
 
 <a name="releases"></a>
 ## Releases
@@ -79,9 +79,9 @@ $HOME
                     del args["containers"]
                     Ids = []
                     if "ALL" in containers: # tsaotun container rm ALL or tsaotun rm ALL
-                        d = Tsaotun()
-                        d.send('ps -a --format {{Id}}')
-                        ress = d.recv()
+                        cli = Tsaotun(original=True)
+                        cli.send('ps -a --format {{Id}}')
+                        ress = cli.recv()
                         if ress:
                             ress = ress.split('\n')
                             ress = [res[0:4] for res in ress]
@@ -132,7 +132,7 @@ $HOME
     - [Dockerfile](Dockerfile) is provided, and you can build it with: `docker build -t tsaotun .`. Once you finished, you'd like to run any command, such as:
         - `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock tsaotun version`
 
-<img src="http://i.imgur.com/2cnNvDl.png" width="540">
+<img src="http://i.imgur.com/o7Ii6cd.png" width="540">
 
 <a name="contribute"></a>
 ## Contribute
