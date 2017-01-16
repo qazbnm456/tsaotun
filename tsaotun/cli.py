@@ -3,7 +3,6 @@
 
 from __future__ import absolute_import
 
-from os import path
 import argparse
 import textwrap
 import sys
@@ -15,14 +14,15 @@ from .lib.docker_client import Docker
 from .lib.Utils.logger import Logger
 from .lib.Utils.switch import switch
 from .lib.Utils.shortcut import shortcut
+from .lib.Addon.loader import Loader
 
 
 class ArgumentParser(argparse.ArgumentParser):
     """Custom ArgumentParser"""
 
     def error(self, message):
-        self.print_help(sys.stderr)
-        raise RuntimeError
+        raise RuntimeError(
+            "\n{}\nSee '{} --help'".format(message, __name__.split('.')[0]))
 
 
 class Tsaotun(object):
@@ -56,6 +56,8 @@ class Tsaotun(object):
     response = Response()
 
     def __init__(self, original=False):
+        self.loader = None
+        self.docker = None
         self.__register()
         if original:
             self.set_original()
@@ -1331,6 +1333,34 @@ class Tsaotun(object):
                                     dest="format",
                                     help="Pretty-print containers using a Python template")
 
+        # --------------------------ADDON-----------------------------
+
+        addon_p = sp.add_parser('addon')
+        addon = addon_p.add_subparsers(
+            title="Addons", dest="addon_flag", help='type [COMMAND] --help to get additional help')
+
+        # -------------------------ADDON-LS---------------------------
+
+        addon.add_parser('ls',
+                         formatter_class=argparse.RawDescriptionHelpFormatter,
+                         usage="%(prog)s [OPTIONS]",
+                         description=textwrap.dedent('''\
+        List addons
+
+        Aliases:
+          ls, list
+         '''))
+
+        addon.add_parser('list',
+                         formatter_class=argparse.RawDescriptionHelpFormatter,
+                         usage="%(prog)s [OPTIONS]",
+                         description=textwrap.dedent('''\
+        List addons
+
+        Aliases:
+          ls, list
+         '''))
+
         # ---------------------------END------------------------------
 
         argcomplete.autocomplete(self.parser)
@@ -1353,30 +1383,12 @@ class Tsaotun(object):
         if self.args["original"]:
             self.set_original()
         if self.original == 0:
-            self.__plugin()
+            self.__addon()
 
-    def __plugin(self):
-        """Setup plugins"""
-        import pkgutil
-        import imp
-        plugins_dir = "{}/Tsaotun/plugins/".format(path.expanduser("~"))
-        if path.exists(plugins_dir):
-            from .lib.Utils.deepgetattr import deepgetattr
-            module_names = [n for _, n, _ in pkgutil.iter_modules(
-                ["{}".format(plugins_dir)])]
-            tmp = {}
-            for module_name in module_names:
-                try:
-                    f, filename, description = imp.find_module(
-                        module_name, [plugins_dir])
-                    mod = imp.load_module(
-                        module_name, f, filename, description)
-                    for k, v in mod.__override__.iteritems():
-                        tmp["{}|{}".format(k, v)] = deepgetattr(
-                            mod, "{}.{}".format(k, v))
-                except ImportError as e:
-                    Logger.logError(e)
-            self.push(**tmp)
+    def __addon(self):
+        """Setup addons"""
+        self.loader = Loader()
+        self.loader.load(self)
 
     def set_docker(self, host):
         """Set docker host"""
@@ -1454,6 +1466,7 @@ class Tsaotun(object):
                 self.response.message = str(e.response.text[:-1])
         except RuntimeError as e:
             self.response.set_exception(type(e))
+            self.response.message = str(e)
 
     def recv(self):
         """Return the buffer of tsaotun"""
@@ -1479,7 +1492,10 @@ class Tsaotun(object):
                         Logger.log(
                             "Error response from daemon: {}\n", self.response.message)
                     break
-                if case(SystemExit, KeyboardInterrupt, RuntimeError):
+                if case(RuntimeError):
+                    Logger.logError(
+                        "Error response from tsaotun: {}\n", self.response.message)
+                if case(SystemExit, KeyboardInterrupt):
                     pass
         else:
             if self.color:
@@ -1494,5 +1510,7 @@ def cli(argv=None, **intruders):
         tsaotun = Tsaotun(**intruders)
         tsaotun.send(argv)
         tsaotun.final()
-    except RuntimeError:
-        pass
+    except:
+        import traceback
+        Logger.logError(
+            "Error response from tsaotun:\n------------------------------\n {}", traceback.format_exc())

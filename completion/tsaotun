@@ -286,7 +286,7 @@ __tsaotun_complete_plugins_bundled() {
 
 # __tsaotun_plugins_installed returns a list of all plugins that were installed with
 # the Docker plugin API.
-# For built-in pugins, see `__tsaotun_plugins_bundled`.
+# For built-in plugins, see `__tsaotun_plugins_bundled`.
 __tsaotun_plugins_installed() {
 	__tsaotun_q plugin ls | awk 'NR>1 {print $1}'
 }
@@ -878,6 +878,43 @@ _tsaotun_tsaotun() {
 				__tsaotun_is_experimental && commands+=(${experimental_commands[*]})
 				COMPREPLY=( $( compgen -W "${commands[*]} help" -- "$cur" ) )
 			fi
+			;;
+	esac
+}
+
+_tsaotun_addon() {
+	local subcommands="
+		disable
+		enable
+		inspect
+		ls
+		rm
+		set
+	"
+	local aliases="
+		list
+		remove
+	"
+	__tsaotun_subcommands "$subcommands $aliases" && return
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+}
+
+_tsaotun_addon_list() {
+	_tsaotun_addon_ls
+}
+
+_tsaotun_addon_ls() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
 			;;
 	esac
 }
@@ -3945,6 +3982,7 @@ _tsaotun() {
 	shopt -s extglob
 
 	local commands=(
+		addon
 		attach
 		build
 		commit

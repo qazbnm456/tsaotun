@@ -23,7 +23,7 @@
 - 0.5 -- Now it's usable :tada:
 - 0.6 -- Fix format problems within lots of commands
 - 0.7 -- Code cleanup and move root commands into their command groups (such as container, image, network, and etc)
-- 0.8 -- Plugin feature works, but is still under heavy development.
+- 0.8 -- Addon feature works, but is still under heavy development.
 - 0.8.1 -- Change name from 'Dokcer' to 'Tsaotun'.
 
 <a name="status"></a>
@@ -35,19 +35,20 @@
     - tsaotun image `inspect, ls, pull, build, save, rm, history`
     - tsaotun network `inspect, ls, create, rm, remove, connect, disconnect`
     - tsaotun volume `inspect, ls, create, rm, remove`
+    - tsaotun addon `ls`
 
-- Plugins feature is testing right now, and each plugin should has its own folder with `__init__.py` inside. Plugins folder struture shows like:
+- Addon feature is testing right now, and each addon should has its own folder with `__init__.py` inside. Addon folder struture shows like:
 
 ```
 $HOME
 └───Tsaotun
-    └───plugins
-        ├── plugin_A - __init__.py, ...
-        ├── plugin_B - __init__.py, ...
+    └───addons
+        ├── addon_A - __init__.py, ...
+        ├── addon_B - __init__.py, ...
         └───__init__.py
 ```
 
-- Sample plugin to remove "ALL" containers at once:
+- Sample addon to remove "ALL" containers at once:
     - ### __init__.py: To specify how to override the original command
         ```python
         from Container import rm
