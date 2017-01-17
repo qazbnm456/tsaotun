@@ -32,7 +32,6 @@ class Tsaotun(object):
     dry = 0
     level = 0
     verbose = 0
-    original = 0
     remove = False
     parser = None
     args = None
@@ -55,15 +54,19 @@ class Tsaotun(object):
 
     response = Response()
 
-    def __init__(self, original=False):
+    def __init__(self):
+        self.addons = {}
+        self.argparser = {}
         self.loader = None
         self.docker = None
         self.__register()
-        if original:
-            self.set_original()
 
     def __register(self):
         """Register arguments"""
+
+        def __pairs(self, child):
+            return {"Self": self, "Child": child}
+
         # -------------------------START------------------------------
         self.parser = ArgumentParser(
             formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -86,59 +89,65 @@ class Tsaotun(object):
         self.parser.add_argument('--verbose', '-v',
                                  action="count", dest="verbosity", default=0,
                                  help="set verbosity level")
-        self.parser.add_argument('--original', '-o',
-                                 action="store_true", dest="original",
-                                 help="original on/off")
 
         # ------------------------------------------------------------
 
-        sp = self.parser.add_subparsers(
+        system = self.parser.add_subparsers(
             title="Management Commands", dest="manage_flag")
+        self.argparser["System"] = __pairs(self.parser, system)
 
         # -------------------------VERSION----------------------------
 
-        sp.add_parser('version',
-                      formatter_class=argparse.RawDescriptionHelpFormatter,
-                      usage="%(prog)s [OPTIONS]",
-                      description=textwrap.dedent('''\
+        system_version = system.add_parser('version',
+                                           conflict_handler='resolve',
+                                           formatter_class=argparse.RawDescriptionHelpFormatter,
+                                           usage="%(prog)s [OPTIONS]",
+                                           description=textwrap.dedent('''\
         Show the Docker version information
          '''))
+        self.argparser["Version"] = __pairs(system_version, None)
 
         # ---------------------------INFO-----------------------------
 
-        sp.add_parser('info',
-                      formatter_class=argparse.RawDescriptionHelpFormatter,
-                      usage="%(prog)s",
-                      description=textwrap.dedent('''\
+        system_info = system.add_parser('info',
+                                        conflict_handler='resolve',
+                                        formatter_class=argparse.RawDescriptionHelpFormatter,
+                                        usage="%(prog)s",
+                                        description=textwrap.dedent('''\
         Display system-wide information
          '''))
+        self.argparser["Info"] = __pairs(system_info, None)
 
         # ---------------------------INSPECT--------------------------
 
-        inspect = sp.add_parser(
-            'inspect', formatter_class=argparse.RawDescriptionHelpFormatter,
+        system_inspect = system.add_parser(
+            'inspect',
+            conflict_handler='resolve', formatter_class=argparse.RawDescriptionHelpFormatter,
             usage="%(prog)s [OPTIONS] CONTAINER|IMAGE|TASK [CONTAINER|IMAGE|TASK...]",
             description=textwrap.dedent('''\
             Return low-level information on a container, image or task
             '''))
-        inspect.add_argument('object',
-                             type=str,
-                             help="Return low-level information on a container, image or task")
-        inspect.add_argument('--format', '-f',
-                             type=str,
-                             dest="format",
-                             help="Pretty-print containers using a Python template")
+        system_inspect.add_argument('object',
+                                    type=str,
+                                    help="Return low-level information on a container, image or task")
+        system_inspect.add_argument('--format', '-f',
+                                    type=str,
+                                    dest="format",
+                                    help="Pretty-print containers using a Python template")
+        self.argparser["Inspect"] = __pairs(system_inspect, None)
 
         # ------------------------CONTAINER---------------------------
 
-        container_p = sp.add_parser('container')
+        container_p = system.add_parser('container')
         container = container_p.add_subparsers(
             title="Containers", dest="container_flag", help='type [COMMAND] --help to get additional help')
+        self.argparser["Container"] = __pairs(container_p, container)
 
         # ---------------------CONTAINER-INSPECT----------------------
 
         container_inspect = container.add_parser(
-            'inspect', formatter_class=argparse.RawDescriptionHelpFormatter,
+            'inspect',
+            conflict_handler='resolve', formatter_class=argparse.RawDescriptionHelpFormatter,
             usage="%(prog)s [OPTIONS] CONTAINER [CONTAINER...]",
             description=textwrap.dedent('''\
             Display detailed information on one or more containers
@@ -154,6 +163,7 @@ class Tsaotun(object):
         # -----------------------CONTAINER-LS-------------------------
 
         container_ls = container.add_parser('ls',
+                                            conflict_handler='resolve',
                                             formatter_class=argparse.RawDescriptionHelpFormatter,
                                             usage="%(prog)s [OPTIONS]",
                                             description=textwrap.dedent('''\
@@ -206,6 +216,7 @@ class Tsaotun(object):
                                   help="Only display numeric IDs")
 
         container_list = container.add_parser('list',
+                                              conflict_handler='resolve',
                                               formatter_class=argparse.RawDescriptionHelpFormatter,
                                               usage="%(prog)s [OPTIONS]",
                                               description=textwrap.dedent('''\
@@ -234,6 +245,7 @@ class Tsaotun(object):
         # ------------------------CONTAINER-RUN------------------------
 
         container_run = container.add_parser('run',
+                                             conflict_handler='resolve',
                                              add_help=False,
                                              formatter_class=argparse.RawDescriptionHelpFormatter,
                                              usage="%(prog)s [OPTIONS] IMAGE [COMMAND] [ARG...]",
@@ -585,7 +597,8 @@ class Tsaotun(object):
         # --------------------CONTAINER-INSPECT-----------------------
 
         container_inspect = container.add_parser(
-            'inspect', formatter_class=argparse.RawDescriptionHelpFormatter,
+            'inspect',
+            conflict_handler='resolve', formatter_class=argparse.RawDescriptionHelpFormatter,
             usage="%(prog)s [OPTIONS] CONTAINER|IMAGE|TASK [CONTAINER|IMAGE|TASK...]",
             description=textwrap.dedent('''\
             Return low-level information on a container, image or task
@@ -601,6 +614,7 @@ class Tsaotun(object):
         # ----------------------CONTAINER-LOGS------------------------
 
         container_logs = container.add_parser('logs',
+                                              conflict_handler='resolve',
                                               formatter_class=argparse.RawDescriptionHelpFormatter,
                                               usage="%(prog)s [OPTIONS] CONTAINER",
                                               description=textwrap.dedent('''\
@@ -614,6 +628,7 @@ class Tsaotun(object):
         # ---------------------CONTAINER-STATS------------------------
 
         container_stats = container.add_parser('stats',
+                                               conflict_handler='resolve',
                                                formatter_class=argparse.RawDescriptionHelpFormatter,
                                                usage="%(prog)s [OPTIONS] [CONTAINER...]",
                                                description=textwrap.dedent('''\
@@ -639,6 +654,7 @@ class Tsaotun(object):
         # --------------------CONTAINER-RENAME------------------------
 
         container_rename = container.add_parser('rename',
+                                                conflict_handler='resolve',
                                                 formatter_class=argparse.RawDescriptionHelpFormatter,
                                                 usage="%(prog)s CONTAINER NEW_NAME",
                                                 description=textwrap.dedent('''\
@@ -656,6 +672,7 @@ class Tsaotun(object):
         # --------------------CONTAINER-RESTART-------------------------
 
         container_restart = container.add_parser('restart',
+                                                 conflict_handler='resolve',
                                                  formatter_class=argparse.RawDescriptionHelpFormatter,
                                                  usage="%(prog)s [OPTIONS] CONTAINER [CONTAINER...]",
                                                  description=textwrap.dedent('''\
@@ -676,6 +693,7 @@ class Tsaotun(object):
         # ---------------------CONTAINER-EXEC-------------------------
 
         container_exec = container.add_parser('exec',
+                                              conflict_handler='resolve',
                                               formatter_class=argparse.RawDescriptionHelpFormatter,
                                               usage="%(prog)s [OPTIONS] CONTAINER COMMAND [ARG...]",
                                               description=textwrap.dedent('''\
@@ -707,6 +725,7 @@ class Tsaotun(object):
         # -----------------------CONTAINER-CP-------------------------
 
         container_cp = container.add_parser('cp',
+                                            conflict_handler='resolve',
                                             formatter_class=argparse.RawDescriptionHelpFormatter,
                                             usage="%(prog)s [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-\ndocker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH",
                                             description=textwrap.dedent('''\
@@ -727,6 +746,7 @@ class Tsaotun(object):
         # ----------------------CONTAINER-RM--------------------------
 
         container_rm = container.add_parser('rm',
+                                            conflict_handler='resolve',
                                             formatter_class=argparse.RawDescriptionHelpFormatter,
                                             usage="%(prog)s [OPTIONS] CONTAINER [CONTAINER...]",
                                             description=textwrap.dedent('''\
@@ -745,6 +765,7 @@ class Tsaotun(object):
         # -----------------------CONTAINER-TOP------------------------
 
         container_top = container.add_parser('top',
+                                             conflict_handler='resolve',
                                              formatter_class=argparse.RawDescriptionHelpFormatter,
                                              usage="%(prog)s CONTAINER [ps OPTIONS]",
                                              description=textwrap.dedent('''\
@@ -761,14 +782,16 @@ class Tsaotun(object):
 
         # --------------------------IMAGE-----------------------------
 
-        image_p = sp.add_parser('image')
+        image_p = system.add_parser('image')
         image = image_p.add_subparsers(
             title="Images", dest="image_flag", help='type [COMMAND] --help to get additional help')
+        self.argparser["Image"] = __pairs(image_p, image)
 
         # -----------------------IMAGE-INSPECT------------------------
 
         image_inspect = image.add_parser(
-            'inspect', formatter_class=argparse.RawDescriptionHelpFormatter,
+            'inspect',
+            conflict_handler='resolve', formatter_class=argparse.RawDescriptionHelpFormatter,
             usage="%(prog)s [OPTIONS] IMAGE [IMAGE...]",
             description=textwrap.dedent('''\
             Display detailed information on one or more images
@@ -784,6 +807,7 @@ class Tsaotun(object):
         # -------------------------IMAGE-LS---------------------------
 
         image_ls = image.add_parser('ls',
+                                    conflict_handler='resolve',
                                     formatter_class=argparse.RawDescriptionHelpFormatter,
                                     usage="%(prog)s [OPTIONS] [REPOSITORY[:TAG]]",
                                     description=textwrap.dedent('''\
@@ -813,6 +837,7 @@ class Tsaotun(object):
                               help="Only show numeric IDs")
 
         image_images = image.add_parser('images',
+                                        conflict_handler='resolve',
                                         formatter_class=argparse.RawDescriptionHelpFormatter,
                                         usage="%(prog)s [OPTIONS] [REPOSITORY[:TAG]]",
                                         description=textwrap.dedent('''\
@@ -842,6 +867,7 @@ class Tsaotun(object):
                                   help="Only show numeric IDs")
 
         image_list = image.add_parser('list',
+                                      conflict_handler='resolve',
                                       formatter_class=argparse.RawDescriptionHelpFormatter,
                                       usage="%(prog)s [OPTIONS] [REPOSITORY[:TAG]]",
                                       description=textwrap.dedent('''\
@@ -873,6 +899,7 @@ class Tsaotun(object):
         # ------------------------IMAGE-PULL--------------------------
 
         image_pull = image.add_parser('pull',
+                                      conflict_handler='resolve',
                                       formatter_class=argparse.RawDescriptionHelpFormatter,
                                       usage="%(prog)s [OPTIONS] NAME[:TAG|@DIGEST]",
                                       description=textwrap.dedent('''\
@@ -887,6 +914,7 @@ class Tsaotun(object):
         # ------------------------IMAGE-BUILD-------------------------
 
         image_pull = image.add_parser('build',
+                                      conflict_handler='resolve',
                                       formatter_class=argparse.RawDescriptionHelpFormatter,
                                       usage="%(prog)s [OPTIONS] PATH | URL | -",
                                       description=textwrap.dedent('''\
@@ -914,6 +942,7 @@ class Tsaotun(object):
         # ------------------------IMAGE-SAVE--------------------------
 
         image_save = image.add_parser('save',
+                                      conflict_handler='resolve',
                                       formatter_class=argparse.RawDescriptionHelpFormatter,
                                       usage="%(prog)s [OPTIONS] IMAGE [IMAGE...]",
                                       description=textwrap.dedent('''\
@@ -933,6 +962,7 @@ class Tsaotun(object):
         # -------------------------IMAGE-RM---------------------------
 
         image_rm = image.add_parser('rm',
+                                    conflict_handler='resolve',
                                     formatter_class=argparse.RawDescriptionHelpFormatter,
                                     usage="%(prog)s [OPTIONS] IMAGE [IMAGE...]",
                                     description=textwrap.dedent('''\
@@ -971,6 +1001,7 @@ class Tsaotun(object):
                                help="Force removal of the image")
 
         image_remove = image.add_parser('remove',
+                                        conflict_handler='resolve',
                                         formatter_class=argparse.RawDescriptionHelpFormatter,
                                         usage="%(prog)s [OPTIONS] IMAGE [IMAGE...]",
                                         description=textwrap.dedent('''\
@@ -992,6 +1023,7 @@ class Tsaotun(object):
         # -----------------------IMAGE-HISTORY------------------------
 
         image_history = image.add_parser('history',
+                                         conflict_handler='resolve',
                                          formatter_class=argparse.RawDescriptionHelpFormatter,
                                          usage="%(prog)s [OPTIONS] IMAGE",
                                          description=textwrap.dedent('''\
@@ -1004,13 +1036,15 @@ class Tsaotun(object):
 
         # ------------------------NETWORK-----------------------------
 
-        network_p = sp.add_parser('network')
+        network_p = system.add_parser('network')
         network = network_p.add_subparsers(
             title="Networks", dest="network_flag", help='type [COMMAND] --help to get additional help')
+        self.argparser["Network"] = __pairs(network_p, network)
 
         # -----------------------NETWORK-LS---------------------------
 
         network_ls = network.add_parser('ls',
+                                        conflict_handler='resolve',
                                         formatter_class=argparse.RawDescriptionHelpFormatter,
                                         usage="%(prog)s [OPTIONS]",
                                         description=textwrap.dedent('''\
@@ -1029,6 +1063,7 @@ class Tsaotun(object):
         # ---------------------NETWORK-CREATE--------------------------
 
         network_create = network.add_parser('create',
+                                            conflict_handler='resolve',
                                             formatter_class=argparse.RawDescriptionHelpFormatter,
                                             usage="%(prog)s [OPTIONS] NETWORK",
                                             description=textwrap.dedent('''\
@@ -1089,7 +1124,8 @@ class Tsaotun(object):
         # -----------------------NETWORK-RM----------------------------
 
         network_rm = network.add_parser(
-            'rm', formatter_class=argparse.RawDescriptionHelpFormatter,
+            'rm',
+            conflict_handler='resolve', formatter_class=argparse.RawDescriptionHelpFormatter,
             usage="%(prog)s NETWORK [NETWORK...]",
             description=textwrap.dedent('''\
         Remove one or more networks
@@ -1122,7 +1158,8 @@ class Tsaotun(object):
         # -----------------------NETWORK-INSPECT-----------------------
 
         network_inspect = network.add_parser(
-            'inspect', formatter_class=argparse.RawDescriptionHelpFormatter,
+            'inspect',
+            conflict_handler='resolve', formatter_class=argparse.RawDescriptionHelpFormatter,
             usage="%(prog)s [OPTIONS] NETWORK [NETWORK...]",
             description=textwrap.dedent('''\
             Display detailed information on one or more networks
@@ -1140,7 +1177,8 @@ class Tsaotun(object):
         # ------------------------NETWORK-CONNECT-----------------------
 
         network_connect = network.add_parser(
-            'connect', formatter_class=argparse.RawDescriptionHelpFormatter,
+            'connect',
+            conflict_handler='resolve', formatter_class=argparse.RawDescriptionHelpFormatter,
             usage="%(prog)s [OPTIONS] NETWORK CONTAINER",
             description=textwrap.dedent('''\
             Connect a container to a network
@@ -1185,7 +1223,8 @@ class Tsaotun(object):
         # ------------------------NETWORK-DISCONNECT--------------------
 
         network_disconnect = network.add_parser(
-            'disconnect', formatter_class=argparse.RawDescriptionHelpFormatter,
+            'disconnect',
+            conflict_handler='resolve', formatter_class=argparse.RawDescriptionHelpFormatter,
             usage="%(prog)s [OPTIONS] NETWORK CONTAINER",
             description=textwrap.dedent('''\
             Disconnect a container from a network
@@ -1207,7 +1246,8 @@ class Tsaotun(object):
 
         """
         network_prune = network.add_parser(
-            'prune', formatter_class=argparse.RawDescriptionHelpFormatter,
+            'prune',
+            conflict_handler='resolve', formatter_class=argparse.RawDescriptionHelpFormatter,
             usage="%(prog)s [OPTIONS]",
             description=textwrap.dedent('''\
             Remove all unused networks
@@ -1220,13 +1260,15 @@ class Tsaotun(object):
 
         # -------------------------VOLUME-----------------------------
 
-        volume_p = sp.add_parser('volume')
+        volume_p = system.add_parser('volume')
         volume = volume_p.add_subparsers(
             title="Volumes", dest="volume_flag", help='type [COMMAND] --help to get additional help')
+        self.argparser["Volume"] = __pairs(volume_p, volume)
 
         # ------------------------VOLUME-LS---------------------------
 
         volume_ls = volume.add_parser('ls',
+                                      conflict_handler='resolve',
                                       formatter_class=argparse.RawDescriptionHelpFormatter,
                                       usage="%(prog)s [OPTIONS]",
                                       description=textwrap.dedent('''\
@@ -1245,6 +1287,7 @@ class Tsaotun(object):
         # ----------------------VOLUME-CREATE--------------------------
 
         volume_create = volume.add_parser('create',
+                                          conflict_handler='resolve',
                                           formatter_class=argparse.RawDescriptionHelpFormatter,
                                           usage="%(prog)s [OPTIONS] [VOLUME]",
                                           description=textwrap.dedent('''\
@@ -1276,6 +1319,7 @@ class Tsaotun(object):
         # ------------------------VOLUME-RM----------------------------
 
         volume_rm = volume.add_parser('rm',
+                                      conflict_handler='resolve',
                                       formatter_class=argparse.RawDescriptionHelpFormatter,
                                       usage="%(prog)s [OPTIONS] VOLUME [VOLUME...]",
                                       description=textwrap.dedent('''\
@@ -1296,6 +1340,7 @@ class Tsaotun(object):
                                help="Volumes to be removed")
 
         volume_remove = volume.add_parser('remove',
+                                          conflict_handler='resolve',
                                           formatter_class=argparse.RawDescriptionHelpFormatter,
                                           usage="%(prog)s [OPTIONS] VOLUME [VOLUME...]",
                                           description=textwrap.dedent('''\
@@ -1318,7 +1363,8 @@ class Tsaotun(object):
         # ------------------------VOLUME-INSPECT-----------------------
 
         volume_inspect = volume.add_parser(
-            'inspect', formatter_class=argparse.RawDescriptionHelpFormatter,
+            'inspect',
+            conflict_handler='resolve', formatter_class=argparse.RawDescriptionHelpFormatter,
             usage="%(prog)s [OPTIONS] VOLUME [VOLUME...]",
             description=textwrap.dedent('''\
             Display detailed information on one or more volumes
@@ -1335,13 +1381,15 @@ class Tsaotun(object):
 
         # --------------------------ADDON-----------------------------
 
-        addon_p = sp.add_parser('addon')
+        addon_p = system.add_parser('addon')
         addon = addon_p.add_subparsers(
             title="Addons", dest="addon_flag", help='type [COMMAND] --help to get additional help')
+        self.argparser["Addon"] = __pairs(addon_p, addon)
 
         # -------------------------ADDON-LS---------------------------
 
         addon.add_parser('ls',
+                         conflict_handler='resolve',
                          formatter_class=argparse.RawDescriptionHelpFormatter,
                          usage="%(prog)s [OPTIONS]",
                          description=textwrap.dedent('''\
@@ -1352,6 +1400,7 @@ class Tsaotun(object):
          '''))
 
         addon.add_parser('list',
+                         conflict_handler='resolve',
                          formatter_class=argparse.RawDescriptionHelpFormatter,
                          usage="%(prog)s [OPTIONS]",
                          description=textwrap.dedent('''\
@@ -1363,6 +1412,7 @@ class Tsaotun(object):
 
         # ---------------------------END------------------------------
 
+        self.__addon()
         argcomplete.autocomplete(self.parser)
 
     def __parse(self, argv):
@@ -1380,19 +1430,16 @@ class Tsaotun(object):
             self.set_debug()
         if self.args["dry"]:
             self.set_dry()
-        if self.args["original"]:
-            self.set_original()
-        if self.original == 0:
-            self.__addon()
 
     def __addon(self):
         """Setup addons"""
-        self.loader = Loader()
-        self.loader.load(self)
+        self.loader = Loader(argparser=self.argparser)
+        self.addons, self.argparser = self.loader.load()
 
     def set_docker(self, host):
         """Set docker host"""
         self.docker = Docker(host)
+        self.push(**self.addons)
 
     def set_color(self):
         """Set terminal color"""
@@ -1405,10 +1452,6 @@ class Tsaotun(object):
     def set_dry(self):
         """dry-run on/off"""
         self.dry = 1
-
-    def set_original(self):
-        """Set original on/off"""
-        self.original = 1
 
     def set_verbose(self, level):
         """Set verbosity level"""
@@ -1432,7 +1475,6 @@ class Tsaotun(object):
             del self.args["debug"]
             del self.args["dry"]
             del self.args["verbosity"]
-            del self.args["original"]
             if (manage_flag == "container") and ("rm" in self.args):
                 if (command_flag is not None) and (command_flag == "run"):
                     self.remove = self.args["rm"]

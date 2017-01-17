@@ -16,11 +16,7 @@
 <a name="releases"></a>
 ## Releases
 
-- 0.1 -- Initial release
-- 0.2 -- More commands supported
-- 0.3 -- More commands and options
-- 0.4 -- Commands and options are almost done, except for swarm, node, service categories
-- 0.5 -- Now it's usable :tada:
+- 0.5 -- First usable version :tada:
 - 0.6 -- Fix format problems within lots of commands
 - 0.7 -- Code cleanup and move root commands into their command groups (such as container, image, network, and etc)
 - 0.8 -- Addon feature works, but is still under heavy development.
@@ -48,11 +44,28 @@ $HOME
         └───__init__.py
 ```
 
-- Sample addon to remove "ALL" containers at once:
+- Sample addon to remove "ALL" containers at once, no matter it's dead or alive:
     - ### __init__.py: To specify how to override the original command
         ```python
-        from Container import rm
+        """Configuration file for this addon"""
+
+        from .Container import rm
+
         __override__ = {'Container.rm': 'Rm'}
+        __argparse__ = [
+            {
+                'namespace': "Container",
+                'position': "Child",
+                'subcommand': "rm",
+                'actions': [
+                    "add_argument('--clear',            \
+                                   action='store_true', \
+                                   dest='clear',        \
+                                   help='Remove all dead and alive containers. \
+                                         You still need to give a whatever container ID.')",
+                ],
+            },
+        ]
         ```
 
     - ### Container/rm.py
@@ -77,10 +90,12 @@ $HOME
             def eval_command(self, args):
                 try:
                     containers = args["containers"]
+                    clear = args["clear"]
                     del args["containers"]
+                    del args["clear"]
                     Ids = []
-                    if "ALL" in containers: # tsaotun container rm ALL or tsaotun rm ALL
-                        cli = Tsaotun(original=True)
+                    if clear:
+                        cli = Tsaotun()
                         cli.send('ps -a --format {{Id}}')
                         ress = cli.recv()
                         if ress:
@@ -90,13 +105,11 @@ $HOME
                                 Ids.append(Id)
                                 args['container'] = Id
                                 self.client.remove_container(**args)
-                                del args['container']
                     else:
                         for Id in containers:
                             Ids.append(Id)
                             args['container'] = Id
                             self.client.remove_container(**args)
-                            del args['container']
                     self.settings[self.name] = '\n'.join(Ids)
 
                 except APIError as e:
@@ -133,7 +146,7 @@ $HOME
     - [Dockerfile](Dockerfile) is provided, and you can build it with: `docker build -t tsaotun .`. Once you finished, you'd like to run any command, such as:
         - `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock tsaotun version`
 
-<img src="http://i.imgur.com/o7Ii6cd.png" width="540">
+<img src="http://i.imgur.com/WRkfRoq.png" width="540">
 
 <a name="contribute"></a>
 ## Contribute

@@ -9,8 +9,9 @@ from ..Utils.deepgetattr import deepgetattr
 class Loader(object):
     """Addon Loader"""
 
-    def __init__(self, addon_path="{}/Tsaotun/addons/".format(path.expanduser("~"))):
+    def __init__(self, argparser=None, addon_path="{}/Tsaotun/addons/".format(path.expanduser("~"))):
         self.__locate(addon_path)
+        self.argparser = argparser
 
     def __locate(self, addon_path):
         """Locate addon path"""
@@ -19,7 +20,40 @@ class Loader(object):
         else:
             raise RuntimeError("addon path not found: {}.".format(addon_path))
 
-    def load(self, tsaotun):
+    def __parse_args(self, configs):
+        """Parsing __argparse__ and assign to argparser"""
+        if self.argparser:
+            for config in configs:
+                if config["position"] == 'Self':
+                    parser = self.argparser[
+                        config["namespace"]][config["position"]]
+                    for action in config["actions"]:
+                        exec("parser.{}".format(action), {'parser': parser})
+                    self.argparser[config["namespace"]][
+                        config["position"]] = parser
+                else:
+                    if config["subcommand"]:
+                        parser = self.argparser[config["namespace"]][
+                            config["position"]].choices.get(config["subcommand"])
+                        for action in config["actions"]:
+                            exec("parser.{}".format(action), {'parser': parser})
+                        self.argparser[config["namespace"]][
+                            config["position"]].choices.update({config["subcommand"]: parser})
+                    else:
+                        parser = self.argparser[
+                            config["namespace"]][config["position"]]
+                        subparser = None
+                        for i, action in enumerate(config["actions"]):
+                            if i == 0:
+                                exec("global subparser; subparser = parser.{}".format(action))
+                            else:
+                                exec("global subparser; subparser.{}".format(action))
+                        self.argparser[config["namespace"]][
+                            config["position"]] = parser
+        else:
+            raise RuntimeError("argparser is not specified.")
+
+    def load(self):
         """Load addons"""
         addon_names = [n for _, n, _ in pkgutil.iter_modules(
             ["{}".format(self.addon_path)])]
@@ -33,10 +67,11 @@ class Loader(object):
                 for k, v in mod.__override__.iteritems():
                     addons["{}|{}".format(k, v)] = deepgetattr(
                         mod, "{}.{}".format(k, v))
+                self.__parse_args(mod.__argparse__)
             except ImportError as e:
                 raise RuntimeError(str(e))
 
-        tsaotun.push(**addons)
+        return addons, self.argparser
 
     def addons(self):
         """List addons"""
