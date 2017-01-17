@@ -45,7 +45,7 @@ class Loader(object):
                         subparser = None
                         for i, action in enumerate(config["actions"]):
                             if i == 0:
-                                exec("global subparser; subparser = parser.{}".format(action))
+                                exec("import argparse; global subparser; subparser = parser.{}".format(action))
                             else:
                                 exec("global subparser; subparser.{}".format(action))
                         self.argparser[config["namespace"]][

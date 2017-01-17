@@ -64,8 +64,16 @@ class Docker(object):
             else:
                 self.command_flag = self.category
                 self.category = 'system'
-            mod = __import__("Docker.{}.{}".format(self.category.capitalize(), self.command_flag),
-                             globals(), locals(), ['dummy'], -1)
+            try:
+                mod = __import__("Docker.{}.{}".format(self.category.capitalize(), self.command_flag),
+                                 globals(), locals(), ['dummy'], -1)
+            except ImportError:
+                self.category = 'addon'
+                try:
+                    mod = __import__("Docker.{}".format(self.category.capitalize()),
+                                     globals(), locals(), ['dummy'], -1)
+                except ImportError:
+                    raise
             self.__intrude(mod)
             mod_instance = getattr(mod, self.command_flag.capitalize())()
 
@@ -91,5 +99,5 @@ class Docker(object):
         if self.__stack:
             for k, v in self.__stack.iteritems():
                 override, value = k.split('|')
-                if "tsaotun.lib.Docker." + override == mod.__name__:
+                if (mod.__name__ in "tsaotun.lib.Docker." + override) and (v.__name__ == self.command_flag.capitalize()):
                     setattr(mod, value, v)
