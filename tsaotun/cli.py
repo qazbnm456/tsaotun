@@ -1440,6 +1440,21 @@ class Tsaotun(object):
                                    metavar="ADDON",
                                    help="Addon to be disabled.")
 
+        # -----------------------ADDON-INSPECT------------------------
+
+        addon_inspect = addon.add_parser('inspect',
+                                         conflict_handler='resolve',
+                                         formatter_class=argparse.RawDescriptionHelpFormatter,
+                                         usage="%(prog)s ADDON",
+                                         description=textwrap.dedent('''\
+        Inspect an addon
+         '''))
+
+        addon_inspect.add_argument('addon',
+                                   type=str,
+                                   metavar="ADDON",
+                                   help="Addon to be inspected.")
+
         # ---------------------------END------------------------------
 
         self.__addon()
@@ -1551,22 +1566,26 @@ class Tsaotun(object):
                 if case(ConnectionError, AttributeError, ValueError):
                     if self.color:
                         Logger.logError(
-                            "Error response from tsaotun: {}\n", self.response.message)
+                            "Error response from tsaotun:\n------------------------------\n{}\n", self.response.message)
                     else:
                         Logger.log(
-                            "Error response from tsaotun: {}\n", self.response.message)
+                            "Error response from tsaotun:\n------------------------------\n{}\n", self.response.message)
                     break
                 if case(APIError, NotFound):
                     if self.color:
                         Logger.logError(
-                            "Error response from daemon: {}\n", self.response.message)
+                            "Error response from daemon:\n------------------------------\n{}\n", self.response.message)
                     else:
                         Logger.log(
-                            "Error response from daemon: {}\n", self.response.message)
+                            "Error response from daemon:\n------------------------------\n{}\n", self.response.message)
                     break
                 if case(RuntimeError):
-                    Logger.logError(
-                        "Error response from tsaotun: {}\n", self.response.message)
+                    if self.color:
+                        Logger.logError(
+                            "Error response from tsaotun:\n------------------------------\n{}\n", self.response.message)
+                    else:
+                        Logger.log(
+                            "Error response from tsaotun:\n------------------------------\n{}\n", self.response.message)
                 if case(SystemExit, KeyboardInterrupt):
                     pass
         else:
@@ -1585,4 +1604,4 @@ def cli(argv=None, **intruders):
     except:
         import traceback
         Logger.logError(
-            "Error response from tsaotun:\n------------------------------\n {}", traceback.format_exc())
+            "Error response from tsaotun:\n------------------------------\n{}", traceback.format_exc())

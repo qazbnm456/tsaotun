@@ -7,10 +7,12 @@ from ast import literal_eval
 from ConfigParser import RawConfigParser
 
 from ..Utils.deepgetattr import deepgetattr
+from ..Utils.hightlight import hightlight_python
 
 
 class Loader(object):
     """Addon Loader"""
+    inspects = {}
 
     def __init__(self, argparser=None, tsaotun_global_config="{}/Tsaotun/config.ini".format(path.expanduser("~")), addon_path="{}/Tsaotun/addons/".format(path.expanduser("~"))):
         self.argparser = argparser
@@ -71,7 +73,8 @@ class Loader(object):
         if cfg.has_section(section) is False:
             cfg.add_section(section)
         if options:
-            stored = [cfg.get(section, option) if cfg.has_option(section, option) else cfg.set(section, option, 'False') is True for option in options]
+            stored = [cfg.get(section, option) if cfg.has_option(section, option) else cfg.set(
+                section, option, 'False') is True for option in options]
         else:
             stored = cfg.items(section)
         with open(self.tsaotun_global_config, 'wb') as f:
@@ -88,40 +91,58 @@ class Loader(object):
             ["{}".format(self.addon_path)])]
         addons = {}
         for addon_name, active in zip(addon_names, self.__active(addon_names)):
-            if literal_eval(active):
-                try:
-                    f, filename, description = imp.find_module(
-                        addon_name, [self.addon_path])
-                    mod = imp.load_module(
-                        addon_name, f, filename, description)
+            try:
+                f, filename, description = imp.find_module(
+                    addon_name, [self.addon_path])
+                mod = imp.load_module(
+                    addon_name, f, filename, description)
+                self.inspects[addon_name] = ''.join(
+                    [mod.__file__.split('.')[0], '.py'])
+                if literal_eval(active):
                     for k, v in mod.__override__.iteritems():
                         addons["{}|{}".format(k, v)] = deepgetattr(
                             mod, "{}.{}".format(k, v))
                     self.__parse_args(mod.__argparse__)
-                except ImportError as e:
-                    raise RuntimeError(str(e))
+            except ImportError as e:
+                raise RuntimeError(str(e))
 
         return addons, self.argparser
 
     def enable(self, addon):
         """Enable an addon"""
-        cfg = RawConfigParser()
-        with open(self.tsaotun_global_config) as f:
-            cfg.readfp(f, self.tsaotun_global_config)
-        cfg.set('addon', addon, 'True')
-        with open(self.tsaotun_global_config, 'wb') as f:
-            cfg.write(f)
-        return "Done!"
+        try:
+            if self.inspects[addon]:
+                cfg = RawConfigParser()
+                with open(self.tsaotun_global_config) as f:
+                    cfg.readfp(f, self.tsaotun_global_config)
+                cfg.set('addon', addon, 'True')
+                with open(self.tsaotun_global_config, 'wb') as f:
+                    cfg.write(f)
+                return "Done!"
+        except KeyError as e:
+            raise RuntimeError("No such addon: {}".format(str(e)))
 
     def disable(self, addon):
         """Disable an addon"""
-        cfg = RawConfigParser()
-        with open(self.tsaotun_global_config) as f:
-            cfg.readfp(f, self.tsaotun_global_config)
-        cfg.set('addon', addon, 'False')
-        with open(self.tsaotun_global_config, 'wb') as f:
-            cfg.write(f)
-        return "Done!"
+        try:
+            if self.inspects[addon]:
+                cfg = RawConfigParser()
+                with open(self.tsaotun_global_config) as f:
+                    cfg.readfp(f, self.tsaotun_global_config)
+                cfg.set('addon', addon, 'False')
+                with open(self.tsaotun_global_config, 'wb') as f:
+                    cfg.write(f)
+                return "Done!"
+        except KeyError as e:
+            raise RuntimeError("No such addon: {}".format(str(e)))
+
+    def inspect(self, addon):
+        """Inspect an addon"""
+        try:
+            args = {'sourcefile': self.inspects[addon]}
+            return hightlight_python(args)
+        except KeyError as e:
+            raise RuntimeError("No such addon: {}".format(str(e)))
 
     def addons(self):
         """List addons"""
