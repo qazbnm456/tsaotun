@@ -22,7 +22,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
     def error(self, message):
         raise RuntimeError(
-            "\n{}\nSee '{} --help'".format(message, __name__.split('.')[0]))
+            "\n{}\nSee '[COMMAND] --help'".format(message))
 
 
 class Tsaotun(object):
@@ -1409,6 +1409,36 @@ class Tsaotun(object):
         Aliases:
           ls, list
          '''))
+
+        # -----------------------ADDON-ENABLE-------------------------
+
+        addon_enable = addon.add_parser('enable',
+                                        conflict_handler='resolve',
+                                        formatter_class=argparse.RawDescriptionHelpFormatter,
+                                        usage="%(prog)s ADDON",
+                                        description=textwrap.dedent('''\
+        Enable an addon
+         '''))
+
+        addon_enable.add_argument('addon',
+                                  type=str,
+                                  metavar="ADDON",
+                                  help="Addon to be enabled.")
+
+        # ----------------------ADDON-DISABLE-------------------------
+
+        addon_disable = addon.add_parser('disable',
+                                         conflict_handler='resolve',
+                                         formatter_class=argparse.RawDescriptionHelpFormatter,
+                                         usage="%(prog)s ADDON",
+                                         description=textwrap.dedent('''\
+        Enable an addon
+         '''))
+
+        addon_disable.add_argument('addon',
+                                   type=str,
+                                   metavar="ADDON",
+                                   help="Addon to be disabled.")
 
         # ---------------------------END------------------------------
 
