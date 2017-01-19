@@ -970,6 +970,17 @@ _tsaotun_addon_inspect() {
 	esac
 }
 
+_tsaotun_addon_rm() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			__tsaotun_complete_addons_installed
+			;;
+	esac
+}
+
 _tsaotun_attach() {
 	_tsaotun_container_attach
 }
