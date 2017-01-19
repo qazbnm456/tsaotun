@@ -21,6 +21,7 @@
 - 0.7 -- Code cleanup and move root commands into their command groups (such as container, image, network, and etc)
 - 0.8 -- Addon feature works, but is still under heavy development.
 - 0.8.1 -- Change name from 'Dokcer' to 'Tsaotun'.
+- 0.8.2 -- Addon feature is close to stable.
 
 <a name="status"></a>
 ## Status quo
@@ -31,7 +32,7 @@
     - tsaotun image `inspect, ls, pull, build, save, rm, history`
     - tsaotun network `inspect, ls, create, rm, remove, connect, disconnect`
     - tsaotun volume `inspect, ls, create, rm, remove`
-    - tsaotun addon `ls, enable, disable`
+    - tsaotun addon `ls, enable, disable, inspect`
 
 - Addon feature is testing right now, and each addon should has its own folder with `__init__.py` inside. Addon folder struture shows like:
 
@@ -124,8 +125,8 @@ $HOME
 <a name="feature"></a>
 ## Feature
 
-- You can run any command docker can run on tsaotun.
-- It's written in Python with love of docker API, so you can tune it by yourself!
+- You can run any command docker can run on Tsaotun.
+- It's written in Python with love of API of docker, so you can tune it by yourself!
 - It means you can have your own implementation of docker command line tool. :smirk:
 
 <a name="install"></a>
@@ -153,7 +154,7 @@ $HOME
 
 | Linux | Windows | MacOSX |
 |------------------|---------|---------|
-| ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-1.12.6-blue.svg) | ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-1.12.6-blue.svg) | ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-1.12.6-blue.svg) |
+| ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-1.13.0-blue.svg) | ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-1.13.0-blue.svg) | ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-1.13.0-blue.svg) |
 
 Wanna enrich the possibilities that tsaotun can inspire? Send pull requests or issues immediately!
 

@@ -22,7 +22,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
     def error(self, message):
         raise RuntimeError(
-            "\n{}\nSee '[COMMAND] --help'".format(message))
+            "{}\nSee '[COMMAND] --help'".format(message))
 
 
 class Tsaotun(object):

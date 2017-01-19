@@ -60,6 +60,24 @@ __tsaotun_q() {
 	tsaotun ${host:+-H "$host"} ${config:+--config "$config"} 2>/dev/null "$@"
 }
 
+# __tsaotun_addons_installed returns a list of all addons that were installed with
+# the Tsaotun addon API.
+__tsaotun_addons_installed() {
+	__tsaotun_q addon ls | awk 'NR>1 {print $1}'
+}
+
+# __tsaotun_complete_addons_installed applies completion of addons that were installed
+# with the Tsaotun addon API, based on the current value of `$cur` or the value of
+# the optional first option `--cur`, if given.
+__tsaotun_complete_addons_installed() {
+	local current="$cur"
+	if [ "$1" = "--cur" ] ; then
+		current="$2"
+		shift 2
+	fi
+	COMPREPLY=( $(compgen -W "$(__tsaotun_addons_installed "$@")" -- "$current") )
+}
+
 # __tsaotun_containers returns a list of containers. Additional options to
 # `tsaotun ps` may be specified in order to filter the list, e.g.
 # `__tsaotun_containers --filter status=running`
@@ -889,7 +907,7 @@ _tsaotun_addon() {
 		inspect
 		ls
 		rm
-		set
+		install
 	"
 	local aliases="
 		list
@@ -915,6 +933,39 @@ _tsaotun_addon_ls() {
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+	esac
+}
+
+_tsaotun_addon_disable() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			__tsaotun_complete_addons_installed
+			;;
+	esac
+}
+
+_tsaotun_addon_enable() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			__tsaotun_complete_addons_installed
+			;;
+	esac
+}
+
+_tsaotun_addon_inspect() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			__tsaotun_complete_addons_installed
 			;;
 	esac
 }
@@ -2348,6 +2399,7 @@ _tsaotun_inspect() {
 			case "$type" in
 				'')
 					COMPREPLY=( $( compgen -W "
+						$(__tsaotun_addons_installed)
 						$(__tsaotun_containers --all)
 						$(__tsaotun_images)
 						$(__tsaotun_networks)
@@ -2356,6 +2408,9 @@ _tsaotun_inspect() {
 						$(__tsaotun_services)
 						$(__tsaotun_volumes)
 					" -- "$cur" ) )
+					;;
+				addon)
+					__tsaotun_complete_addons_installed
 					;;
 				container)
 					__tsaotun_complete_containers_all
