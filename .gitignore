@@ -20,4 +20,3 @@ dist
 
 # Ignore compiled documentation
 _build/
-README.rst
