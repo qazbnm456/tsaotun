@@ -14,6 +14,7 @@ from ..Utils.urlutil import is_git_url
 
 class Progress(RemoteProgress):
     """Git Progree Handler"""
+
     def line_dropped(self, line):
         print line
 
@@ -166,7 +167,8 @@ class Loader(object):
             try:
                 if addon is None:
                     addon = url.split('/')[-1].split('.')[0]
-                Repo.clone_from(url, os.path.join(self.addon_path, addon), progress=Progress())
+                Repo.clone_from(url, os.path.join(
+                    self.addon_path, addon), progress=Progress())
                 return "'{}' successfully installed!".format(addon)
             except GitCommandError as e:
                 raise RuntimeError("{}".format(str(e)))

@@ -9,6 +9,8 @@ import sys
 import argcomplete
 from docker.errors import APIError, NotFound
 from requests import ConnectionError
+from didyoumean.didyoumean_api import (
+    didyoumean_enablehook, didyoumean_disablehook)
 
 from .lib.docker_client import Docker
 from .lib.Utils.logger import Logger
@@ -1633,6 +1635,7 @@ class Tsaotun(object):
 def cli(argv=None, **intruders):
     """Entry point of tsaotun"""
     try:
+        didyoumean_enablehook()
         tsaotun = Tsaotun(**intruders)
         tsaotun.send(argv)
         tsaotun.final()
@@ -1640,3 +1643,5 @@ def cli(argv=None, **intruders):
         import traceback
         Logger.logError(
             "Error response from tsaotun:\n------------------------------\n{}", traceback.format_exc())
+    finally:
+        didyoumean_disablehook()
