@@ -1,7 +1,7 @@
 """This module contains `tsaotun addon list` class"""
 
 import pystache
-from pytabwriter import TabWriter
+from py_tabwriter import TabWriter
 
 from .command import Command
 from ....lib.Addon.loader import Loader

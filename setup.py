@@ -28,16 +28,13 @@ def find_version(*file_paths):
         return version_match.group(1)
     raise RuntimeError('Unable to find version string')
 
-requirements = [
-    'docker >= 2.0.1',
-    'dockerpty >= 0.4.1',
-    'arrow >= 0.10.0',
-    'humanize >= 0.5.1',
-    'pystache >= 0.5.4',
-    'colorama >= 0.3.7',
-    'argcomplete >= 1.7.0',
-    'GitPython >= 2.1.1'
-]
+def read_requirements(requirements):
+    """Read the requirements from a requirements txt file"""
+    try:
+        with codecs.open(os.path.join(ROOT_DIR, requirements), 'r', 'utf-8') as f:
+            return f.read().splitlines()
+    except IOError:
+        raise IOError(os.getcwd())
 
 # Get the long description from the relevant file
 with codecs.open(os.path.join(ROOT_DIR, 'README.rst'), 'r', 'utf-8') as f:
@@ -53,9 +50,7 @@ setup(name='tsaotun',
       download_url='https://codeload.github.com/qazbnm456/tsaotun/tar.gz/0.8.3',
       keywords=['0.8.3'],
       packages=find_packages(),
-      install_requires=requirements,
-      dependency_links=[
-          'https://github.com/qazbnm456/pytabwriter/tarball/master#egg=pytabwriter-0.1.1'],
+      install_requires=read_requirements('requirements.txt'),
       entry_points="""
             [console_scripts]
             tsaotun=tsaotun.cli:cli

@@ -3,7 +3,7 @@
 import arrow
 import humanize
 import pystache
-from pytabwriter import TabWriter
+from py_tabwriter import TabWriter
 
 from .command import Command
 

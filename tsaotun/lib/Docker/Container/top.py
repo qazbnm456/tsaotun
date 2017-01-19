@@ -1,7 +1,7 @@
 """This module contains `docker container top` class"""
 
 import pystache
-from pytabwriter import TabWriter
+from py_tabwriter import TabWriter
 
 from .command import Command
 
