@@ -1,36 +1,50 @@
 """Addon Loader module"""
 
-from os import path
+import os
 import pkgutil
 import imp
 from ast import literal_eval
 from ConfigParser import RawConfigParser
+from git import RemoteProgress
 
 from ..Utils.deepgetattr import deepgetattr
 from ..Utils.hightlight import hightlight_python
 from ..Utils.urlutil import is_git_url
 
 
+class Progress(RemoteProgress):
+    """Git Progree Handler"""
+    def line_dropped(self, line):
+        print line
+
+    def update(self, op_code, cur_count, max_count=None, message=''):
+        print "{}/{}".format(cur_count, max_count)
+
+
 class Loader(object):
     """Addon Loader"""
     inspects = {}
 
-    def __init__(self, argparser=None, tsaotun_global_config="{}/Tsaotun/config.ini".format(path.expanduser("~")), addon_path="{}/Tsaotun/addons/".format(path.expanduser("~"))):
+    def __init__(self, argparser=None, tsaotun_global_config="{}/Tsaotun/config.ini".format(os.path.expanduser("~")), addon_path="{}/Tsaotun/addons/".format(os.path.expanduser("~"))):
         self.argparser = argparser
         self.__locate(addon_path)
-        if path.exists(tsaotun_global_config):
+        try:
+            if not os.path.exists(tsaotun_global_config):
+                open(tsaotun_global_config, 'a').close()
             self.tsaotun_global_config = tsaotun_global_config
-        else:
+        except OSError as e:
             raise RuntimeError(
-                "global config file is not found: {}.".format(tsaotun_global_config))
+                "{}".format(str(e)))
 
     def __locate(self, addon_path):
         """Locate addon path"""
-        if path.exists(addon_path):
+        try:
+            if not os.path.exists(addon_path):
+                os.makedirs(addon_path)
             self.addon_path = addon_path
-        else:
+        except OSError as e:
             raise RuntimeError(
-                "addon path is not found: {}.".format(addon_path))
+                "{}".format(str(e)))
 
     def __parse_args(self, configs):
         """Parsing __argparse__ and assign to argparser"""
@@ -148,16 +162,12 @@ class Loader(object):
     def install(self, url, addon):
         """Install an addon from a given url"""
         if is_git_url(url):
-            from git import GitCommandError
+            from git import (Repo, GitCommandError)
             try:
-                if addon:
-                    import os
-                    from git import Repo
-                    Repo.clone_from(url, os.path.join(self.addon_path, addon))
-                else:
-                    from git import Git
-                    Git(self.addon_path).clone(url)
-                return "Done!"
+                if addon is None:
+                    addon = url.split('/')[-1].split('.')[0]
+                Repo.clone_from(url, os.path.join(self.addon_path, addon), progress=Progress())
+                return "'{}' successfully installed!".format(addon)
             except GitCommandError as e:
                 raise RuntimeError("{}".format(str(e)))
         else:
@@ -165,11 +175,10 @@ class Loader(object):
 
     def rm(self, addon):
         """Remove an addon"""
-        import os
         import shutil
         try:
             shutil.rmtree(os.path.join(self.addon_path, addon))
-            return "Done!"
+            return "'{}' successfully removed!".format(addon)
         except OSError as e:
             raise RuntimeError("{}".format(str(e)))
 
