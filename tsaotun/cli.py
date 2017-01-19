@@ -1455,6 +1455,41 @@ class Tsaotun(object):
                                    metavar="ADDON",
                                    help="Addon to be inspected.")
 
+        # -----------------------ADDON-INSTALL------------------------
+
+        addon_install = addon.add_parser('install',
+                                         conflict_handler='resolve',
+                                         formatter_class=argparse.RawDescriptionHelpFormatter,
+                                         usage="%(prog)s ADDON",
+                                         description=textwrap.dedent('''\
+        Install an addon
+         '''))
+
+        addon_install.add_argument('addon',
+                                   type=str,
+                                   metavar="ADDON",
+                                   help="Addon to be installed. (Now only support to install addons from git)")
+
+        addon_install.add_argument('--alias',
+                                   type=str,
+                                   metavar="string",
+                                   help="Local name for plugin")
+
+        # -------------------------ADDON-RM---------------------------
+
+        addon_rm = addon.add_parser('rm',
+                                    conflict_handler='resolve',
+                                    formatter_class=argparse.RawDescriptionHelpFormatter,
+                                    usage="%(prog)s ADDON",
+                                    description=textwrap.dedent('''\
+        Remove an addon
+         '''))
+
+        addon_rm.add_argument('addon',
+                              type=str,
+                              metavar="ADDON",
+                              help="Addon to be removed.")
+
         # ---------------------------END------------------------------
 
         self.__addon()

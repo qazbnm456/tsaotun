@@ -8,6 +8,7 @@ from ConfigParser import RawConfigParser
 
 from ..Utils.deepgetattr import deepgetattr
 from ..Utils.hightlight import hightlight_python
+from ..Utils.urlutil import is_git_url
 
 
 class Loader(object):
@@ -143,6 +144,34 @@ class Loader(object):
             return hightlight_python(args)
         except KeyError as e:
             raise RuntimeError("No such addon: {}".format(str(e)))
+
+    def install(self, url, addon):
+        """Install an addon from a given url"""
+        if is_git_url(url):
+            from git import GitCommandError
+            try:
+                if addon:
+                    import os
+                    from git import Repo
+                    Repo.clone_from(url, os.path.join(self.addon_path, addon))
+                else:
+                    from git import Git
+                    Git(self.addon_path).clone(url)
+                return "Done!"
+            except GitCommandError as e:
+                raise RuntimeError("{}".format(str(e)))
+        else:
+            raise RuntimeError("Invalid URL: {}".format(url))
+
+    def rm(self, addon):
+        """Remove an addon"""
+        import os
+        import shutil
+        try:
+            shutil.rmtree(os.path.join(self.addon_path, addon))
+            return "Done!"
+        except OSError as e:
+            raise RuntimeError("{}".format(str(e)))
 
     def addons(self):
         """List addons"""

@@ -33,7 +33,7 @@
     - tsaotun image `inspect, ls, pull, build, save, rm, history`
     - tsaotun network `inspect, ls, create, rm, remove, connect, disconnect`
     - tsaotun volume `inspect, ls, create, rm, remove`
-    - tsaotun addon `ls, enable, disable, inspect`
+    - tsaotun addon `ls, enable, disable, inspect, install, rm`
 
 - Addon feature is testing right now, and each addon should has its own folder with `__init__.py` inside. Addon folder struture shows like:
 

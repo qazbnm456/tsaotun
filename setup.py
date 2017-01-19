@@ -35,7 +35,8 @@ requirements = [
     'humanize >= 0.5.1',
     'pystache >= 0.5.4',
     'colorama >= 0.3.7',
-    'argcomplete >= 1.7.0'
+    'argcomplete >= 1.7.0',
+    'GitPython >= 2.1.1'
 ]
 
 # Get the long description from the relevant file
