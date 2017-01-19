@@ -22,6 +22,7 @@
 - 0.8 -- Addon feature works, but is still under heavy development.
 - 0.8.1 -- Change name from 'Dokcer' to 'Tsaotun'.
 - 0.8.2 -- Addon feature is close to stable.
+- 0.8.3 -- Nevermind, just a typo fixed.
 
 <a name="status"></a>
 ## Status quo
