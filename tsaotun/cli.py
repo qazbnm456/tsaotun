@@ -593,6 +593,11 @@ class Tsaotun(object):
                                    dest="volumes_from",
                                    metavar="list",
                                    help="Mount volumes from the specified container(s) (default [])")
+        container_run.add_argument('--workdir', '-w',
+                                   type=str,
+                                   dest="working_dir",
+                                   metavar="string",
+                                   help="Working directory inside the container")
         container_run.add_argument('--help', action='help',
                                    help='show this help message and exit')
 

@@ -127,6 +127,10 @@ class Create(Command):
         stdin_open = args["stdin_open"]
         del args["stdin_open"]
 
+        # working_dir
+        working_dir = args["working_dir"]
+        del args["working_dir"]
+
         # create_networking_config
         network = args["network"]
         ipv4_address = args["ipv4_address"]
@@ -228,6 +232,7 @@ class Create(Command):
         args["tty"] = tty
         args["volume_driver"] = volume_driver
         args["stdin_open"] = stdin_open
+        args["working_dir"] = working_dir
 
     def eval_command(self, args):
         """Create host config for containers"""
