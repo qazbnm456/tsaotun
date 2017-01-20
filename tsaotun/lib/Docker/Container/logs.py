@@ -14,7 +14,16 @@ class Logs(Command):
         self.settings[self.name] = None
 
     def eval_command(self, args):
-        self.settings[self.name] = self.client.logs(**args) if self.client.logs(**args) else "\r"
+        if args["tail"] != 'all':
+            args["tail"] = int(args["tail"])
+        if args["follow"]:
+            args["stream"] = True
+            for line in self.client.logs(**args):
+                print line,
+            self.settings[self.name] = ""
+        else:
+            logs = self.client.logs(**args)
+            self.settings[self.name] = logs if logs else "\r"
 
     def final(self):
         return self.settings[self.name]

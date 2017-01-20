@@ -626,6 +626,24 @@ class Tsaotun(object):
                                     type=str,
                                     metavar="CONTAINER",
                                     help="Fetch the logs of a container")
+        container_logs.add_argument('--follow', '-f',
+                                    action="store_true",
+                                    dest="follow",
+                                    help="Follow log output")
+        container_logs.add_argument('--since',
+                                    type=int,
+                                    metavar="string",
+                                    default=0,
+                                    help="Show logs since timestamp")
+        container_logs.add_argument('--tail',
+                                    type=str,
+                                    metavar="string",
+                                    default="all",
+                                    help="Number of lines to show from the end of the logs (default \"all\")")
+        container_logs.add_argument('--timestamps', '-t',
+                                    action="store_true",
+                                    dest="timestamps",
+                                    help="Show timestamps")
 
         # ---------------------CONTAINER-STATS------------------------
 
