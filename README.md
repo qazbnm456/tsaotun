@@ -29,8 +29,8 @@
 ## Status quo
 
 - Currently support following commands:
-    - tsaotun `version, info, inspect, images, pull, build, run, save, logs, stats, rename, restart, exec, rmi, rm, ps, top, history, cp`
-    - tsaotun container `inspect, run, logs, stats, rename, restart, exec ,rm, ls, top, cp`
+    - tsaotun `version, info, inspect, images, pull, build, run, save, logs, stats, stop, rename, restart, exec, rmi, rm, ps, top, history, cp`
+    - tsaotun container `inspect, run, logs, stats, stop, rename, restart, exec ,rm, ls, top, cp`
     - tsaotun image `inspect, ls, pull, build, save, rm, history`
     - tsaotun network `inspect, ls, create, rm, remove, connect, disconnect`
     - tsaotun volume `inspect, ls, create, rm, remove`

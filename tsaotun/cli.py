@@ -671,6 +671,27 @@ class Tsaotun(object):
                                       metavar="NAME",
                                       help="New container name")
 
+        # ----------------------CONTAINER-STOP------------------------
+
+        container_stop = container.add_parser('stop',
+                                              conflict_handler='resolve',
+                                              formatter_class=argparse.RawDescriptionHelpFormatter,
+                                              usage="%(prog)s [OPTIONS] CONTAINER",
+                                              description=textwrap.dedent('''\
+        Stop one or more running containers
+         '''))
+        container_stop.add_argument('containers',
+                                    type=str,
+                                    metavar="CONTAINER",
+                                    nargs="+",
+                                    help="Containers to be stoped")
+        container_stop.add_argument('--time', '-t',
+                                    type=int,
+                                    metavar="int",
+                                    dest="timeout",
+                                    default=10,
+                                    help="Seconds to wait for stop before killing it (default 10)")
+
         # --------------------CONTAINER-RESTART-------------------------
 
         container_restart = container.add_parser('restart',
