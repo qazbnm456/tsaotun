@@ -38,9 +38,6 @@ class Ls(Command):
                 d[k].append(v)
             args["filters"] = dict(d)
 
-        # wait for PR: https://github.com/docker/docker-py/pull/1362
-        del args["filters"]
-
         nodes = self.client.networks(**args)
         if nodes:
             for node in nodes:

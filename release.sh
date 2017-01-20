@@ -5,7 +5,7 @@
 
 VERSION=$1
 REPO=qazbnm456/tsaotun
-GITHUB_REPO=git@github.com:$REPO
+GITHUB_REPO=https://github.com/$REPO
 
 if [ -z $VERSION ]; then
     echo "Usage: $0 VERSION [upload]"
@@ -18,5 +18,6 @@ if  [[ $2 == 'upload' ]]; then
     echo "##> Pushing tag to github"
     git push $GITHUB_REPO $VERSION || exit 1
     echo "##> Uploading sdist to pypi"
-    python setup.py sdist bdist_wheel upload
+    python setup.py sdist bdist_wheel upload -r pypi
+    echo "##> Done"
 fi
