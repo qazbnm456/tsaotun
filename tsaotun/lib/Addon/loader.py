@@ -55,7 +55,7 @@ class Loader(object):
                     parser = self.argparser[
                         config["namespace"]][config["position"]]
                     for action in config["actions"]:
-                        exec("parser.{}".format(action), {'parser': parser})
+                        exec("import textwrap; parser.{}".format(action), {'parser': parser})
                     self.argparser[config["namespace"]][
                         config["position"]] = parser
                 else:
@@ -63,7 +63,7 @@ class Loader(object):
                         parser = self.argparser[config["namespace"]][
                             config["position"]].choices.get(config["subcommand"])
                         for action in config["actions"]:
-                            exec("parser.{}".format(action), {'parser': parser})
+                            exec("import textwrap; parser.{}".format(action), {'parser': parser})
                         self.argparser[config["namespace"]][
                             config["position"]].choices.update({config["subcommand"]: parser})
                     else:
@@ -73,9 +73,9 @@ class Loader(object):
                         for i, action in enumerate(config["actions"]):
                             if i == 0:
                                 exec(
-                                    "import argparse; global subparser; subparser = parser.{}".format(action))
+                                    "import textwrap; import argparse; global subparser; subparser = parser.{}".format(action))
                             else:
-                                exec("global subparser; subparser.{}".format(action))
+                                exec("import textwrap; global subparser; subparser.{}".format(action))
                         self.argparser[config["namespace"]][
                             config["position"]] = parser
         else:
