@@ -2,11 +2,34 @@
 import codecs
 import os
 import re
+import shutil
+import platform
 
-from setuptools import setup, find_packages
+from setuptools import (setup, find_packages)
+from setuptools.command.install import install
 
 ROOT_DIR = os.path.dirname(__file__)
-SOURCE_DIR = os.path.join(ROOT_DIR)
+
+
+class PostInstallCommand(install):
+    """Post-installation for installation mode"""
+
+    def run(self):
+        install.run(self)
+        print "Installing auto completion of tsaotun to",
+        sys = platform.system()
+        if sys == 'Darwin':
+            dest = os.path.join(
+                os.popen('brew --prefix').read()[:-1], 'etc', 'bash_completion.d', 'tsaotun')
+            print dest
+            shutil.copy(os.path.join(ROOT_DIR, 'completion', 'tsaotun'), dest)
+        elif sys == 'Linux':
+            dest = os.path.join(
+                'etc', 'bash_completion.d', 'tsaotun')
+            print dest
+            shutil.copy(os.path.join(ROOT_DIR, 'completion', 'tsaotun'), dest)
+        else: # Windows, etc.
+            print "... \n Warning: {} is currently not supported. Skipped.".format(sys)
 
 
 def find_version(*file_paths):
@@ -28,6 +51,7 @@ def find_version(*file_paths):
         return version_match.group(1)
     raise RuntimeError('Unable to find version string')
 
+
 def read_requirements(requirements):
     """Read the requirements from a requirements txt file"""
     try:
@@ -47,8 +71,8 @@ setup(name='tsaotun',
       author='Boik Su',
       author_email='boik@tdohacker.org',
       url='https://github.com/qazbnm456/tsaotun',
-      download_url='https://codeload.github.com/qazbnm456/tsaotun/tar.gz/0.8.4',
-      keywords=['0.8.4'],
+      download_url='https://codeload.github.com/qazbnm456/tsaotun/tar.gz/0.9.0',
+      keywords=['0.9.0'],
       packages=find_packages(),
       install_requires=read_requirements('requirements.txt'),
       entry_points="""
@@ -68,5 +92,8 @@ setup(name='tsaotun',
           'Programming Language :: Python :: 2',
           'Programming Language :: Python :: 2.6',
           'Programming Language :: Python :: 2.7'
-      ]
+      ],
+      cmdclass={
+          'install': PostInstallCommand,
+      }
      )
