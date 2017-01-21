@@ -17,19 +17,24 @@ class PostInstallCommand(install):
     def run(self):
         install.run(self)
         print "Installing auto completion of tsaotun to",
+        src = os.path.join(ROOT_DIR, 'completion', 'tsaotun')
         sys = platform.system()
-        if sys == 'Darwin':
-            dest = os.path.join(
-                os.popen('brew --prefix').read()[:-1], 'etc', 'bash_completion.d', 'tsaotun')
-            print dest
-            shutil.copy(os.path.join(ROOT_DIR, 'completion', 'tsaotun'), dest)
-        elif sys == 'Linux':
-            dest = os.path.join(
-                'etc', 'bash_completion.d', 'tsaotun')
-            print dest
-            shutil.copy(os.path.join(ROOT_DIR, 'completion', 'tsaotun'), dest)
-        else: # Windows, etc.
-            print "... \n Warning: {} is currently not supported. Skipped.".format(sys)
+        try:
+            if sys == 'Darwin':
+                dest = os.path.join(
+                    os.popen('brew --prefix').read()[:-1], 'etc', 'bash_completion.d', 'tsaotun')
+                print dest
+                shutil.copy(src, dest)
+            elif sys == 'Linux':
+                dest = os.path.join(
+                    '/etc', 'bash_completion.d', 'tsaotun')
+                print dest
+                shutil.copy(src, dest)
+            else: # Windows, etc.
+                print "... \n Warning: {} is currently not supported. Skipped.".format(sys)
+        except IOError:
+            print "Permission denied: You probably want to copy '{}' to '{}' manually.".format(src, dest)
+        print "Tsaotun is installed successfully."
 
 
 def find_version(*file_paths):
