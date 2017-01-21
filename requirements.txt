@@ -7,4 +7,3 @@ colorama >= 0.3.7
 argcomplete >= 1.7.0
 GitPython >= 2.1.1
 Py_Tabwriter >= 0.1.3
-didyoumean-suggestions >= 0.4
