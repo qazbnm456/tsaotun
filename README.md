@@ -22,6 +22,7 @@
 - 0.8 -- Addon feature works, but is still under heavy development.
 - 0.9.0 -- Change name from 'Dokcer' to 'Tsaotun', and Addon feature is closer to stable (We have a sample [here](https://github.com/qazbnm456/toolbox)).
 - 0.9.1 -- Add `network -f/--filter` option, `container logs -f/--follow` option, and `container run -w/--workdir`.
+- 0.9.2 -- A hot fix patch for addon loader.
 
 <a name="status"></a>
 ## Status quo
