@@ -170,12 +170,12 @@ class Loader(object):
             try:
                 Repo.clone_from(url, dest, progress=Progress())
                 if 'requirements.txt' in os.listdir(dest):
-                    os.system('pip install -r requirements.txt')
+                    os.system("pip install -r {}".format(os.path.join(dest, 'requirements.txt')))
                 return "'{}' successfully installed!".format(addon)
             except GitCommandError as e:
                 raise RuntimeError("{}".format(str(e)))
             except IOError:
-                print "Please run 'pip install -r {}' to install the needed requirements, and the installation of {} is done.".format(os.path.join(dest, 'requirements.txt'), addon)
+                print "Please run 'pip install -r {}' to install the needed requirements, and then the installation of {} is done.".format(os.path.join(dest, 'requirements.txt'), addon)
         else:
             raise RuntimeError("Invalid URL: {}".format(url))
 
