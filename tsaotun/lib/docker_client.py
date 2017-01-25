@@ -25,7 +25,7 @@ class Docker(object):
     category = None
     command_flag = None
 
-    def __init__(self, host='127.0.0.1'):
+    def __init__(self, host):
         """Loading docker environments"""
         if platform.system() == 'Darwin' or platform.system() == 'Windows':
             try:
@@ -41,10 +41,10 @@ class Docker(object):
                 self.client = APIClient(**kwargs)
             except KeyError:
                 self.host = host
-                self.client = APIClient(base_url='unix://var/run/docker.sock')
+                self.client = APIClient(base_url=host)
         else:
             self.host = host
-            self.client = APIClient(base_url='unix://var/run/docker.sock')
+            self.client = APIClient(base_url=host)
         self.client.ping()
 
     def __dry(self):

@@ -33,6 +33,7 @@ class Tsaotun(object):
     level = 0
     verbose = 0
     remove = False
+    host = None
     parser = None
     args = None
     buf = None
@@ -85,6 +86,7 @@ class Tsaotun(object):
         self.parser.add_argument('--host', '-H',
                                  dest="host",
                                  metavar="list",
+                                 default="unix:///var/run/docker.sock",
                                  help="Daemon socket(s) to connect to (default [])")
         self.parser.add_argument('--verbose', '-v',
                                  action="count", dest="verbosity", default=0,
@@ -1562,7 +1564,8 @@ class Tsaotun(object):
 
     def set_docker(self, host):
         """Set docker host"""
-        self.docker = Docker(host)
+        self.host = host
+        self.docker = Docker(self.host)
         self.push(**self.addons)
 
     def set_color(self):
@@ -1642,14 +1645,6 @@ class Tsaotun(object):
         """Finalize the result"""
         if self.response.exception:
             for case in switch(self.response.exception):
-                if case(ConnectionError, AttributeError, ValueError):
-                    if self.color:
-                        Logger.logError(
-                            "Error response from tsaotun:\n------------------------------\n{}\n", self.response.message)
-                    else:
-                        Logger.log(
-                            "Error response from tsaotun:\n------------------------------\n{}\n", self.response.message)
-                    break
                 if case(APIError, NotFound):
                     if self.color:
                         Logger.logError(
@@ -1658,6 +1653,22 @@ class Tsaotun(object):
                         Logger.log(
                             "Error response from daemon:\n------------------------------\n{}\n", self.response.message)
                     break
+                if case(ConnectionError):
+                    if self.color:
+                        Logger.logError(
+                            "Error response from daemon:\n------------------------------\n{} (Cannot connect to the Docker daemon at {}. Is the docker daemon running?)\n", self.response.message, self.host)
+                    else:
+                        Logger.log(
+                            "Error response from daemon:\n------------------------------\n{} (Cannot connect to the Docker daemon at {}. Is the docker daemon running?)\n", self.response.message, self.host)
+                    break
+                if case(AttributeError, ValueError):
+                    if self.color:
+                        Logger.logError(
+                            "Error response from tsaotun:\n------------------------------\n{}\n", self.response.message)
+                    else:
+                        Logger.log(
+                            "Error response from tsaotun:\n------------------------------\n{}\n", self.response.message)
+                    break              
                 if case(RuntimeError):
                     if self.color:
                         Logger.logError(
