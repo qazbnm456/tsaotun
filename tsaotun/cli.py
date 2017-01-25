@@ -114,7 +114,7 @@ class Tsaotun(object):
         system_info = system.add_parser('info',
                                         conflict_handler='resolve',
                                         formatter_class=argparse.RawDescriptionHelpFormatter,
-                                        usage="%(prog)s",
+                                        usage="%(prog)s [OPTIONS]",
                                         description=textwrap.dedent('''\
         Display system-wide information
          '''))
@@ -125,7 +125,7 @@ class Tsaotun(object):
         system_events = system.add_parser('events',
                                           conflict_handler='resolve',
                                           formatter_class=argparse.RawDescriptionHelpFormatter,
-                                          usage="%(prog)s",
+                                          usage="%(prog)s [OPTIONS]",
                                           description=textwrap.dedent('''\
         Get real time events from the server
          '''))
