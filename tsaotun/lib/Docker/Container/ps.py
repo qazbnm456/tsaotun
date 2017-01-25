@@ -40,6 +40,8 @@ class Ps(Command):
             fm = args["format"]
         del args["format"]
 
+        args["filters"] = dict(args["filters"]) if args["filters"] else None
+
         nodes = self.client.containers(**args)
         for node in nodes:
             node["Id"] = node["Id"][:12]

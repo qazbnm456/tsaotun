@@ -120,6 +120,35 @@ class Tsaotun(object):
          '''))
         self.argparser["Info"] = __pairs(system_info, None)
 
+        # ---------------------------EVENTS---------------------------
+
+        system_events = system.add_parser('events',
+                                          conflict_handler='resolve',
+                                          formatter_class=argparse.RawDescriptionHelpFormatter,
+                                          usage="%(prog)s",
+                                          description=textwrap.dedent('''\
+        Get real time events from the server
+         '''))
+        system_events.add_argument('--filter', '-f',
+                                   type=lambda kv: kv.split("=", 1),
+                                   action="append",
+                                   dest="filters",
+                                   metavar="filter",
+                                   help="Filter output based on conditions provided")
+        system_events.add_argument('--format',
+                                   type=str,
+                                   metavar="string",
+                                   help="Format the output using the given Python template")
+        system_events.add_argument('--since',
+                                   type=int,
+                                   metavar="string",
+                                   help="Show all events created since timestamp")
+        system_events.add_argument('--until',
+                                   type=int,
+                                   metavar="string",
+                                   help="Stream events until this timestamp")
+        self.argparser["Events"] = __pairs(system_events, None)
+
         # ---------------------------INSPECT--------------------------
 
         system_inspect = system.add_parser(
@@ -179,7 +208,8 @@ class Tsaotun(object):
                                   dest="all",
                                   help="Show all containers (default shows just running)")
         container_ls.add_argument('--filter', '-f',
-                                  type=dict,
+                                  type=lambda kv: kv.split("=", 1),
+                                  action="append",
                                   dest="filters",
                                   metavar="filter",
                                   help="Filter output based on conditions provided (default [])")
@@ -205,7 +235,8 @@ class Tsaotun(object):
                                   dest="all",
                                   help="Show all containers (default shows just running)")
         container_ps.add_argument('--filter', '-f',
-                                  type=dict,
+                                  type=lambda kv: kv.split("=", 1),
+                                  action="append",
                                   dest="filters",
                                   metavar="filter",
                                   help="Filter output based on conditions provided (default [])")
@@ -232,7 +263,8 @@ class Tsaotun(object):
                                     dest="all",
                                     help="Show all containers (default shows just running)")
         container_list.add_argument('--filter', '-f',
-                                    type=dict,
+                                    type=lambda kv: kv.split("=", 1),
+                                    action="append",
                                     dest="filters",
                                     metavar="filter",
                                     help="Filter output based on conditions provided (default [])")
@@ -874,6 +906,7 @@ class Tsaotun(object):
                               type=lambda kv: kv.split("=", 1),
                               action="append",
                               dest="filters",
+                              metavar="filter",
                               help="Filter output based on conditions provided")
         image_ls.add_argument('--format',
                               type=str,
@@ -904,6 +937,7 @@ class Tsaotun(object):
                                   type=lambda kv: kv.split("=", 1),
                                   action="append",
                                   dest="filters",
+                                  metavar="filter",
                                   help="Filter output based on conditions provided")
         image_images.add_argument('--format',
                                   type=str,
@@ -934,6 +968,7 @@ class Tsaotun(object):
                                 type=lambda kv: kv.split("=", 1),
                                 action="append",
                                 dest="filters",
+                                metavar="filter",
                                 help="Filter output based on conditions provided")
         image_list.add_argument('--format',
                                 type=str,
@@ -1668,7 +1703,7 @@ class Tsaotun(object):
                     else:
                         Logger.log(
                             "Error response from tsaotun:\n------------------------------\n{}\n", self.response.message)
-                    break              
+                    break
                 if case(RuntimeError):
                     if self.color:
                         Logger.logError(
