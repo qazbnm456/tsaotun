@@ -31,13 +31,16 @@ class Ps(Command):
 
     def eval_command(self, args):
         tw = TabWriter()
-        if args["format"] is None:
-            tw.padding = [8, 8, 3, 7, 8, 11]
-            fm = self.defaultTemplate
-            tw.writeln(
-                "CONTAINER ID\tIMAGE\tCOMMAND\tCREATED\tSTATUS\tPORTS\tNAMES")
+        if args["quiet"]:
+            fm = "{{Id}}"
         else:
-            fm = args["format"]
+            if args["format"] is None:
+                tw.padding = [8, 8, 3, 7, 8, 11]
+                fm = self.defaultTemplate
+                tw.writeln(
+                    "CONTAINER ID\tIMAGE\tCOMMAND\tCREATED\tSTATUS\tPORTS\tNAMES")
+            else:
+                fm = args["format"]
         del args["format"]
 
         args["filters"] = dict(args["filters"]) if args["filters"] else None
@@ -45,11 +48,15 @@ class Ps(Command):
         nodes = self.client.containers(**args)
         for node in nodes:
             node["Id"] = node["Id"][:12]
-            node["Command"] = (node["Command"][
-                :17] + "...") if len(node["Command"]) >= 20 else node["Command"]
-            node["Created"] = arrow.get(node["Created"]).humanize()
-            node["Ports"] = self.process_ports(node['Ports'])
-            node["Names"] = ', '.join([e[1:] for e in node["Names"]])
+            if node.get("Command"):
+                node["Command"] = (node["Command"][
+                    :17] + "...") if len(node["Command"]) >= 20 else node["Command"]
+            if node.get("Created"):
+                node["Created"] = arrow.get(node["Created"]).humanize()
+            if node.get("Ports"):
+                node["Ports"] = self.process_ports(node['Ports'])
+            if node.get("Names"):
+                node["Names"] = ', '.join([e[1:] for e in node["Names"]])
             tw.writeln(pystache.render(fm, node))
         self.settings[self.name] = str(tw)
 

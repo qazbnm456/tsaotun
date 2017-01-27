@@ -1011,14 +1011,87 @@ class Tsaotun(object):
                                 dest="buildargs",
                                 metavar="list",
                                 help="Set build-time variables (default [])")
-        image_pull.add_argument('--tag', '-t',
+        image_pull.add_argument('--cache-from',
                                 type=str,
-                                dest="tag",
-                                help="Name and optionally a tag in the 'name:tag' format")
+                                action="append",
+                                dest="cachefrom",
+                                metavar="stringSlice",
+                                help="Images to consider as cache sources")
+        image_pull.add_argument('--compress',
+                                action="store_true",
+                                dest="gzip",
+                                help="Compress the build context using gzip")
+        image_pull.add_argument('--cgroup-parent',
+                                type=str,
+                                dest="cgroup_parent",
+                                metavar="string",
+                                help="Optional parent cgroup for the container")
+        image_pull.add_argument('--cpu-period',
+                                type=int,
+                                dest="cpu_period",
+                                metavar="int",
+                                help="Limit CPU CFS (Completely Fair Scheduler) period")
+        image_pull.add_argument('--cpu-quota',
+                                type=int,
+                                dest="cpu_quota",
+                                metavar="int",
+                                help="Limit CPU CFS (Completely Fair Scheduler) quota")
+        image_pull.add_argument('--cpu-shares', '-c',
+                                type=int,
+                                dest="cpu_shares",
+                                metavar="int",
+                                help="CPU shares (relative weight)")
+        image_pull.add_argument('--cpuset-cpus',
+                                type=str,
+                                dest="cpuset_cpus",
+                                metavar="string",
+                                help="CPUs in which to allow execution (0-3, 0,1)")
+        image_pull.add_argument('--cpuset-mems',
+                                type=str,
+                                dest="cpuset_mems",
+                                metavar="string",
+                                help="MEMs in which to allow execution (0-3, 0,1)")
+        image_pull.add_argument('--force-rm',
+                                action="store_true",
+                                dest="forcerm",
+                                help="Always remove intermediate containers")
+        image_pull.add_argument('--label',
+                                type=lambda kv: kv.split("=", 1),
+                                action="append",
+                                dest="labels",
+                                metavar="list",
+                                help="Set metadata for an image (default [])")
+        image_pull.add_argument('--memory', '-m',
+                                type=str,
+                                dest="mem_limit",
+                                metavar="string",
+                                help="Memory limit")
+        image_pull.add_argument('--memory-swap',
+                                type=str,
+                                dest="memswap_limit",
+                                metavar="string",
+                                help="Swap limit equal to memory plus swap: '-1' to enable unlimited swap")
+        image_pull.add_argument('--no-cache',
+                                action="store_true",
+                                dest="nocache",
+                                help="Do not use cache when building the image")
+        image_pull.add_argument('--quiet', '-q',
+                                action="store_true",
+                                dest="quiet",
+                                help="Suppress the build output and print image ID on success")
         image_pull.add_argument('--rm',
                                 action="store_true",
                                 default=True,
                                 help="Remove intermediate containers after a successful build (default true)")
+        image_pull.add_argument('--shm-size',
+                                dest="shmsize",
+                                default="64MB",
+                                metavar="string",
+                                help="Size of /dev/shm, default value is 64MB")
+        image_pull.add_argument('--tag', '-t',
+                                type=str,
+                                dest="tag",
+                                help="Name and optionally a tag in the 'name:tag' format")
 
         # ------------------------IMAGE-SAVE--------------------------
 
