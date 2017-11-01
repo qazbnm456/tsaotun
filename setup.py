@@ -30,7 +30,7 @@ class PostInstallCommand(install):
                     '/etc', 'bash_completion.d', 'tsaotun')
                 print dest
                 shutil.copy(src, dest)
-            else: # Windows, etc.
+            else:  # Windows, etc.
                 print "... \n Warning: {} is currently not supported. Skipped.".format(sys)
         except IOError:
             print "Permission denied: You probably want to copy '{}' to '{}' manually.".format(src, dest)
@@ -101,4 +101,4 @@ setup(name='tsaotun',
       cmdclass={
           'install': PostInstallCommand,
       }
-     )
+      )

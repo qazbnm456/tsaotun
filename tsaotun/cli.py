@@ -293,7 +293,7 @@ class Tsaotun(object):
         container_run.add_argument('command',
                                    type=str,
                                    metavar="COMMAND",
-                                   nargs="*",
+                                   nargs=argparse.REMAINDER,
                                    help="Command to run")
         container_run.add_argument('--add-host',
                                    type=lambda kv: kv.split(":", 1),
@@ -781,10 +781,10 @@ class Tsaotun(object):
                                     type=str,
                                     metavar="CONTAINER",
                                     help="Target container where exec instance will be created")
-        container_exec.add_argument('cmd',
+        container_exec.add_argument('command',
                                     type=str,
                                     metavar="COMMAND",
-                                    nargs="+",
+                                    nargs=argparse.REMAINDER,
                                     help="Command to be executed")
         container_exec.add_argument('--detach', '-d',
                                     action="store_true",

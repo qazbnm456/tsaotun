@@ -21,7 +21,8 @@ class Exec_create(Command):
         try:
             detach = args["detach"]
             del args["detach"]
-            self.settings[self.name] = dockerpty.exec_create(self.client, args["container"], args["cmd"], interactive=args["interactive"])
+            self.settings[self.name] = dockerpty.exec_create(
+                self.client, args["container"], args["command"], interactive=args["interactive"])
             args["detach"] = detach
         except APIError as e:
             raise e
