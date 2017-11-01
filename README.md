@@ -74,7 +74,7 @@ $HOME
 
 | Linux | Windows | MacOSX |
 |------------------|---------|---------|
-| ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-17.10.0-ce-blue.svg) | ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-17.10.0-ce-blue.svg) | ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-17.10.0-ce-blue.svg) |
+| ![Compatibility Docker Version](https://img.shields.io/badge/docker-17.10.0--ce-blue.svg) | ![Compatibility Docker Version](https://img.shields.io/badge/docker-17.10.0--ce-blue.svg) | ![Compatibility Docker Version](https://img.shields.io/badge/docker-17.10.0--ce-blue.svg) |
 
 Wanna enrich the possibilities that tsaotun can inspire? Send pull requests or issues immediately!
 
