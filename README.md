@@ -14,16 +14,9 @@
 [![asciicast](https://asciinema.org/a/99422.png)](https://asciinema.org/a/99422?autoplay=1)
 
 <a name="releases"></a>
-## Releases
+## Latest Releases
 
-- 0.5 -- First usable version :tada:
-- 0.6 -- Fix format problems within lots of commands
-- 0.7 -- Code cleanup and move root commands into their command groups (such as container, image, network, and etc)
-- 0.8 -- Addon feature works, but is still under heavy development.
-- 0.9.0 -- Change name from 'Dokcer' to 'Tsaotun', and Addon feature is closer to stable (We have a sample [here](https://github.com/qazbnm456/toolbox)).
-- 0.9.1 -- Add `network -f/--filter` option, `container logs -f/--follow` option, and `container run -w/--workdir`.
-- 0.9.2 -- A hot fix patch for addon loader.
-- 0.9.3 -- Add `events` commmand, and fix some option problems.
+- 0.9.3 - Add `events` commmand, and fix some option problems
 
 <a name="status"></a>
 ## Status quo
@@ -81,7 +74,7 @@ $HOME
 
 | Linux | Windows | MacOSX |
 |------------------|---------|---------|
-| ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-1.13.0-blue.svg) | ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-1.13.0-blue.svg) | ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-1.13.0-blue.svg) |
+| ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-17.10.0-ce-blue.svg) | ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-17.10.0-ce-blue.svg) | ![Compatibility Docker Version](https://img.shields.io/badge/docker%20version-17.10.0-ce-blue.svg) |
 
 Wanna enrich the possibilities that tsaotun can inspire? Send pull requests or issues immediately!
 
