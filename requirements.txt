@@ -1,9 +1,9 @@
-docker >= 2.5.1
+docker >= 2.6.1
 dockerpty >= 0.4.1
-arrow >= 0.10.0
+arrow >= 0.12.0
 humanize >= 0.5.1
 pystache >= 0.5.4
 colorama >= 0.3.9
-argcomplete >= 1.9.2
+argcomplete >= 1.9.3
 GitPython >= 2.1.7
 Py_Tabwriter >= 0.1.3

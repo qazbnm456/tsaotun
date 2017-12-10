@@ -17,6 +17,7 @@
 ## Latest Releases
 
 - 0.9.3 - Add `events` commmand, and fix some option problems
+- 0.9.4 - Correct the value of `since` argument of `logs` command
 
 <a name="status"></a>
 ## Status quo
