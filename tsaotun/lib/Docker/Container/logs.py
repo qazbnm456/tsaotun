@@ -14,6 +14,9 @@ class Logs(Command):
         self.settings[self.name] = None
 
     def eval_command(self, args):
+        if args["since"] == 0:
+            # since cannot be 0, ref: https://github.com/docker/docker-py/blob/9d23278643cb6b4a097e833915a73ab9a2eba10d/docker/api/container.py#L837
+            args["since"] = None
         if args["tail"] != 'all':
             args["tail"] = int(args["tail"])
         if args["follow"]:
